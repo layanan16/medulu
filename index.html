@@ -373,6 +373,21 @@
   .ar.db .db-ultah:disabled{opacity:.5;cursor:not-allowed;box-shadow:none}
   .ultah-tgl{text-align:center;font-size:.78rem;color:var(--abu);margin:0 0 12px}
 
+  /* ---- Pratinjau dokumen PDF ---- */
+  .pdf-latar{position:absolute;inset:0;z-index:82;display:flex;flex-direction:column;background:#475569;opacity:0;visibility:hidden;transition:opacity .2s ease,visibility 0s linear .2s}
+  .pdf-latar.tampil{opacity:1;visibility:visible;transition:opacity .2s ease,visibility 0s}
+  .pdf-kepala{flex:none;display:flex;align-items:center;gap:8px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));background:#0b2a6f;color:#fff}
+  .pdf-kepala span{flex:1;min-width:0;font-size:.88rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pdf-kepala button{flex:none;width:36px;height:36px;border:0;border-radius:10px;background:rgba(255,255,255,.14);color:#fff;font-size:.9rem;cursor:pointer}
+  .pdf-kepala button:disabled{opacity:.35}
+  .pdf-isi{flex:1;overflow:auto;padding:12px;-webkit-overflow-scrolling:touch}
+  .pdf-isi canvas{display:block;margin:0 auto 12px;background:#fff;box-shadow:0 6px 18px rgba(0,0,0,.35);max-width:none}
+  .pdf-info{color:#e2e8f0;text-align:center;font-size:.82rem;line-height:1.6;padding:40px 16px}
+  .pdf-aksi{flex:none;display:flex;gap:10px;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));background:#fff}
+  .pdf-aksi button{flex:1;border:0;border-radius:12px;padding:12px 6px;font:inherit;font-size:.84rem;font-weight:600;cursor:pointer;background:#eef3fb;color:var(--biru-tua)}
+  .pdf-aksi .utama{background:linear-gradient(135deg,#1558c9,#2f86ec);color:#fff}
+  .pdf-aksi button:disabled{opacity:.45;cursor:not-allowed}
+
   /* ---- Laporan Kondusifitas (modal Laporan & Cetak Laporan) ---- */
   .lap-bln{text-align:center;font-size:.74rem;color:var(--abu);margin:-4px 0 12px}
   .lap-st{border-radius:10px;padding:8px 12px;font-size:.78rem;line-height:1.45;margin:2px 0 10px}
@@ -1069,6 +1084,20 @@
           <button type="submit" class="simpan" id="mfSimpan">Simpan</button>
         </div>
       </form>
+    </div>
+  </div>
+  <!-- Pratinjau dokumen PDF (laporan & arsip surat): dilihat dulu, unduh bila perlu -->
+  <div class="pdf-latar" id="pdfLatar" aria-hidden="true">
+    <div class="pdf-kepala">
+      <button type="button" id="pdfKembali" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
+      <span id="pdfJudul">Pratinjau Dokumen</span>
+      <button type="button" id="pdfKecil" aria-label="Perkecil" title="Perkecil"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+      <button type="button" id="pdfBesar" aria-label="Perbesar" title="Perbesar"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+    </div>
+    <div class="pdf-isi" id="pdfIsi"></div>
+    <div class="pdf-aksi">
+      <button type="button" id="pdfTutup">Tutup</button>
+      <button type="button" id="pdfUnduh" class="utama" disabled><i class="fa-solid fa-download"></i> Unduh</button>
     </div>
   </div>
   <!-- Lightbox peta (Profil RT) -->
@@ -2021,7 +2050,8 @@ function arBadge(jenis){
 function arNum(v){ const n = parseFloat(String(v ?? '').replace(',','.')); return isNaN(n) ? 0 : n; }
 
 /* Buka arsip surat (bucket privat -> tautan sementara 5 menit) */
-async function arBukaArsip(path){
+async function arBukaArsip(path, nama){
+  if (/\.pdf$/i.test(String(path))) return pdfBukaDariArsip(path, nama);   // PDF: tampil dulu, unduh bila perlu
   const w = window.open('', '_blank');   // dibuka dulu agar tidak diblokir browser
   try{
     const { data, error } = await db.storage.from('arsip_surat').createSignedUrl(path, 300);
@@ -2062,7 +2092,7 @@ function renderArsipAset(isi){
     let r1='<tr><th>No. Surat</th>', r2='<tr><th>Tanggal</th>', r3='<tr><th>Jenis Surat</th>', r4='<tr><th>Perihal</th>', r5='<tr><th>Arsip</th>';
     list.forEach(it => {
       const btn = it.arsipPath
-        ? `<button type="button" class="ar-btn" data-arsip="${esc(it.arsipPath)}"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Arsip</button>`
+        ? `<button type="button" class="ar-btn" data-arsip="${esc(it.arsipPath)}" data-nama="${esc(String(it.noSurat || 'Arsip surat').replace(/[\/\\:*?"<>|]+/g, '-'))}.pdf"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Arsip</button>`
         : '<span style="color:#000">-</span>';
       r1 += `<td class="fw6">${esc(it.noSurat || '-')}</td>`;
       r2 += `<td class="nw">${esc(arFmtTgl(it.tanggal))}</td>`;
@@ -2182,7 +2212,7 @@ function renderArsipAset(isi){
 
   root.addEventListener('click', (e) => {
     const k = e.target.closest('.ar-stat'); if (k){ pindahTab(k.dataset.tab); return; }
-    const b = e.target.closest('[data-arsip]'); if (b) arBukaArsip(b.getAttribute('data-arsip'));
+    const b = e.target.closest('[data-arsip]'); if (b) arBukaArsip(b.getAttribute('data-arsip'), b.getAttribute('data-nama'));
   });
   el('arCari').addEventListener('input', saring);
   window.addEventListener('resize', () => { if (tab === 'sp') batasiTinggiSp(); });
@@ -2798,6 +2828,89 @@ async function formLaporan(){
   muat();
 }
 
+/* ---------- Pratinjau PDF (pdf.js): dokumen tampil sebagai halaman siap cetak, unduh sesuai pilihan pengguna ---------- */
+const PDFJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+const PDFJS_WORKER = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const PDF_ZOOM = [1, 1.5, 2, 3];
+let pdfBlob = null, pdfNama = 'dokumen.pdf', pdfDok = null, pdfZ = 0, pdfReq = 0;
+
+function pdfAtur(){
+  $('pdfKecil').disabled = pdfZ <= 0 || !pdfDok;
+  $('pdfBesar').disabled = pdfZ >= PDF_ZOOM.length - 1 || !pdfDok;
+  $('pdfUnduh').disabled = !pdfBlob;
+}
+function pdfInfo(html){ $('pdfIsi').innerHTML = `<div class="pdf-info">${html}</div>`; }
+function pdfTutupLayar(){
+  $('pdfLatar').classList.remove('tampil'); $('pdfLatar').setAttribute('aria-hidden', 'true');
+  pdfReq++; pdfDok = null; pdfBlob = null; $('pdfIsi').innerHTML = '';
+}
+function pdfBukaLayar(judul){
+  pdfReq++; pdfBlob = null; pdfDok = null; pdfZ = 0;
+  $('pdfJudul').textContent = judul || 'Pratinjau Dokumen';
+  pdfInfo(LAP_SPIN + 'Memuat dokumen…'); pdfAtur();
+  $('pdfLatar').classList.add('tampil'); $('pdfLatar').setAttribute('aria-hidden', 'false');
+  bukaLapisan(pdfTutupLayar);
+}
+async function pdfGambarHalaman(){
+  const id = ++pdfReq, dok = pdfDok; if (!dok) return;
+  const wadah = $('pdfIsi'); wadah.innerHTML = '';
+  const lebar = Math.max(240, wadah.clientWidth - 24) * PDF_ZOOM[pdfZ];
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  for (let i = 1; i <= dok.numPages; i++){
+    const hal = await dok.getPage(i);
+    if (id !== pdfReq) return;
+    const asli = hal.getViewport({ scale: 1 });
+    const vp = hal.getViewport({ scale: lebar / asli.width * dpr });
+    const c = document.createElement('canvas');
+    c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+    c.style.width = Math.floor(lebar) + 'px'; c.style.height = Math.floor(lebar * asli.height / asli.width) + 'px';
+    wadah.appendChild(c);
+    await hal.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+    if (id !== pdfReq) return;
+  }
+}
+async function pdfTampilkan(blob, nama){
+  const id = pdfReq;
+  pdfBlob = blob; pdfNama = nama || 'dokumen.pdf'; pdfAtur();
+  try{
+    await lapMuatSkrip(PDFJS_URL);
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+    const dok = await window.pdfjsLib.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+    if (id !== pdfReq) return;
+    pdfDok = dok; pdfAtur();
+    await pdfGambarHalaman();
+  }catch(e){
+    console.error(e);
+    if (id === pdfReq) pdfInfo('Pratinjau tidak dapat ditampilkan.<br>Gunakan tombol <b>Unduh</b> untuk menyimpan dan membuka dokumen.');
+  }
+}
+function pdfBuka(blob, nama, judul){            // dokumen sudah ada di memori (baru dicetak)
+  pdfBukaLayar(judul || nama); return pdfTampilkan(blob, nama);
+}
+async function pdfBukaDariArsip(path, nama){    // dokumen diambil dari penyimpanan
+  pdfBukaLayar(nama || 'Arsip surat');
+  const id = pdfReq;
+  try{
+    const { data, error } = await db.storage.from('arsip_surat').download(path);
+    if (error || !data) throw new Error('ditolak');
+    if (id !== pdfReq) return;
+    await pdfTampilkan(data, nama || String(path).split('/').pop());
+  }catch(e){
+    console.error(e);
+    if (id === pdfReq) pdfInfo('Arsip belum dapat dibuka.');
+  }
+}
+$('pdfKembali').addEventListener('click', kembaliLapisan);
+$('pdfTutup').addEventListener('click', kembaliLapisan);
+$('pdfKecil').addEventListener('click', () => { if (pdfZ > 0 && pdfDok){ pdfZ--; pdfAtur(); pdfGambarHalaman(); } });
+$('pdfBesar').addEventListener('click', () => { if (pdfZ < PDF_ZOOM.length - 1 && pdfDok){ pdfZ++; pdfAtur(); pdfGambarHalaman(); } });
+$('pdfUnduh').addEventListener('click', () => {
+  if (!pdfBlob) return;
+  const url = URL.createObjectURL(pdfBlob), a = document.createElement('a');
+  a.href = url; a.download = pdfNama; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+});
+
 /* ---------- Pembuatan PDF (jsPDF + autoTable + QR) ---------- */
 const lapSkrip = {};
 function lapMuatSkrip(url){
@@ -2838,7 +2951,7 @@ async function lapBuatPdf(awal, akhir, rows, nomor, dicetak){
   });
 
   // Blok tanda tangan: QR di kiri, keterangan di kanan, diletakkan di tengah halaman
-  const baris = [[dicetak, 'normal', 8], [LAP.nama, 'bold', 9.5], [LAP.jabatan, 'normal', 8], [LAP.arsip, 'italic', 6]];
+  const baris = [[dicetak, 'normal', 8], [LAP.nama, 'bold', 9.5], [LAP.jabatan, 'normal', 8], [LAP.arsip, 'normal', 6]];
   let lebar = 0;
   baris.forEach(b => { doc.setFont('helvetica', b[1]); doc.setFontSize(b[2]); lebar = Math.max(lebar, doc.getTextWidth(bersih(b[0]))); });
   const qrS = LAP.qrMm, gap = 3.2, x0 = (W - (qrS + gap + lebar)) / 2;
@@ -2860,7 +2973,7 @@ async function lapBuatPdf(awal, akhir, rows, nomor, dicetak){
 
 /* ---------- Modal Cetak Laporan ---------- */
 async function formCetakLaporan(){
-  let sibuk = false, req = 0, pathTerakhir = '';
+  let sibuk = false, req = 0, pathTerakhir = '', namaTerakhir = '', blobTerakhir = null, pathBlob = '';
   const aktif = () => mfNavFn === navFn;
   const tglValid = () => { const a = $('lapAwal').value, b = $('lapAkhir').value; return !!a && !!b && a <= b; };
   const aturTombol = () => {
@@ -2926,9 +3039,12 @@ async function formCetakLaporan(){
       if (error) throw new Error('Gagal mengunggah PDF: ' + error.message);
       const s2 = await kirimRpc('lapkon_selesai_cetak', { id:m.id, path, nama });
       if (!s2.ok){ try{ await db.storage.from('arsip_surat').remove([path]); }catch(e){} throw new Error(s2.pesan || 'Gagal mencatat arsip.'); }
-      selesai = true; pathTerakhir = path; arData = null;      // daftar Info Arsip & Aset dimuat ulang
-      if (aktif()) lapInfo('success', 'PDF berhasil dibuat dan diarsipkan.<br>No. ' + esc(m.nomor) +
-        '<br><button type="button" class="lap-link" data-mf="bukaarsip"><i class="fa-solid fa-file-pdf"></i> ' + esc(nama) + '</button>');
+      selesai = true; pathTerakhir = path; namaTerakhir = nama; blobTerakhir = blob; pathBlob = path; arData = null;   // daftar Info Arsip & Aset dimuat ulang
+      if (aktif()){
+        lapInfo('success', 'PDF berhasil dibuat dan diarsipkan.<br>No. ' + esc(m.nomor) +
+          '<br><button type="button" class="lap-link" data-mf="bukaarsip"><i class="fa-solid fa-file-pdf"></i> ' + esc(nama) + '</button>');
+        pdfBuka(blob, nama, 'Laporan No. ' + m.nomor);          // tampil dulu sebagai dokumen; unduh sesuai pilihan pengguna
+      }
     }catch(err){
       console.error(err);
       if (idPesan && !selesai) await kirimRpc('lapkon_batal_cetak', { id:idPesan });      // lepaskan nomor yang dipesan
@@ -2939,7 +3055,10 @@ async function formCetakLaporan(){
   };
 
   const navFn = (a) => {
-    if (a === 'bukaarsip') return pathTerakhir && arBukaArsip(pathTerakhir);
+    if (a === 'bukaarsip'){
+      if (!pathTerakhir) return;
+      return (blobTerakhir && pathBlob === pathTerakhir) ? pdfBuka(blobTerakhir, namaTerakhir) : pdfBukaDariArsip(pathTerakhir, namaTerakhir);
+    }
     if (sibuk) return;
     if (a === 'preview'){ sembunyiTerakhir(); return preview(); }
     if (a === 'cetak') return cetak();
@@ -2952,7 +3071,7 @@ async function formCetakLaporan(){
   if (idT !== req || !aktif() || !t.ok) return;
   const kotak = $('lapTerakhir'); kotak.style.display = '';
   if (!t.ada){ kotak.textContent = 'Belum ada laporan yang pernah dicetak.'; return; }
-  pathTerakhir = t.arsip_path || '';
+  pathTerakhir = t.arsip_path || ''; namaTerakhir = t.nama || '';
   kotak.innerHTML = '<div style="color:var(--abu)">Periode cetak terakhir</div>' +
     '<div class="fw6">' + esc(lapTglPanjang(t.awal)) + ' s.d. ' + esc(lapTglPanjang(t.akhir)) + '</div>' +
     '<div>Dicetak ' + esc(t.waktu) + ' &middot; ' +
