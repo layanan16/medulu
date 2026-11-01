@@ -373,6 +373,16 @@
   .pesan-err{background:#fdecec;color:#b42318;border-radius:12px;padding:10px 12px;font-size:.78rem;margin-top:12px}
   .peringatan-nik{color:#b42318;font-size:.72rem;margin-top:4px}
   .md-tombol:disabled{background:#94a3b8;cursor:not-allowed}
+  /* ---- Administrasi > Laporan & Cetak Laporan ---- */
+  .lp-bulan{text-align:center;font-size:.74rem;color:var(--abu);margin:-6px 0 12px}
+  .lp-info{background:#f1f6ff;border:1px solid #dbe5f5;border-radius:12px;padding:10px 12px;font-size:.74rem;color:var(--teks);margin-bottom:12px;line-height:1.5}
+  .lp-info b{color:var(--biru-tua)}
+  .lp-info .md-link{margin-top:6px}
+  .lp-pre{max-height:38vh;overflow:auto;border:1px solid #e2e8f0;border-radius:12px;margin-top:10px}
+  .lp-pre table{width:100%;border-collapse:collapse;font-size:.7rem}
+  .lp-pre th{position:sticky;top:0;background:#eef3fb;color:var(--biru-tua);text-align:left;padding:7px 8px;white-space:nowrap}
+  .lp-pre td{padding:7px 8px;border-top:1px solid #eef2f7;vertical-align:top;overflow-wrap:anywhere}
+  #lpStatus .pesan-ok,#lpStatus .pesan-err,#lpStatus .lp-info{margin:10px 0 0}
   .notif-judul{font-size:.86rem;font-weight:600;color:var(--biru-tua);margin:4px 2px 10px}
   .notif-item{background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:0 6px 16px rgba(11,42,111,.08)}
   .notif-item.baru{border-left:4px solid #e53935}
@@ -2480,7 +2490,8 @@ function renderKorespondensi(isi){
     ${baris('notula','c3','fa-file-pen','Notula','Pencatatan proses dan hasil rapat')}
     ${baris('pengaduan','c11','fa-comment-dots','Pengaduan','Pencatatan pengaduan warga')}
     ${baris('inventaris','c8','fa-boxes-stacked','Inventaris','Pendataan inventaris dan aset RT')}
-    ${baris('laporan','c9','fa-file-lines','Laporan','Kondisi wilayah dan kegiatan RT','sub')}
+    ${baris('laporan','c9','fa-file-lines','Laporan','Input laporan kondisi wilayah (kondusifitas)')}
+    ${baris('cetaklaporan','c10','fa-print','Cetak Laporan','Pembuatan laporan kondisi wilayah')}
   </div>`;
 }
 document.addEventListener('click', (e) => {
@@ -2495,7 +2506,7 @@ document.addEventListener('click', (e) => {
   }
   const el = e.target.closest('[data-kores]'); if (!el) return;
   ({ masuk:formSuratMasuk, keluar:formSuratKeluar, undangan:formUndangan, notula:formNotula,
-     pengaduan:formPengaduan, inventaris:formInventaris })[el.dataset.kores]();
+     pengaduan:formPengaduan, inventaris:formInventaris, laporan:formLaporan, cetaklaporan:formCetakLaporan })[el.dataset.kores]();
 });
 
 const EKSTENSI_ARSIP = { 'application/pdf':'pdf', 'image/png':'png', 'image/jpeg':'jpg' };
@@ -2809,6 +2820,252 @@ async function formInventaris(){
     }
   };
   gambar();
+}
+
+/* =====================================================================
+   LAPORAN KONDUSIFITAS (Administrasi > Laporan & Cetak Laporan)
+   Data di Supabase (13_laporan_kondusifitas.sql); PDF dibuat di peramban lalu diarsipkan di Storage "arsip_surat/laporan/"
+   ===================================================================== */
+const LAP_JUDUL = 'Laporan Kondusifitas Wilayah RT.09 RW.05';
+const LAP_JUDUL2 = 'Kelurahan Bonggoeya Kecamatan Wua-Wua';
+const LAP_QR_TEKS = 'Poerwanto | Ketua RT.09';
+const LAP_NAMA_TTD = 'Poerwanto, S.Pd, M.Pd';
+const LAP_JABATAN = 'Ketua RT.09';
+const LAP_TEKS_ARSIP = 'Arsip: aplikasi MySAPA © 2026';
+const LAP_BULAN = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+function lapTglPanjang(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+  return m ? (+m[3]) + ' ' + LAP_BULAN[+m[2] - 1] + ' ' + m[1] : String(iso || '');
+}
+function lapTglSel(iso){
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : String(iso || '');
+}
+function lapBulanTeks(ym){
+  const m = /^(\d{4})-(\d{2})$/.exec(ym || '');
+  return m ? LAP_BULAN[+m[2] - 1] + ' ' + m[1] : '';
+}
+
+/* ---------- Modal Laporan: data bulan berjalan, navigasi, tambah & ubah ---------- */
+async function formLaporan(){
+  const r0 = await kirimRpc('laporan_bulan_ini', {});
+  if (!r0.ok) return toast(r0.pesan || 'Data laporan tidak dapat dimuat.');
+  let items = r0.items || [], bulan = lapBulanTeks(r0.bulan);
+  let idx = items.length, draft = null, kotor = false, konfirm = false, sibuk = false;
+  const baca = () => { const fd = new FormData($('mfForm')); return { tanggal: val(fd, 'tanggal'), kondisi: val(fd, 'kondisi'), solusi: val(fd, 'solusi') }; };
+
+  const gambar = (pesan, galat) => {
+    const n = items.length, baru = idx >= n;
+    const it = baru ? (draft || { tanggal: hariIni(), kondisi: '', solusi: '' }) : items[idx];
+    $('mfIsi').innerHTML = barNav(idx, n, true, true) +
+      `<div class="lp-bulan">${baru ? 'Data baru' : 'Data tersimpan (dapat diubah)'}${bulan ? ' · Data bulan ' + esc(bulan) : ''}</div>` +
+      fld('Tanggal', `<input name="tanggal" type="date" value="${esc(it.tanggal)}">`, 1) +
+      fld('Kondisi', `<textarea name="kondisi" maxlength="2000" placeholder="Tuliskan kondisi wilayah...">${esc(it.kondisi)}</textarea>`, 1) +
+      fld('Solusi/Tujuan/Manfaat', `<textarea name="solusi" maxlength="2000" placeholder="Tuliskan solusi, tujuan, atau manfaat...">${esc(it.solusi)}</textarea>`, 1) +
+      `<div id="lpStatus">${pesan ? `<div class="${galat ? 'pesan-err' : 'pesan-ok'}">${esc(pesan)}</div>` : ''}</div>` +
+      `<div class="mf-aksi-baris" style="margin-top:12px"><button type="button" class="utama" data-mf="simpan"><i class="fa-solid fa-floppy-disk"></i> ${baru ? 'Simpan' : 'Simpan Perubahan'}</button></div>`;
+    $('mfGalat').classList.remove('tampil');
+    kotor = false; konfirm = false;
+  };
+
+  const simpan = async () => {
+    const fd = new FormData($('mfForm')), tanggal = val(fd, 'tanggal'), kondisi = val(fd, 'kondisi'), solusi = val(fd, 'solusi');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(tanggal)) return tampilGalatMf('Tanggal wajib diisi.');
+    if (!kondisi) return tampilGalatMf('Kondisi wajib diisi.');
+    if (!solusi) return tampilGalatMf('Solusi/Tujuan/Manfaat wajib diisi.');
+    const baru = idx >= items.length, asli = baru ? null : items[idx];
+    sibuk = true; $('mfGalat').classList.remove('tampil');
+    const tb = $('mfIsi').querySelector('[data-mf="simpan"]'); if (tb) tb.disabled = true;
+    const r = baru
+      ? await kirimRpc('simpan_laporan', { tanggal, kondisi, solusi })
+      : await kirimRpc('ubah_laporan', { id: asli.id, asli: { tanggal: asli.tanggal, kondisi: asli.kondisi, solusi: asli.solusi }, tanggal, kondisi, solusi });
+    sibuk = false;
+    if (!r.ok){ if (tb) tb.disabled = false; return tampilGalatMf(r.pesan || 'Gagal menyimpan.'); }
+    const m = await kirimRpc('laporan_bulan_ini', {});
+    if (m.ok){ items = m.items || []; bulan = lapBulanTeks(m.bulan) || bulan; }
+    if (baru){ draft = { tanggal, kondisi: '', solusi: '' }; idx = items.length; }
+    else { const k = items.findIndex(x => String(x.id) === String(asli.id)); idx = k >= 0 ? k : Math.min(idx, items.length); }
+    gambar(r.pesan || (baru ? 'Laporan berhasil disimpan.' : 'Perubahan berhasil disimpan.'));
+    toast(r.pesan || 'Tersimpan.');
+  };
+
+  bukaModalForm('Laporan Kondusifitas', '', null);
+  $('mfBatal').textContent = 'Tutup';
+  const tandaiKotor = () => { kotor = true; konfirm = false; };
+  $('mfIsi').oninput = tandaiKotor; $('mfIsi').onchange = tandaiKotor;
+  mfNavFn = async (a) => {
+    if (sibuk) return;
+    if (a === 'simpan') return simpan();
+    const n = items.length, ke = geserNav(a, idx, n, true);
+    if (ke === idx) return;
+    // data lama yang diubah tapi belum disimpan: klik sekali lagi untuk membuang perubahan
+    if (idx < n && kotor && !konfirm){
+      konfirm = true;
+      return tampilGalatMf('Perubahan belum disimpan. Klik tombol navigasi sekali lagi untuk membuangnya, atau klik Simpan Perubahan.');
+    }
+    if (idx >= n) draft = baca();
+    idx = ke; gambar();
+  };
+  gambar();
+}
+
+/* ---------- Modal Cetak Laporan: periode, preview, PDF, arsip ---------- */
+function lapMuatPustaka(){
+  const muat = (src, siap) => new Promise((res, rej) => {
+    if (siap()) return res();
+    const s = document.createElement('script'); s.src = src;
+    s.onload = () => res();
+    s.onerror = () => rej(new Error('Pustaka pembuat PDF tidak dapat dimuat. Periksa koneksi Anda.'));
+    document.head.appendChild(s);
+  });
+  return muat('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js', () => !!(window.jspdf && window.jspdf.jsPDF))
+    .then(() => muat('https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js',
+      () => typeof window.jspdf.jsPDF.API.autoTable === 'function'))
+    .then(() => muat('https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.js', () => typeof window.qrcode === 'function'));
+}
+/* Font bawaan PDF hanya mendukung aksara Latin dasar: karakter lain disederhanakan */
+const lapBersih = (s) => String(s == null ? '' : s)
+  .replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/…/g, '...')
+  .replace(/\r/g, '').replace(/\t/g, ' ').replace(/[^\n\x20-\x7E\xA0-\xFF]/g, '');
+
+function lapBuatPdf(awal, akhir, rows, nomor, waktu){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const W = doc.internal.pageSize.getWidth(), H = doc.internal.pageSize.getHeight(), M = 15;
+  let y = M + 4;
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.text(LAP_JUDUL, W / 2, y, { align: 'center' }); y += 6;
+  doc.setFontSize(12); doc.text(LAP_JUDUL2, W / 2, y, { align: 'center' }); y += 6;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+  doc.text('Periode: ' + lapTglPanjang(awal) + ' s.d. ' + lapTglPanjang(akhir), W / 2, y, { align: 'center' }); y += 5;
+  doc.text('Nomor Laporan: ' + nomor, W / 2, y, { align: 'center' }); y += 5;
+  doc.autoTable({
+    startY: y, margin: { left: M, right: M, top: M, bottom: M }, theme: 'grid',
+    head: [['No', 'Tanggal', 'Kondisi', 'Solusi/Tujuan/Manfaat']],
+    body: rows.map((r, i) => [String(i + 1), lapTglSel(r.tanggal), lapBersih(r.kondisi), lapBersih(r.solusi)]),
+    styles: { font: 'helvetica', fontSize: 9, textColor: 0, lineColor: 0, lineWidth: 0.2, cellPadding: 1.6, valign: 'top' },
+    headStyles: { fillColor: [229, 231, 235], textColor: 0, fontStyle: 'bold' },
+    columnStyles: { 0: { cellWidth: 12, halign: 'center' }, 1: { cellWidth: 26 } },
+    showHead: 'everyPage'
+  });
+
+  // Blok tanda tangan: QR di kiri, teks rata kiri di kanan, seluruh blok di tengah
+  const qrMm = 65 * 25.4 / 96, gap = 3.2;
+  const baris = [
+    { t: String(waktu || '').slice(0, 16), f: 'normal', s: 8 },
+    { t: lapBersih(LAP_NAMA_TTD), f: 'bold', s: 9.5 },
+    { t: lapBersih(LAP_JABATAN), f: 'normal', s: 8 },
+    { t: LAP_TEKS_ARSIP, f: 'italic', s: 6 }
+  ];
+  let wTeks = 0;
+  baris.forEach(b => { doc.setFont('helvetica', b.f); doc.setFontSize(b.s); wTeks = Math.max(wTeks, doc.getTextWidth(b.t)); b.h = b.s * 0.3528 * 1.35; });
+  let by = doc.lastAutoTable.finalY + 24 * 25.4 / 96;
+  if (by + qrMm > H - M){ doc.addPage(); by = M; }
+  const bx = (W - (qrMm + gap + wTeks)) / 2;
+  const q = qrcode(0, 'M'); q.addData(LAP_QR_TEKS + ' | ' + nomor); q.make();
+  const n = q.getModuleCount(), cs = qrMm / n;
+  doc.setFillColor(0, 0, 0);
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) if (q.isDark(r, c)) doc.rect(bx + c * cs, by + r * cs, cs + 0.04, cs + 0.04, 'F');
+  let cy = by + (qrMm - baris.reduce((a, b) => a + b.h, 0)) / 2;
+  baris.forEach(b => {
+    doc.setFont('helvetica', b.f); doc.setFontSize(b.s);
+    doc.text(b.t, bx + qrMm + gap, cy + b.h * 0.75);
+    cy += b.h;
+  });
+  return doc.output('blob');
+}
+
+async function formCetakLaporan(){
+  let sibuk = false, jalurArsip = '';
+  bukaModalForm('Cetak Laporan Kondusifitas', '', null);
+  $('mfBatal').textContent = 'Tutup';
+  $('mfIsi').innerHTML =
+    '<div class="lp-info" id="lpTerakhir"><i class="fa-solid fa-spinner fa-spin"></i> Memeriksa dokumen terakhir...</div>' +
+    '<div class="mf-dua">' + fld('Tanggal Awal', '<input id="lpAwal" type="date">') + fld('Tanggal Akhir', '<input id="lpAkhir" type="date">') + '</div>' +
+    '<div id="lpStatus"></div>' +
+    '<div class="mf-aksi-baris" style="margin-top:12px"><button type="button" id="lpBtnPre" data-mf="preview" disabled><i class="fa-solid fa-eye"></i> Preview</button>' +
+    '<button type="button" class="utama" id="lpBtnCetak" data-mf="cetak" disabled><i class="fa-solid fa-print"></i> Cetak</button></div>' +
+    '<div id="lpPreview"></div>';
+
+  const status = (html, tipe) => { const el = $('lpStatus'); if (el) el.innerHTML = html ? `<div class="${tipe === 'err' ? 'pesan-err' : tipe === 'ok' ? 'pesan-ok' : 'lp-info'}">${html}</div>` : ''; };
+  const valid = () => { const a = $('lpAwal'), b = $('lpAkhir'); return !!(a && b && a.value && b.value && a.value <= b.value); };
+  const aturTombol = () => {
+    const p = $('lpBtnPre'), c = $('lpBtnCetak'); if (!p || !c) return;
+    p.disabled = c.disabled = sibuk || !valid();
+  };
+  const SPIN_ = '<i class="fa-solid fa-spinner fa-spin"></i> ';
+  const bila = () => {
+    if (!$('lpAwal') || sibuk) return;
+    $('lpAkhir').min = $('lpAwal').value || '';
+    $('lpPreview').innerHTML = '';
+    status('');
+    if ($('lpAwal').value && $('lpAkhir').value && $('lpAwal').value > $('lpAkhir').value) status('Tanggal awal tidak boleh lebih besar dari tanggal akhir.', 'err');
+    aturTombol();
+  };
+  $('mfIsi').oninput = bila; $('mfIsi').onchange = bila;
+
+  const muatTerakhir = async () => {
+    const r = await kirimRpc('laporan_periode_terakhir', {});
+    const el = $('lpTerakhir'); if (!el) return;
+    if (!r.ok){ el.hidden = true; return; }
+    if (!r.ada){ el.innerHTML = 'Belum ada laporan yang pernah dicetak.'; return; }
+    jalurArsip = r.arsip_path || '';
+    el.innerHTML = '<div>Periode cetak terakhir</div><div><b>' + esc(lapTglPanjang(r.periode_awal) + ' s.d. ' + lapTglPanjang(r.periode_akhir)) + '</b></div>' +
+      '<div>Nomor ' + esc(r.nomor) + ' · dicetak ' + esc(r.waktu) + '</div>' +
+      (jalurArsip ? '<button type="button" class="md-link" data-mf="arsip"><i class="fa-solid fa-file-pdf"></i> Buka Arsip</button>' : '');
+  };
+  muatTerakhir();
+
+  mfNavFn = async (a) => {
+    if (a === 'arsip'){ if (jalurArsip) arBukaArsip(jalurArsip); return; }
+    if (sibuk || !valid()) return;
+    const awal = $('lpAwal').value, akhir = $('lpAkhir').value;
+
+    if (a === 'preview'){
+      sibuk = true; aturTombol(); status(SPIN_ + 'Mengambil data...', 'info');
+      const r = await kirimRpc('laporan_preview', { awal, akhir });
+      sibuk = false; aturTombol();
+      if (!$('lpAwal')) return;
+      if (!r.ok) return status(esc(r.pesan || 'Gagal mengambil data.'), 'err');
+      const rows = r.rows || [];
+      $('lpPreview').innerHTML = rows.length
+        ? '<div class="lp-pre"><table><thead><tr><th>No</th><th>Tanggal</th><th>Kondisi</th><th>Solusi/Tujuan/Manfaat</th></tr></thead><tbody>' +
+          rows.map((x, i) => `<tr><td>${i + 1}</td><td style="white-space:nowrap">${esc(lapTglSel(x.tanggal))}</td><td>${esc(x.kondisi)}</td><td>${esc(x.solusi)}</td></tr>`).join('') + '</tbody></table></div>'
+        : '';
+      return status(rows.length ? 'Ditemukan <b>' + fmt(rows.length) + '</b> data pada periode ini.' : 'Tidak ada data pada periode yang dipilih.', rows.length ? 'ok' : 'info');
+    }
+
+    if (a === 'cetak'){
+      sibuk = true; aturTombol(); $('lpAwal').disabled = $('lpAkhir').disabled = true;
+      $('lpPreview').innerHTML = '';
+      status(SPIN_ + 'Membuat PDF dan mengarsipkan...', 'info');
+      let id = null, path = '';
+      try{
+        const m = await kirimRpc('laporan_cetak_mulai', { awal, akhir });
+        if (!m.ok) throw new Error(m.pesan || 'Gagal memulai pencetakan.');
+        id = m.id;
+        await lapMuatPustaka();
+        const blob = lapBuatPdf(awal, akhir, m.rows || [], m.nomor, m.waktu);
+        const nama = 'Laporan Kondusifitas RT09 ' + awal + ' sd ' + akhir + '.pdf';
+        path = 'laporan/' + crypto.randomUUID() + '.pdf';
+        const { error } = await db.storage.from('arsip_surat').upload(path, blob, { contentType: 'application/pdf', upsert: false });
+        if (error) throw new Error('Gagal mengunggah arsip: ' + error.message);
+        const s = await kirimRpc('laporan_cetak_selesai', { id, nama_file: nama, arsip_path: path });
+        if (!s.ok){ try{ await db.storage.from('arsip_surat').remove([path]); }catch(e){} throw new Error(s.pesan || 'Gagal mencatat arsip.'); }
+        id = null; jalurArsip = path;
+        status('PDF berhasil dibuat dan diarsipkan.<br>Nomor Laporan: <b>' + esc(m.nomor) + '</b><br>' +
+          '<button type="button" class="md-link" data-mf="arsip"><i class="fa-solid fa-file-pdf"></i> Buka Arsip</button>', 'ok');
+        muatTerakhir();
+      }catch(e){
+        console.error(e);
+        if (id) { try{ await kirimRpc('laporan_cetak_batal', { id }); }catch(e2){} }
+        status('Gagal: ' + esc(e.message || 'terjadi kesalahan.'), 'err');
+      }finally{
+        sibuk = false;
+        if ($('lpAwal')){ $('lpAwal').disabled = $('lpAkhir').disabled = false; aturTombol(); }
+      }
+    }
+  };
 }
 
 /* ---------- Info Aktual: kartu Agenda RT ---------- */
