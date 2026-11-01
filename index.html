@@ -3672,10 +3672,10 @@ function formTambahKeluarga(){
 const DB_HALAMAN = 20;                       // jumlah baris awal & tambahan tiap klik "Lainnya"
 const DB_POLA_LOKAL = /lokal/i, DB_POLA_LUAR = /luar/i;   // dicocokkan ke kolom status_pemilu
 const DB_TAB = [
-  ['semua', 'Data',        'fa-database',    '#dbeafe', '#2563eb'],
+  ['semua', 'Jumlah',      'fa-database',    '#dbeafe', '#2563eb'],
   ['L',     'L',           'fa-person',      '#e0e7ff', '#4f46e5'],
   ['P',     'P',           'fa-person-dress','#fce7f3', '#db2777'],
-  ['wafat', 'Wafat',       'fa-spa',       '#f1f5f9', '#475569'],
+  ['wafat', 'Wafat',       'fa-dove',       '#f1f5f9', '#475569'],
   ['lokal', 'Pemilih Lokal','fa-house-user', '#dcfce7', '#16a34a'],
   ['luar',  'Pemilih Luar', 'fa-earth-asia', '#ffedd5', '#ea580c']
 ];
@@ -3779,6 +3779,7 @@ async function renderDatabaseWarga(isi){
   $('dbTab').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     filter = b.dataset.f; tampil = DB_HALAMAN;
+    kata = ''; $('dbCari').value = '';                    // kotak cari dikosongkan saat tab dipilih
     $('dbTab').querySelectorAll('.ar-stat').forEach(x => x.classList.toggle('aktif', x === b));
     gambar();
   });
