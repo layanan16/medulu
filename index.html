@@ -2092,7 +2092,7 @@ function renderArsipAset(isi){
     let r1='<tr><th>No. Surat</th>', r2='<tr><th>Tanggal</th>', r3='<tr><th>Jenis Surat</th>', r4='<tr><th>Perihal</th>', r5='<tr><th>Arsip</th>';
     list.forEach(it => {
       const btn = it.arsipPath
-        ? `<button type="button" class="ar-btn" data-arsip="${esc(it.arsipPath)}" data-nama="${esc(String(it.noSurat || 'Arsip surat').replace(/[\/\\:*?"<>|]+/g, '-'))}.pdf"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Arsip</button>`
+        ? `<button type="button" class="ar-btn" data-arsip="${esc(it.arsipPath)}" data-nama="${esc(String(it.perihal || it.noSurat || 'Arsip surat').replace(/[\/\\:*?"<>|]+/g, '-'))}.pdf"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Arsip</button>`
         : '<span style="color:#000">-</span>';
       r1 += `<td class="fw6">${esc(it.noSurat || '-')}</td>`;
       r2 += `<td class="nw">${esc(arFmtTgl(it.tanggal))}</td>`;
@@ -2731,6 +2731,9 @@ const lapPecah = (iso) => String(iso).slice(0, 10).split('-').map(Number);
 const lapTglPanjang = (iso) => { const [y, m, d] = lapPecah(iso); return d + ' ' + LAP_BULAN[m - 1] + ' ' + y; };
 const lapTglPendek = (iso) => { const [y, m, d] = lapPecah(iso); return String(d).padStart(2, '0') + '/' + String(m).padStart(2, '0') + '/' + y; };
 const lapNamaBulan = (ym) => { if (!ym) return ''; const [y, m] = lapPecah(ym + '-01'); return LAP_BULAN[m - 1] + ' ' + y; };
+// Nama file PDF mengikuti perihal: "Laporan Kondusifitas Wilayah RT.09 (01-10-2026 s.d. 31-10-2026).pdf"
+const lapNamaFile = (awal, akhir) => 'Laporan Kondusifitas Wilayah RT.09 (' + lapTglPendek(awal).replace(/\//g, '-') +
+  ' s.d. ' + lapTglPendek(akhir).replace(/\//g, '-') + ').pdf';
 const LAP_SPIN = '<i class="fa-solid fa-spinner fa-spin"></i> ';
 function lapInfo(jenis, html){
   const el = $('lapStatus'); if (!el) return;
@@ -3033,7 +3036,7 @@ async function formCetakLaporan(){
       if (!m.ok) throw new Error(m.pesan || 'Gagal memulai cetak.');
       idPesan = m.id;
       const blob = await lapBuatPdf(awal, akhir, m.rows || [], m.nomor, m.dicetak);
-      const nama = 'Laporan Kondusifitas RT09 ' + awal + ' sd ' + akhir + '.pdf';
+      const nama = lapNamaFile(awal, akhir);
       const path = 'laporan/' + m.id + '.pdf';
       const { error } = await db.storage.from('arsip_surat').upload(path, blob, { contentType:'application/pdf', upsert:false });
       if (error) throw new Error('Gagal mengunggah PDF: ' + error.message);
@@ -3071,11 +3074,11 @@ async function formCetakLaporan(){
   if (idT !== req || !aktif() || !t.ok) return;
   const kotak = $('lapTerakhir'); kotak.style.display = '';
   if (!t.ada){ kotak.textContent = 'Belum ada laporan yang pernah dicetak.'; return; }
-  pathTerakhir = t.arsip_path || ''; namaTerakhir = t.nama || '';
+  pathTerakhir = t.arsip_path || ''; namaTerakhir = lapNamaFile(t.awal, t.akhir);
   kotak.innerHTML = '<div style="color:var(--abu)">Periode cetak terakhir</div>' +
     '<div class="fw6">' + esc(lapTglPanjang(t.awal)) + ' s.d. ' + esc(lapTglPanjang(t.akhir)) + '</div>' +
     '<div>Dicetak ' + esc(t.waktu) + ' &middot; ' +
-    (pathTerakhir ? '<button type="button" class="lap-link" data-mf="bukaarsip"><i class="fa-solid fa-file-pdf"></i> ' + esc(t.nama || 'Buka arsip') + '</button>' : esc(t.nama || '')) + '</div>';
+    (pathTerakhir ? '<button type="button" class="lap-link" data-mf="bukaarsip"><i class="fa-solid fa-file-pdf"></i> ' + esc(namaTerakhir) + '</button>' : esc(namaTerakhir)) + '</div>';
 }
 
 /* ---------- Navigasi record: Awal, Sebelumnya, Berikutnya, Akhir (+ Baru) ---------- */
