@@ -363,6 +363,8 @@
   .ar.db .db-t tbody tr:hover td,.ar.db .db-t tbody tr:active td{background:#eff6ff}
   .ar.db .db-t th:nth-child(1){width:60%}.ar.db .db-t th:nth-child(2){width:40%}
   .ar.db .db-lain{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:11px;font:inherit;font-size:.82rem;font-weight:600;color:#fff;background:linear-gradient(135deg,#1558c9,#2f86ec);cursor:pointer}
+  .ar.db .st-judul .db-ultah{margin-left:auto;border:0;border-radius:999px;padding:5px 12px;font:inherit;font-size:.72rem;font-weight:600;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#f43f5e,#f59e0b);box-shadow:0 4px 10px -4px rgba(244,63,94,.6)}
+  .ar.db .st-judul .db-ultah:active{transform:scale(.96)}
   .ar.db .db-wafat{display:inline-block;margin-left:5px;font-size:.58rem;font-weight:600;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px;vertical-align:middle}
 
   /* ---- Form Surat Pengantar & Notifikasi ---- */
@@ -3704,7 +3706,7 @@ function dbNormal(r){
   const nama = namaTanpaGelar(r.nama) || String(r.nama ?? '');
   const alamat = String(r.alamat ?? '').trim();
   return {
-    nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat,
+    nik: String(r.nik ?? '').trim(), nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat,
     jk: String(r.jenis_kelamin ?? '').toUpperCase().slice(0,1),
     hubungan: String(r.hubungan ?? '').trim(), usia: r.usia, lahir: keDate(r.tgl_lahir),
     lokal: !wafat && DB_POLA_LOKAL.test(st), luar: !wafat && DB_POLA_LUAR.test(st),
@@ -3734,7 +3736,7 @@ async function renderDatabaseWarga(isi){
       </div>
     </div>
     <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-magnifying-glass"></i> Pencarian Data</h3>
+      <h3 class="st-judul"><i class="fa-solid fa-magnifying-glass"></i> Pencarian Data<button type="button" class="db-ultah" id="dbUltah"><i class="fa-solid fa-cake-candles"></i> Ultah</button></h3>
       <div class="db-cari">
         <div class="db-jml"><b id="dbJml">0</b><small>Hasil</small></div>
         <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="dbCari" placeholder="Cari nama, alamat, pekerjaan, NIK, dll..." autocomplete="off" enterkeyhint="search"></div>
@@ -3783,6 +3785,7 @@ async function renderDatabaseWarga(isi){
     $('dbTab').querySelectorAll('.ar-stat').forEach(x => x.classList.toggle('aktif', x === b));
     gambar();
   });
+  $('dbUltah').addEventListener('click', () => dbModalUltah(semua));
   $('dbCari').addEventListener('input', (e) => {          // bekerja sejak karakter pertama
     kata = e.target.value.toLowerCase().replace(/\s+/g, ' ').trim(); tampil = DB_HALAMAN; gambar();
   });
@@ -3791,6 +3794,23 @@ async function renderDatabaseWarga(isi){
     const tr = e.target.closest('tr[data-i]'); if (tr) dbModalInfo(hasil[+tr.dataset.i], semua);
   });
   gambar();
+}
+
+/* Modal warga yang berulang tahun hari ini (NIK & Nama); warga wafat tidak ikut */
+function dbModalUltah(semua){
+  const now = new Date();
+  const daftar = semua.filter(w => !w.wafat && w.lahir &&
+    hariUlangTahun({ d: w.lahir.getDate(), m: w.lahir.getMonth() + 1 }, now))
+    .sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  const tgl = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  const isi = daftar.length
+    ? `<div class="md-tabel-wadah" style="margin:6px 0 8px"><table class="md-tabel"><thead><tr><th>NIK</th><th>Nama</th></tr></thead><tbody>` +
+      daftar.map(w => `<tr><td class="nw">${esc(w.nik || '-')}</td><td>${esc(w.nama)}</td></tr>`).join('') + `</tbody></table></div>`
+    : '<div class="kosong" style="margin:14px 0"><i class="fa-solid fa-cake-candles"></i>Tidak ada warga yang berulang tahun hari ini.</div>';
+  bukaModalForm('Ulang Tahun Hari Ini',
+    `<div class="notif-ket" style="text-align:center;margin:0 0 6px"><i class="fa-solid fa-cake-candles"></i> ${esc(tgl)} · <b>${fmt(daftar.length)}</b> warga</div>` + isi,
+    null);
+  $('mfBatal').textContent = 'Tutup';
 }
 
 const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
