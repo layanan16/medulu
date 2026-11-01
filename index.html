@@ -330,10 +330,20 @@
   .md-kotak.l{background:#dbeafe;color:#1d4ed8}
   .md-kotak.p{background:#fce7f3;color:#be185d}
   .md-kotak.kk{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;cursor:pointer;box-shadow:0 6px 14px -6px rgba(22,163,74,.6)}
-  .md-kotak.kk b{font-size:.78rem;font-weight:600}
+  .md-kotak.kk i{font-size:1.35rem}
   .md-kotak.kk.mati{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:default}
   .md-tabel tr.saya td{background:#fff1dd;color:#9a3412;font-weight:600}
   .md-tabel tr.saya td:first-child{box-shadow:inset 3px 0 0 #ff8a1f}
+
+  /* ---- Modal Informasi Data (Database Warga): rata kiri ---- */
+  .dbm{text-align:left}
+  .dbm-blok{margin-bottom:10px;min-width:0}
+  .dbm-blok small{display:block;font-size:.7rem;color:var(--abu);margin-bottom:2px}
+  .dbm-nilai{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--teks);word-break:break-word}
+  .dbm-nilai .nilai{font-size:.88rem;font-weight:500;font-variant-numeric:tabular-nums}
+  .dbm-dua{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+  .dbm-wa{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:#15803d;text-decoration:none}
+  .dbm-wa i{font-size:1.1rem;color:#25d366}
 
   /* ---- Subform Database Warga (memakai gaya tab .ar) ---- */
   .ar.db .ar-stats{margin-bottom:0}
@@ -3569,8 +3579,8 @@ async function renderMyData(isi){
   const hp = [k.no_hp, k.hp, k.telp, k.nomor_hp, p.no_hp, p.hp, p.telp, p.nomor_hp, telpLogin].find(v => v !== null && v !== undefined && String(v).trim() !== '');
   const tengah = (label, isiHtml) => `<div class="md-tengah"><small>${label}</small><b>${isiHtml}</b></div>`;
   const kotakKK = k.link_kk
-    ? `<button type="button" class="md-kotak kk" data-kk="${esc(k.link_kk)}"><small><i class="fa-solid fa-file-lines"></i> Arsip KK</small><b>Lihat KK</b></button>`
-    : `<div class="md-kotak kk mati"><small><i class="fa-solid fa-file-lines"></i> Arsip KK</small><b>-</b></div>`;
+    ? `<button type="button" class="md-kotak kk" data-kk="${esc(k.link_kk)}" aria-label="Lihat Arsip KK"><i class="fa-solid fa-file-lines"></i><small>Arsip KK</small></button>`
+    : `<div class="md-kotak kk mati" aria-label="Arsip KK belum ada"><i class="fa-solid fa-file-lines"></i><small>Arsip KK</small></div>`;
   const keluarga =
     tengah('Nomor HP', nilai(hp)) + tengah('Alamat', nilai(k.alamat)) +
     `<div class="md-kotak3">
@@ -3663,9 +3673,9 @@ const DB_HALAMAN = 20;                       // jumlah baris awal & tambahan tia
 const DB_POLA_LOKAL = /lokal/i, DB_POLA_LUAR = /luar/i;   // dicocokkan ke kolom status_pemilu
 const DB_TAB = [
   ['semua', 'Data',        'fa-database',    '#dbeafe', '#2563eb'],
-  ['L',     'Laki-Laki',   'fa-person',      '#e0e7ff', '#4f46e5'],
-  ['P',     'Perempuan',   'fa-person-dress','#fce7f3', '#db2777'],
-  ['wafat', 'Wafat',       'fa-cross',       '#f1f5f9', '#475569'],
+  ['L',     'L',           'fa-person',      '#e0e7ff', '#4f46e5'],
+  ['P',     'P',           'fa-person-dress','#fce7f3', '#db2777'],
+  ['wafat', 'Wafat',       'fa-spa',       '#f1f5f9', '#475569'],
   ['lokal', 'Pemilih Lokal','fa-house-user', '#dcfce7', '#16a34a'],
   ['luar',  'Pemilih Luar', 'fa-earth-asia', '#ffedd5', '#ea580c']
 ];
@@ -3677,6 +3687,15 @@ const DB_COCOK = {
   lokal: w => w.lokal,
   luar: w => w.luar
 };
+/* Teks pencarian: SEMUA data warga yang dikirim server (termasuk yang tidak tampil di tabel) */
+function dbTeksCari(r, nama, alamat, hp, wafat){
+  const t = [nama, alamat, hp, hp.replace(/\D/g, '')];
+  Object.keys(r).forEach(k => { const v = r[k]; if (typeof v === 'string' || typeof v === 'number') t.push(String(v)); });
+  const lahir = keDate(r.tgl_lahir); if (lahir) t.push(tglIndo(r.tgl_lahir));
+  t.push(r.jenis_kelamin === 'L' ? 'laki-laki laki laki' : r.jenis_kelamin === 'P' ? 'perempuan wanita' : '');
+  if (wafat) t.push('wafat meninggal');
+  return t.join(' ').toLowerCase().replace(/\s+/g, ' ');
+}
 function dbNormal(r){
   const usiaTeks = String(r.usia ?? '');
   const wafat = r.wafat === true || /thn.*bln/i.test(usiaTeks);
@@ -3689,18 +3708,18 @@ function dbNormal(r){
     jk: String(r.jenis_kelamin ?? '').toUpperCase().slice(0,1),
     hubungan: String(r.hubungan ?? '').trim(), usia: r.usia, lahir: keDate(r.tgl_lahir),
     lokal: !wafat && DB_POLA_LOKAL.test(st), luar: !wafat && DB_POLA_LUAR.test(st),
-    cari: (nama + ' ' + alamat + ' ' + hp + ' ' + hp.replace(/\D/g,'')).toLowerCase()
+    cari: dbTeksCari(r, nama, alamat, hp, wafat)
   };
 }
 function dbUsia(w){
-  if (w.wafat) return String(w.usia ?? '').trim() || '-';
+  if (w.wafat){ const m = String(w.usia ?? '').match(/\d+/); return m ? m[0] : '-'; }
   if (w.lahir){
     const n = new Date(); let u = n.getFullYear() - w.lahir.getFullYear();
     if (n.getMonth() < w.lahir.getMonth() || (n.getMonth() === w.lahir.getMonth() && n.getDate() < w.lahir.getDate())) u--;
-    if (u >= 0) return u + ' thn';
+    if (u >= 0) return String(u);
   }
   const x = parseFloat(String(w.usia ?? '').replace(',', '.'));
-  return isNaN(x) ? '-' : Math.floor(x) + ' thn';
+  return isNaN(x) ? '-' : String(Math.floor(x));
 }
 
 async function renderDatabaseWarga(isi){
@@ -3718,7 +3737,7 @@ async function renderDatabaseWarga(isi){
       <h3 class="st-judul"><i class="fa-solid fa-magnifying-glass"></i> Pencarian Data</h3>
       <div class="db-cari">
         <div class="db-jml"><b id="dbJml">0</b><small>Hasil</small></div>
-        <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="dbCari" placeholder="Cari nama, alamat, no. HP..." autocomplete="off" enterkeyhint="search"></div>
+        <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="dbCari" placeholder="Cari nama, alamat, pekerjaan, NIK, dll..." autocomplete="off" enterkeyhint="search"></div>
       </div>
     </div>
     <div class="kartu-stat">
@@ -3736,9 +3755,9 @@ async function renderDatabaseWarga(isi){
   }catch(e){
     console.error(e);
     const msg = String((e && e.message) || '');
-    gagal = (e && (e.code === 'PGRST202' || /could not find the function/i.test(msg)))
-      ? 'Fungsi get_database_warga belum terpasang di Supabase.'
-      : 'Tidak dapat memuat data. Periksa koneksi Anda.';
+    if (e && (e.code === 'PGRST202' || /could not find the function/i.test(msg))) gagal = 'Fungsi get_database_warga belum terpasang di Supabase. Jalankan 12_database_warga.sql.';
+    else if (e && (e.code || e.details || e.hint)) gagal = 'Kesalahan server: ' + (msg || e.code);
+    else gagal = 'Tidak dapat memuat data. Periksa koneksi Anda.';
   }
   if (versi !== versiSubform) return;
   const wadah = $('dbIsi'); if (!wadah) return;
@@ -3773,6 +3792,7 @@ async function renderDatabaseWarga(isi){
   gambar();
 }
 
+const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
 function dbModalInfo(w, semua){
   if (!w) return;
   const anggota = w.nkk ? semua.filter(x => x.nkk === w.nkk) : [w];
@@ -3782,13 +3802,16 @@ function dbModalInfo(w, semua){
   const urut = anggota.slice().sort((a, b) =>
     (/kepala/i.test(b.hubungan) - /kepala/i.test(a.hubungan)) ||
     ((a.lahir ? a.lahir.getTime() : Infinity) - (b.lahir ? b.lahir.getTime() : Infinity)));
-  const baris = urut.map(x => `<tr><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(x.hubungan || '-')}</td></tr>`).join('');
+  const baris = urut.map(x => `<tr><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td></tr>`).join('');
   const nkk = w.nkk;
+  const hpHtml = hp
+    ? `<a class="dbm-wa" href="${esc(prWaUrl(hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> ${esc(hp)}</a>`
+    : '<span class="dbm-nilai">-</span>';
   bukaModalForm('Informasi Data',
-    `<div class="md-id" style="margin-top:2px"><small>Nama KK</small><div class="baris"><span class="nilai" style="letter-spacing:0;font-weight:600">${esc(kk.nama)}</span></div></div>` +
-    `<div class="md-id"><small>NKK</small><div class="baris"><span class="nilai" data-nilai="${esc(nkk)}" data-tampil="0">${nkk ? '*'.repeat(nkk.length) : '-'}</span>` +
-      (nkk ? `<button type="button" class="md-mata" data-mata aria-label="Tampilkan NKK"><i class="fa-solid fa-eye"></i></button>` : '') + `</div></div>` +
-    `<div class="md-id"><small>Nomor HP</small><div class="baris"><span class="nilai" style="letter-spacing:0">${esc(hp || '-')}</span></div></div>` +
+    `<div class="dbm"><div class="dbm-blok"><small>Nama KK</small><span class="dbm-nilai" style="font-weight:600">${esc(kk.nama)}</span></div>` +
+    `<div class="dbm-dua"><div class="dbm-blok"><small>NKK</small><span class="dbm-nilai"><span class="nilai" data-nilai="${esc(nkk)}" data-tampil="0">${nkk ? '*'.repeat(nkk.length) : '-'}</span>` +
+      (nkk ? `<button type="button" class="md-mata" data-mata aria-label="Tampilkan NKK"><i class="fa-solid fa-eye"></i></button>` : '') + `</span></div>` +
+    `<div class="dbm-blok"><small>Nomor HP</small>${hpHtml}</div></div></div>` +
     `<div class="md-tabel-wadah" style="margin:14px 0 8px"><table class="md-tabel"><thead><tr><th>Nama</th><th>Usia</th><th>Hubungan</th></tr></thead><tbody>${baris}</tbody></table></div>`,
     null);
   $('mfBatal').textContent = 'Tutup';
