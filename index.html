@@ -319,6 +319,42 @@
   .md-status.setuju{background:#dcfce7;color:#15803d}
 
 
+  /* ---- MyData: baris rata tengah, kotak ringkas, penanda user di tabel ---- */
+  .md-tengah{text-align:center;padding:10px 0;border-top:1px dashed #e2e8f0}
+  .md-tengah small{display:block;font-size:.7rem;color:var(--abu);margin-bottom:2px}
+  .md-tengah b{display:block;font-size:.84rem;font-weight:500;color:var(--teks);word-break:break-word;line-height:1.45}
+  .md-kotak3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 12px;padding-top:12px;border-top:1px dashed #e2e8f0}
+  .md-kotak{border:0;border-radius:14px;padding:10px 4px;min-height:64px;font:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center}
+  .md-kotak small{font-size:.66rem;font-weight:600;display:flex;align-items:center;gap:4px;opacity:.9}
+  .md-kotak b{font-size:1.05rem;font-weight:700;line-height:1.1}
+  .md-kotak.l{background:#dbeafe;color:#1d4ed8}
+  .md-kotak.p{background:#fce7f3;color:#be185d}
+  .md-kotak.kk{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;cursor:pointer;box-shadow:0 6px 14px -6px rgba(22,163,74,.6)}
+  .md-kotak.kk b{font-size:.78rem;font-weight:600}
+  .md-kotak.kk.mati{background:#e2e8f0;color:#94a3b8;box-shadow:none;cursor:default}
+  .md-tabel tr.saya td{background:#fff1dd;color:#9a3412;font-weight:600}
+  .md-tabel tr.saya td:first-child{box-shadow:inset 3px 0 0 #ff8a1f}
+
+  /* ---- Subform Database Warga (memakai gaya tab .ar) ---- */
+  .ar.db .ar-stats{margin-bottom:0}
+  .ar.db .ar-stat{flex-direction:row;justify-content:flex-start;gap:6px;padding:8px 6px;text-align:left}
+  .ar.db .ar-ic{width:30px;height:30px;font-size:14px;border-radius:10px}
+  .ar.db .ar-tt{min-height:0;margin:0;font-size:10.5px;justify-content:flex-start;line-height:1.15}
+  .ar.db .ar-vl{font-size:15px;margin:1px 0 0;line-height:1.1}
+  .ar.db .db-cari{display:flex;gap:8px;align-items:stretch}
+  .ar.db .db-jml{flex:none;min-width:74px;background:linear-gradient(135deg,#00529c,#0072ce);color:#fff;border-radius:12px;padding:4px 10px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+  .ar.db .db-jml b{font-size:1.05rem;font-weight:800;line-height:1.1}
+  .ar.db .db-jml small{font-size:.62rem;opacity:.9}
+  .ar.db .ar-cari{flex:1;margin:0;min-width:0}
+  .ar.db .db-t{width:100%}
+  .ar.db .db-t th{background:#f8fafc;color:#000;font-weight:700;font-size:.75rem;padding:8px 9px;text-align:left;white-space:nowrap;border-bottom:2px solid #cbd5e1}
+  .ar.db .db-t td{background:#fff;color:#000;font-size:.76rem;padding:9px;vertical-align:top;overflow-wrap:anywhere;border-bottom:1px solid #e2e8f0}
+  .ar.db .db-t tbody tr{cursor:pointer;transition:background .15s}
+  .ar.db .db-t tbody tr:hover td,.ar.db .db-t tbody tr:active td{background:#eff6ff}
+  .ar.db .db-t th:nth-child(1){width:34%}.ar.db .db-t th:nth-child(2){width:38%}.ar.db .db-t th:nth-child(3){width:28%}
+  .ar.db .db-lain{display:block;width:100%;margin-top:12px;border:0;border-radius:12px;padding:11px;font:inherit;font-size:.82rem;font-weight:600;color:#fff;background:linear-gradient(135deg,#1558c9,#2f86ec);cursor:pointer}
+  .ar.db .db-wafat{display:inline-block;margin-left:5px;font-size:.58rem;font-weight:600;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px;vertical-align:middle}
+
   /* ---- Form Surat Pengantar & Notifikasi ---- */
   .mf-field label i{color:var(--biru);width:16px;text-align:center;margin-right:6px}
   .pesan-ok{background:#e8f8ef;color:#0f7a43;border-radius:12px;padding:10px 12px;font-size:.78rem;margin-top:12px;word-break:break-word}
@@ -1159,7 +1195,7 @@ $('formLogin').addEventListener('submit', async (e) => {
     const { data, error } = await db.rpc('login_warga', { p_telp: telp, p_nik: nik });
     if (error) throw error;
     if (!data.ok) return galatLogin(data.pesan || 'Login gagal.');
-    tokenSesi = data.token; simpanToken(tokenSesi);
+    tokenSesi = data.token; simpanToken(tokenSesi); telpLogin = telp;
     $('inNik').value = '';
     tampilkanUtama(data.profil);
   }catch(err){
@@ -1203,7 +1239,7 @@ document.addEventListener('keydown', e => {
 async function keluar(){
   if (!(await konfirmasiKeluar())) return;
   try{ await db.rpc('logout_warga', { p_token: tokenSesi }); }catch(e){}
-  hapusToken(); tokenSesi = null; statistik = null; arData = null;
+  hapusToken(); tokenSesi = null; statistik = null; arData = null; telpLogin = '';
   tampilkanLogin();
 }
 $('btnKeluar').addEventListener('click', keluar);
@@ -2251,7 +2287,7 @@ const DAFTAR_SUBFORM = {
   polling:       { judul:'Polling' },
   korespondensi: { judul:'Administrasi' },
   programkerja:  { judul:'Program Kerja' },
-  database:      { judul:'Database' },
+  database:      { judul:'Database Warga' },
   pengaduan:     { judul:'Pengaduan' },
   profilrt:      { judul:'Profil RT' },
   inventaris:    { judul:'Inventaris' },
@@ -2297,6 +2333,8 @@ function bukaSubform(kunci){
     renderBantuan(isi);
   } else if (kunci === 'profilrt'){
     renderProfilRT(isi);
+  } else if (kunci === 'database'){
+    renderDatabaseWarga(isi);
   } else {
     isi.innerHTML = `<div class="kosong"><i class="fa-solid fa-screwdriver-wrench"></i>
       Subform <b>${s.judul}</b> sedang disiapkan.</div>`;
@@ -3463,6 +3501,7 @@ function keDate(s){
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
   const d = new Date(s); return isNaN(d) ? null : d;
 }
+let telpLogin = '';          // nomor HP yang dipakai login (cadangan tampilan di MyData)
 let klienSesi = null, klienToken = null;
 function dbSesi(){      // klien khusus yang mengirim token sesi (header x-sesi) untuk membaca Arsip KK
   if (!klienSesi || klienToken !== tokenSesi){
@@ -3527,10 +3566,18 @@ async function renderMyData(isi){
   const anggota = (k.anggota || []).map(a => `<tr class="${a.saya ? 'saya' : ''}">
       <td>${esc(namaTanpaGelar(a.nama))}${a.saya ? '<i class="fa-solid fa-circle-check md-saya" title="Anda" aria-label="Anda"></i>' : ''}</td>
       <td>${nilai(a.usia)}</td><td>${nilai(a.pekerjaan)}</td><td>${nilai(a.hubungan)}</td></tr>`).join('');
+  const hp = [k.no_hp, k.hp, k.telp, k.nomor_hp, p.no_hp, p.hp, p.telp, p.nomor_hp, telpLogin].find(v => v !== null && v !== undefined && String(v).trim() !== '');
+  const tengah = (label, isiHtml) => `<div class="md-tengah"><small>${label}</small><b>${isiHtml}</b></div>`;
+  const kotakKK = k.link_kk
+    ? `<button type="button" class="md-kotak kk" data-kk="${esc(k.link_kk)}"><small><i class="fa-solid fa-file-lines"></i> Arsip KK</small><b>Lihat KK</b></button>`
+    : `<div class="md-kotak kk mati"><small><i class="fa-solid fa-file-lines"></i> Arsip KK</small><b>-</b></div>`;
   const keluarga =
-    baris('Email', nilai(k.email)) + baris('Alamat', nilai(k.alamat)) +
-    baris('Arsip KK', k.link_kk ? `<button type="button" class="md-link" data-kk="${esc(k.link_kk)}"><i class="fa-solid fa-file-lines"></i> Lihat KK</button>` : '-') +
-    baris('Laki-laki', fmt(k.laki_laki)) + baris('Perempuan', fmt(k.perempuan)) +
+    tengah('Nomor HP', nilai(hp)) + tengah('Alamat', nilai(k.alamat)) +
+    `<div class="md-kotak3">
+       <div class="md-kotak l"><small><i class="fa-solid fa-person"></i> Laki-laki</small><b>${fmt(k.laki_laki)}</b></div>
+       <div class="md-kotak p"><small><i class="fa-solid fa-person-dress"></i> Perempuan</small><b>${fmt(k.perempuan)}</b></div>
+       ${kotakKK}
+     </div>` +
     `<div class="md-tabel-wadah"><table class="md-tabel"><thead><tr><th>Nama</th><th>Usia</th><th>Pekerjaan</th><th>Status</th></tr></thead>
        <tbody>${anggota || '<tr><td colspan="4">Belum ada anggota.</td></tr>'}</tbody></table></div>
      <button type="button" class="md-tombol" id="btnTambahKeluarga"><i class="fa-solid fa-user-plus"></i> Tambah Data Keluarga</button>`;
@@ -3605,6 +3652,146 @@ function formTambahKeluarga(){
       if (r.ok) renderMyData($('isiSubform'));
       return r;
     }, 'Simpan');
+}
+
+/* =====================================================================
+   DATABASE WARGA (subform khusus Admin)
+   RPC get_database_warga(p_token) -> { ok, warga:[{ nik, nkk, nama, jenis_kelamin (L/P), tgl_lahir, usia,
+   hubungan, alamat, no_hp, status_pemilu, wafat }] }
+   ===================================================================== */
+const DB_HALAMAN = 20;                       // jumlah baris awal & tambahan tiap klik "Lainnya"
+const DB_POLA_LOKAL = /lokal/i, DB_POLA_LUAR = /luar/i;   // dicocokkan ke kolom status_pemilu
+const DB_TAB = [
+  ['semua', 'Data',        'fa-database',    '#dbeafe', '#2563eb'],
+  ['L',     'Laki-Laki',   'fa-person',      '#e0e7ff', '#4f46e5'],
+  ['P',     'Perempuan',   'fa-person-dress','#fce7f3', '#db2777'],
+  ['wafat', 'Wafat',       'fa-cross',       '#f1f5f9', '#475569'],
+  ['lokal', 'Pemilih Lokal','fa-house-user', '#dcfce7', '#16a34a'],
+  ['luar',  'Pemilih Luar', 'fa-earth-asia', '#ffedd5', '#ea580c']
+];
+const DB_COCOK = {
+  semua: () => true,
+  L: w => !w.wafat && w.jk === 'L',
+  P: w => !w.wafat && w.jk === 'P',
+  wafat: w => w.wafat,
+  lokal: w => w.lokal,
+  luar: w => w.luar
+};
+function dbNormal(r){
+  const usiaTeks = String(r.usia ?? '');
+  const wafat = r.wafat === true || /thn.*bln/i.test(usiaTeks);
+  const st = String(r.status_pemilu ?? '');
+  const hp = String([r.no_hp, r.hp, r.telp].find(v => v !== null && v !== undefined && String(v).trim() !== '') ?? '').trim();
+  const nama = namaTanpaGelar(r.nama) || String(r.nama ?? '');
+  const alamat = String(r.alamat ?? '').trim();
+  return {
+    nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat,
+    jk: String(r.jenis_kelamin ?? '').toUpperCase().slice(0,1),
+    hubungan: String(r.hubungan ?? '').trim(), usia: r.usia, lahir: keDate(r.tgl_lahir),
+    lokal: !wafat && DB_POLA_LOKAL.test(st), luar: !wafat && DB_POLA_LUAR.test(st),
+    cari: (nama + ' ' + alamat + ' ' + hp + ' ' + hp.replace(/\D/g,'')).toLowerCase()
+  };
+}
+function dbUsia(w){
+  if (w.wafat) return String(w.usia ?? '').trim() || '-';
+  if (w.lahir){
+    const n = new Date(); let u = n.getFullYear() - w.lahir.getFullYear();
+    if (n.getMonth() < w.lahir.getMonth() || (n.getMonth() === w.lahir.getMonth() && n.getDate() < w.lahir.getDate())) u--;
+    if (u >= 0) return u + ' thn';
+  }
+  const x = parseFloat(String(w.usia ?? '').replace(',', '.'));
+  return isNaN(x) ? '-' : Math.floor(x) + ' thn';
+}
+
+async function renderDatabaseWarga(isi){
+  const versi = versiSubform;
+  let semua = [], hasil = [], filter = 'semua', kata = '', tampil = DB_HALAMAN;
+
+  isi.innerHTML = `<div class="ar db">
+    <div class="kartu-stat">
+      <h3 class="st-judul"><i class="fa-solid fa-chart-simple"></i> Rekapitulasi Data</h3>
+      <div class="ar-stats" id="dbTab">${DB_TAB.map((t, i) =>
+        `<button type="button" class="ar-stat${i === 0 ? ' aktif' : ''}" data-f="${t[0]}"><span class="ar-ic" style="background:${t[3]};color:${t[4]}"><i class="fa-solid ${t[2]}"></i></span><span><p class="ar-tt">${t[1]}</p><h3 class="ar-vl" id="dbN_${t[0]}">0</h3></span></button>`).join('')}
+      </div>
+    </div>
+    <div class="kartu-stat">
+      <h3 class="st-judul"><i class="fa-solid fa-magnifying-glass"></i> Pencarian Data</h3>
+      <div class="db-cari">
+        <div class="db-jml"><b id="dbJml">0</b><small>Hasil</small></div>
+        <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="dbCari" placeholder="Cari nama, alamat, no. HP..." autocomplete="off" enterkeyhint="search"></div>
+      </div>
+    </div>
+    <div class="kartu-stat">
+      <h3 class="st-judul"><i class="fa-solid fa-users"></i> Data Warga</h3>
+      <div id="dbIsi"><div class="ar-muat"><i class="fa-solid fa-spinner fa-spin"></i><span>Memuat data...</span></div></div>
+    </div>
+  </div>`;
+
+  let gagal = '';
+  try{
+    const { data, error } = await db.rpc('get_database_warga', { p_token: tokenSesi });
+    if (error) throw error;
+    if (!data || !data.ok) gagal = (data && data.pesan) || 'Gagal memuat database warga.';
+    else semua = (data.warga || []).map(dbNormal);
+  }catch(e){
+    console.error(e);
+    const msg = String((e && e.message) || '');
+    gagal = (e && (e.code === 'PGRST202' || /could not find the function/i.test(msg)))
+      ? 'Fungsi get_database_warga belum terpasang di Supabase.'
+      : 'Tidak dapat memuat data. Periksa koneksi Anda.';
+  }
+  if (versi !== versiSubform) return;
+  const wadah = $('dbIsi'); if (!wadah) return;
+  if (gagal){ wadah.innerHTML = `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(gagal)}</div>`; return; }
+
+  semua.sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
+  DB_TAB.forEach(t => { $('dbN_' + t[0]).textContent = fmt(semua.filter(DB_COCOK[t[0]]).length); });
+
+  function gambar(){
+    hasil = semua.filter(DB_COCOK[filter]).filter(w => !kata || w.cari.includes(kata));
+    $('dbJml').textContent = fmt(hasil.length);
+    if (!hasil.length){ wadah.innerHTML = '<div class="kosong" style="margin:12px 0">Tidak ada data yang cocok.</div>'; return; }
+    const baris = hasil.slice(0, tampil).map((w, i) =>
+      `<tr data-i="${i}"><td class="fw6">${esc(w.nama)}${w.wafat ? '<span class="db-wafat">Wafat</span>' : ''}</td><td>${esc(w.alamat || '-')}</td><td class="nw">${esc(w.hp || '-')}</td></tr>`).join('');
+    wadah.innerHTML = `<div class="ar-box"><table class="db-t"><thead><tr><th>Nama</th><th>Alamat</th><th>No. HP</th></tr></thead><tbody>${baris}</tbody></table></div>` +
+      (tampil < hasil.length ? '<button type="button" class="db-lain" id="dbLain">Lainnya</button>' : '');
+  }
+
+  $('dbTab').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-f]'); if (!b) return;
+    filter = b.dataset.f; tampil = DB_HALAMAN;
+    $('dbTab').querySelectorAll('.ar-stat').forEach(x => x.classList.toggle('aktif', x === b));
+    gambar();
+  });
+  $('dbCari').addEventListener('input', (e) => {          // bekerja sejak karakter pertama
+    kata = e.target.value.toLowerCase().replace(/\s+/g, ' ').trim(); tampil = DB_HALAMAN; gambar();
+  });
+  wadah.addEventListener('click', (e) => {
+    if (e.target.closest('#dbLain')){ tampil += DB_HALAMAN; return gambar(); }
+    const tr = e.target.closest('tr[data-i]'); if (tr) dbModalInfo(hasil[+tr.dataset.i], semua);
+  });
+  gambar();
+}
+
+function dbModalInfo(w, semua){
+  if (!w) return;
+  const anggota = w.nkk ? semua.filter(x => x.nkk === w.nkk) : [w];
+  const kepala = anggota.find(x => /kepala/i.test(x.hubungan));
+  const kk = kepala || w;
+  const hp = kk.hp || w.hp || (anggota.find(x => x.hp) || {}).hp || '';
+  const urut = anggota.slice().sort((a, b) =>
+    (/kepala/i.test(b.hubungan) - /kepala/i.test(a.hubungan)) ||
+    ((a.lahir ? a.lahir.getTime() : Infinity) - (b.lahir ? b.lahir.getTime() : Infinity)));
+  const baris = urut.map(x => `<tr><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(x.hubungan || '-')}</td></tr>`).join('');
+  const nkk = w.nkk;
+  bukaModalForm('Informasi Data',
+    `<div class="md-id" style="margin-top:2px"><small>Nama KK</small><div class="baris"><span class="nilai" style="letter-spacing:0;font-weight:600">${esc(kk.nama)}</span></div></div>` +
+    `<div class="md-id"><small>NKK</small><div class="baris"><span class="nilai" data-nilai="${esc(nkk)}" data-tampil="0">${nkk ? '*'.repeat(nkk.length) : '-'}</span>` +
+      (nkk ? `<button type="button" class="md-mata" data-mata aria-label="Tampilkan NKK"><i class="fa-solid fa-eye"></i></button>` : '') + `</div></div>` +
+    `<div class="md-id"><small>Nomor HP</small><div class="baris"><span class="nilai" style="letter-spacing:0">${esc(hp || '-')}</span></div></div>` +
+    `<div class="md-tabel-wadah" style="margin:14px 0 8px"><table class="md-tabel"><thead><tr><th>Nama</th><th>Usia</th><th>Hubungan</th></tr></thead><tbody>${baris}</tbody></table></div>`,
+    null);
+  $('mfBatal').textContent = 'Tutup';
 }
 
 /* =====================================================================
