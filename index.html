@@ -356,6 +356,29 @@
   .dbm-wa{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:#15803d;text-decoration:none}
   .dbm-wa i{font-size:1.1rem;color:#25d366}
 
+  /* ---- Database Warga: kolom Difabel, Bumil, Bantuan (edit admin) ---- */
+  .ar.db .db-t th.kr-c,.ar.db .db-t td.kr-c{text-align:center;white-space:nowrap}
+  .db-ck{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;margin:-8px 0;cursor:pointer}
+  .db-ck input{width:18px;height:18px;accent-color:#1558c9;cursor:pointer}
+  .db-ck input:disabled{cursor:not-allowed;opacity:.4}
+  .db-bt{border:1px dashed #94a3b8;background:#f8fafc;color:#1558c9;border-radius:8px;padding:4px 9px;font:inherit;font-size:.7rem;
+    cursor:pointer;text-align:left;white-space:nowrap}
+  .db-bt.isi{border-style:solid;border-color:#bfdbfe;background:#eff6ff;font-weight:600}
+  .db-bt:disabled{cursor:not-allowed;opacity:.5}
+  .kr-pilih{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1.5px solid #e2e8f0;border-radius:12px;margin-bottom:8px;
+    font-size:.9rem;color:var(--teks);cursor:pointer}
+  .kr-pilih input{width:20px;height:20px;accent-color:#1558c9;flex:none}
+
+  /* ---- Data Statistik: kartu Difabel, Bumil dan Bantuan ---- */
+  .kr-dua{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .kr-kotak{display:flex;align-items:center;gap:10px;border-radius:14px;padding:12px;font-size:.74rem}
+  .kr-kotak i{font-size:1.4rem;flex:none}
+  .kr-kotak span{display:flex;flex-direction:column;line-height:1.25}
+  .kr-kotak b{font-size:1.25rem;font-weight:700}
+  .kr-kotak.d{background:#e0f2fe;color:#0369a1}
+  .kr-kotak.b{background:#fce7f3;color:#be185d}
+  .kr-sub{margin:14px 0 8px;font-size:.78rem;font-weight:600;color:var(--biru-tua)}
+
   /* ---- Subform Database Warga (memakai gaya tab .ar) ---- */
   .ar.db .ar-stats{margin-bottom:0}
   .ar.db .ar-stat{flex-direction:row;justify-content:flex-start;gap:6px;padding:8px 6px;text-align:left}
@@ -368,6 +391,7 @@
   .ar.db .db-jml small{font-size:.62rem;opacity:.9}
   .ar.db .ar-cari{flex:1;margin:0;min-width:0}
   .ar.db .db-t{width:100%}
+  .ar.db .db-t.kr{min-width:620px}
   .ar.db .db-t th{background:#f8fafc;color:#000;font-weight:700;font-size:.75rem;padding:8px 9px;text-align:left;white-space:nowrap;border-bottom:2px solid #cbd5e1}
   .ar.db .db-t td{background:#fff;color:#000;font-size:.76rem;padding:9px;vertical-align:top;overflow-wrap:anywhere;border-bottom:1px solid #e2e8f0}
   .ar.db .db-t tbody tr{cursor:pointer;transition:background .15s}
@@ -673,9 +697,10 @@
   .st-donut{display:flex;align-items:center;justify-content:space-around;gap:12px}
   .st-donut .wadah{position:relative;width:130px;height:130px;flex:none}
   .st-donut .pusat-donut{color:var(--biru-muda)}
-  .st-legenda{display:flex;flex-direction:column;gap:6px;font-size:.78rem;color:var(--abu)}
-  .st-legenda i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-  .st-legenda b{color:var(--biru-tua);margin-left:4px}
+  .st-legenda{display:flex;flex-direction:column;gap:6px;font-size:.78rem;color:var(--abu);min-width:150px}
+  .st-legenda > span{display:flex;align-items:center}
+  .st-legenda i{display:inline-block;flex:none;width:10px;height:10px;border-radius:50%;margin-right:6px}
+  .st-legenda b{color:var(--biru-tua);margin-left:auto;padding-left:14px;text-align:right;font-variant-numeric:tabular-nums}
   .st-bar{position:relative;width:100%;height:220px}
   .st-bar.tinggi{height:250px}
   .st-ket{margin-top:10px;font-size:.66rem;color:var(--abu);line-height:1.5}
@@ -1026,7 +1051,7 @@
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Komposisi Jenis Kelamin"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="status" aria-label="Buka rincian Status Warga"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Domisili_wqbnfa.webp" alt="Data Statistik 2: Status Warga" draggable="false" loading="lazy"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Jumlah Jiwa menurut Usia"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Data Bantuan"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Difabel, Bumil dan Bantuan"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="pendidikan" aria-label="Buka rincian Pendidikan Terakhir"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Pendidikan_xs4usm.webp" alt="Data Statistik 5: Pendidikan Terakhir" draggable="false" loading="lazy"></button></div>
       </div>
       <div class="sp-titik" id="dsTitik" role="tablist" aria-label="Navigasi Data Statistik"></div>
@@ -1153,6 +1178,7 @@ const $ = (id) => document.getElementById(id);
 let tokenSesi = null;
 let statistik = null;
 let statDetail = null;   // rincian get_statistik_detail untuk modal Data Statistik
+let statKr = null;       // hitungan Difabel/Bumil/Bantuan (get_statistik_kerentanan)
 let pollStatus = null, pollSelisih = 0, plTimer = null, plPoll = null, plIdAdmin = '';
 let chartGender = null;
 let suratMenunggu = 0;
@@ -1329,7 +1355,7 @@ document.addEventListener('keydown', e => {
 async function keluar(){
   if (!(await konfirmasiKeluar())) return;
   try{ await db.rpc('logout_warga', { p_token: tokenSesi }); }catch(e){}
-  hapusToken(); tokenSesi = null; statistik = null; statDetail = null; arData = null; telpLogin = '';
+  hapusToken(); tokenSesi = null; statistik = null; statDetail = null; statKr = null; arData = null; telpLogin = '';
   tampilkanLogin();
 }
 $('btnKeluar').addEventListener('click', keluar);
@@ -1340,7 +1366,7 @@ async function muatStatistik(){
     const { data, error } = await db.rpc('get_statistik', { p_token: tokenSesi });
     if (error) throw error;
     if (!data.ok){ hapusToken(); toast('Sesi berakhir, silakan masuk kembali.'); return tampilkanLogin(); }
-    statistik = data; statDetail = null;
+    statistik = data; statDetail = null; statKr = null;
     $('angkaKK').textContent = fmt(data.jumlah_kk);
     $('angkaJiwa').textContent = fmt(data.jumlah_jiwa);
     $('angkaWafat').textContent = fmt(data.jumlah_wafat);
@@ -1421,12 +1447,15 @@ async function renderStatistik(isi){
       spacing: kosong ? 0 : 3, borderRadius: kosong ? 0 : 6, hoverOffset:4 }] },
     options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{ enabled:!kosong } } } }));
 
+  let kr = null, krGagal = '';
+  const pKr = ambilStatKr().then(v => { kr = v; }).catch(e => { console.error(e); krGagal = pesanKr(e); });
   let d = null, gagal = '';
   try{
     const { data, error } = await db.rpc('get_statistik_detail', { p_token: tokenSesi });
     if (error) throw error;
     if (!data.ok) gagal = data.pesan || 'Gagal memuat rincian statistik.'; else d = data;
   }catch(e){ console.error(e); gagal = 'Tidak dapat memuat rincian statistik. Periksa koneksi Anda.'; }
+  await pKr;
   if (versi !== versiSubform) return;
   const wadah = $('stRincian'); if (!wadah) return;
   if (gagal){ wadah.innerHTML = `<div class="kosong"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal)}</div>`; return; }
@@ -1440,6 +1469,10 @@ async function renderStatistik(isi){
     <div class="kartu-stat">
       <h3 class="st-judul"><i class="fa-solid fa-child-reaching"></i> Jumlah Jiwa menurut Usia</h3>
       <div class="st-bar"><canvas id="stUsia"></canvas></div>
+    </div>
+    <div class="kartu-stat">
+      <h3 class="st-judul"><i class="fa-solid fa-hand-holding-heart"></i> Difabel, Bumil dan Bantuan</h3>
+      ${htmlKerentanan(kr, krGagal, 'stKr')}
     </div>
     <div class="kartu-stat">
       <h3 class="st-judul"><i class="fa-solid fa-graduation-cap"></i> Pendidikan Terakhir</h3>
@@ -1468,6 +1501,8 @@ async function renderStatistik(isi){
       datasets:[{ label:'Jiwa', data:[pd.sd||0, pd.smp||0, pd.sma||0, pd.diploma||0, pd.sarjana||0, pd.pascasarjana||0],
         backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:22 }] },
     options:opsiBar(true, false), plugins:[pluginNilai] }));
+
+  if (kr) gambarChartKr($('stKr'), kr, chartStat);
 }
 
 
@@ -4126,6 +4161,7 @@ function formTambahKeluarga(){
    RPC get_database_warga(p_token) -> { ok, warga:[{ nik, nkk, nama, jenis_kelamin (L/P), tgl_lahir, usia,
    hubungan, alamat, no_hp, status_pemilu, wafat }] }
    ===================================================================== */
+const KR_BANTUAN = ['PKH', 'Sembako', 'PBI-JK', 'PIP', 'KIS'];   // pilihan Bantuan
 const DB_HALAMAN = 20;                       // jumlah baris awal & tambahan tiap klik "Lainnya"
 const DB_POLA_LOKAL = /lokal/i, DB_POLA_LUAR = /luar/i;   // dicocokkan ke kolom status_pemilu
 const DB_TAB = [
@@ -4223,16 +4259,55 @@ async function renderDatabaseWarga(isi){
   const wadah = $('dbIsi'); if (!wadah) return;
   if (gagal){ wadah.innerHTML = `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(gagal)}</div>`; return; }
 
+  /* Kolom Difabel, Bumil, Bantuan: disimpan di tabel warga_kerentanan (14_kerentanan.sql) */
+  let krSiap = true;
+  try{
+    const { data: kd, error: ke } = await db.rpc('get_kerentanan', { p_token: tokenSesi });
+    if (ke) throw ke;
+    if (!kd || !kd.ok) throw new Error((kd && kd.pesan) || 'Gagal memuat data Difabel, Bumil, dan Bantuan.');
+    const peta = new Map((kd.data || []).map(k => [String(k.nik), k]));
+    semua.forEach(w => {
+      const k = peta.get(w.nik) || {};
+      w.difabel = !!k.difabel; w.bumil = !!k.bumil; w.bantuan = Array.isArray(k.bantuan) ? k.bantuan : [];
+      w.cari0 = w.cari; krCari(w);
+    });
+  }catch(e){
+    console.error(e); krSiap = false;
+    toast('Kolom Difabel, Bumil, dan Bantuan belum aktif. Jalankan 14_kerentanan.sql di Supabase.');
+  }
+  if (versi !== versiSubform) return;
+
   semua.sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
   DB_TAB.forEach(t => { $('dbN_' + t[0]).textContent = fmt(semua.filter(DB_COCOK[t[0]]).length); });
+
+  /* sel Difabel, Bumil, Bantuan satu baris (hanya bila fungsi server terpasang) */
+  function kolomKr(w){
+    if (!krSiap) return '';
+    const nm = esc(w.nama);
+    return `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="difabel" aria-label="Difabel: ${nm}" ${w.difabel ? 'checked' : ''} ${w.wafat ? 'disabled' : ''}></label></td>` +
+      `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="bumil" aria-label="Bumil: ${nm}" ${w.bumil ? 'checked' : ''} ${(w.wafat || w.jk !== 'P') ? 'disabled' : ''}></label></td>` +
+      `<td><button type="button" class="db-bt${w.bantuan.length ? ' isi' : ''}" data-bt ${w.wafat ? 'disabled' : ''}>${w.bantuan.length ? esc(w.bantuan.join(', ')) : '+ Pilih'}</button></td>`;
+  }
+  /* ceklis Difabel / Bumil: langsung disimpan; dikembalikan bila gagal */
+  async function krSimpanCek(inp){
+    const tr = inp.closest('tr[data-i]'), w = tr && hasil[+tr.dataset.i];
+    if (!w) return;
+    if (!w.nik){ inp.checked = !inp.checked; toast('Data ini belum memiliki NIK.'); return; }
+    const f = inp.dataset.kr, nilai = inp.checked;
+    inp.disabled = true;
+    const r = await kirimRpc('simpan_kerentanan', { nik: w.nik, [f]: nilai });
+    inp.disabled = false;
+    if (r && r.ok){ w[f] = nilai; krCari(w); statKr = null; toast('Tersimpan.'); }
+    else { inp.checked = !nilai; toast((r && r.pesan) || 'Gagal menyimpan.'); }
+  }
 
   function gambar(){
     hasil = semua.filter(DB_COCOK[filter]).filter(w => !kata || w.cari.includes(kata));
     $('dbJml').textContent = fmt(hasil.length);
     if (!hasil.length){ wadah.innerHTML = '<div class="kosong" style="margin:12px 0">Tidak ada data yang cocok.</div>'; return; }
     const baris = hasil.slice(0, tampil).map((w, i) =>
-      `<tr data-i="${i}"><td class="fw6">${esc(w.nama)}${w.wafat ? '<span class="db-wafat">Wafat</span>' : ''}</td><td>${esc(w.alamat || '-')}</td></tr>`).join('');
-    wadah.innerHTML = `<div class="ar-box"><table class="db-t"><thead><tr><th>Nama</th><th>Alamat</th></tr></thead><tbody>${baris}</tbody></table></div>` +
+      `<tr data-i="${i}"><td class="fw6">${esc(w.nama)}${w.wafat ? '<span class="db-wafat">Wafat</span>' : ''}</td><td>${esc(w.alamat || '-')}</td>${kolomKr(w)}</tr>`).join('');
+    wadah.innerHTML = `<div class="ar-box"><table class="db-t${krSiap ? ' kr' : ''}"><thead><tr><th>Nama</th><th>Alamat</th>${krSiap ? '<th class="kr-c">Difabel</th><th class="kr-c">Bumil</th><th>Bantuan</th>' : ''}</tr></thead><tbody>${baris}</tbody></table></div>` +
       (tampil < hasil.length ? '<button type="button" class="db-lain" id="dbLain">Lainnya</button>' : '');
   }
 
@@ -4248,6 +4323,12 @@ async function renderDatabaseWarga(isi){
   });
   wadah.addEventListener('click', (e) => {
     if (e.target.closest('#dbLain')){ tampil += DB_HALAMAN; return gambar(); }
+    if (e.target.closest('.db-ck')){                       // ceklis Difabel / Bumil (tidak membuka modal info)
+      const inp = e.target.closest('input[data-kr]'); if (inp) krSimpanCek(inp);
+      return;
+    }
+    const bt = e.target.closest('[data-bt]');              // Bantuan: modal pilihan
+    if (bt){ const t = bt.closest('tr[data-i]'); if (t) dbModalBantuan(hasil[+t.dataset.i], bt); return; }
     const tr = e.target.closest('tr[data-i]'); if (tr) dbModalInfo(hasil[+tr.dataset.i], semua);
   });
   $('dbUltah').disabled = false;
@@ -4275,6 +4356,30 @@ function dbModalUltah(semua){
       : '<div class="kosong" style="margin:6px 0 12px"><i class="fa-solid fa-cake-candles"></i> Tidak ada warga yang berulang tahun hari ini.</div>'),
     null);
   $('mfBatal').textContent = 'Tutup';
+}
+
+/* teks pencarian ikut memuat Difabel / Bumil / Bantuan */
+function krCari(w){
+  w.cari = ((w.cari0 || '') + ' ' + (w.difabel ? 'difabel ' : '') + (w.bumil ? 'bumil ibu hamil ' : '') + (w.bantuan || []).join(' ')).toLowerCase().replace(/\s+/g, ' ');
+}
+/* Modal Bantuan (PKH, Sembako, PBI-JK, PIP, KIS) untuk satu warga */
+function dbModalBantuan(w, btn){
+  if (!w) return;
+  if (!w.nik){ toast('Data ini belum memiliki NIK.'); return; }
+  bukaModalForm('Bantuan: ' + w.nama,
+    `<div class="mf-field">${KR_BANTUAN.map(b =>
+      `<label class="kr-pilih"><input type="checkbox" name="bantuan" value="${esc(b)}" ${w.bantuan.includes(b) ? 'checked' : ''}> ${esc(b)}</label>`).join('')}</div>`,
+    async (fd) => {
+      const pilih = fd.getAll('bantuan');
+      const r = await kirimRpc('simpan_kerentanan', { nik: w.nik, bantuan: pilih });
+      if (!r || !r.ok) return r || { ok:false, pesan:'Gagal menyimpan.' };
+      w.bantuan = KR_BANTUAN.filter(b => pilih.includes(b)); krCari(w); statKr = null;
+      if (btn && btn.isConnected){
+        btn.textContent = w.bantuan.length ? w.bantuan.join(', ') : '+ Pilih';
+        btn.classList.toggle('isi', w.bantuan.length > 0);
+      }
+      return { ok:true, pesan:'Bantuan tersimpan.' };
+    }, 'Simpan');
 }
 
 const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
@@ -4584,7 +4689,7 @@ const MODAL_STAT = {
   gender:     { judul:'Komposisi Jenis Kelamin',           ikon:'fa-venus-mars' },
   status:     { judul:'Status Warga: Jumlah KK dan Jiwa',  ikon:'fa-house-user' },
   usia:       { judul:'Jumlah Jiwa menurut Usia',          ikon:'fa-child-reaching' },
-  bantuan:    { judul:'Data Bantuan',                      ikon:'fa-hand-holding-heart' },
+  bantuan:    { judul:'Difabel, Bumil dan Bantuan',        ikon:'fa-hand-holding-heart' },
   pendidikan: { judul:'Pendidikan Terakhir',               ikon:'fa-graduation-cap' }
 };
 function hapusChartModal(){ chartModal.forEach(c => c.destroy()); chartModal = []; }
@@ -4596,6 +4701,40 @@ async function ambilStatDetail(){
   statDetail = data;
   return data;
 }
+/* ---- Difabel, Bumil, Bantuan (dipakai modal gambar 4 dan kartu di subform) ---- */
+async function ambilStatKr(){
+  if (statKr) return statKr;
+  const { data, error } = await db.rpc('get_statistik_kerentanan', { p_token: tokenSesi });
+  if (error) throw error;
+  if (!data || !data.ok) throw new Error((data && data.pesan) || 'Gagal memuat data.');
+  statKr = data;
+  return data;
+}
+function pesanKr(e){
+  const msg = String((e && e.message) || '');
+  if (!aksesPenuh) return 'Data belum tersedia.';        // warga biasa: tanpa istilah teknis
+  if (e && (e.code === 'PGRST202' || /could not find the function/i.test(msg))) return 'Fungsi get_statistik_kerentanan belum terpasang di Supabase. Jalankan 14_kerentanan.sql.';
+  return msg || 'Data belum tersedia.';
+}
+function htmlKerentanan(kr, gagal, idCanvas){
+  if (!kr) return `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal || 'Data belum tersedia.')}</div>`;
+  return `<div class="kr-dua">
+      <div class="kr-kotak d"><i class="fa-solid fa-wheelchair"></i><span>Difabel<b>${fmt(kr.difabel)}</b></span></div>
+      <div class="kr-kotak b"><i class="fa-solid fa-person-pregnant"></i><span>Ibu Hamil (Bumil)<b>${fmt(kr.bumil)}</b></span></div>
+    </div>
+    <div class="kr-sub">Penerima Bantuan (jiwa)</div>
+    <div class="st-bar"><canvas id="${idCanvas}"></canvas></div>
+    <div class="st-ket">PKH = Program Keluarga Harapan • PBI-JK = Penerima Bantuan Iuran Jaminan Kesehatan • PIP = Program Indonesia Pintar • KIS = Kartu Indonesia Sehat</div>`;
+}
+function gambarChartKr(canvas, kr, daftar){
+  if (!canvas) return;
+  const b = kr.bantuan || {};
+  daftar.push(new Chart(canvas, { type:'bar',
+    data:{ labels:KR_BANTUAN, datasets:[{ label:'Jiwa', data:KR_BANTUAN.map(k => b[k] || 0),
+      backgroundColor:['#1558c9','#ff8a1f','#10b981','#7c3aed','#e11d74'], borderRadius:6, maxBarThickness:40 }] },
+    options:opsiBar(false, false), plugins:[pluginNilai] }));
+}
+
 async function bukaModalStat(kunci){
   const m = MODAL_STAT[kunci]; if (!m) return;
   if (!statistik){ toast('Data statistik belum termuat. Coba sesaat lagi.'); return; }
@@ -4609,9 +4748,19 @@ async function bukaModalStat(kunci){
   modal.classList.add('tampil'); modal.setAttribute('aria-hidden', 'false');
   if (!sudahBuka) bukaLapisan(tutupModalStat);
 
-  /* Gambar 4: data belum tersedia */
+  /* Gambar 4: Difabel, Bumil, dan Bantuan */
   if (kunci === 'bantuan'){
-    isi.innerHTML = '<div class="kosong" style="margin:24px 0"><i class="fa-solid fa-hourglass-half"></i>Data sedang diproses.<br>Akan ditampilkan setelah selesai.</div>';
+    let kr;
+    try{ kr = await ambilStatKr(); }
+    catch(e){
+      console.error(e);
+      if (versi !== versiModalStat) return;
+      isi.innerHTML = htmlKerentanan(null, pesanKr(e), '');
+      return;
+    }
+    if (versi !== versiModalStat) return;
+    isi.innerHTML = htmlKerentanan(kr, '', 'msKr');
+    gambarChartKr($('msKr'), kr, chartModal);
     return;
   }
 
