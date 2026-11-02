@@ -956,6 +956,12 @@
   .pr-ed-prog input[type=text]{flex:1;min-width:0;font:inherit;font-size:.82rem;background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:9px 10px;outline:0}
   .pr-ed-prog label{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--abu);white-space:nowrap;cursor:pointer}
   .pr-ed-prog input[type=checkbox]{width:18px;height:18px;accent-color:#10b981}
+  .pr .pr-grup + .pr-grup{margin-top:10px;border-top:2px solid #e2e8f0}
+  .pr .pr-hp{color:#15803d;font-weight:600;text-decoration:none}
+  .pr .pr-lebar span:first-child{width:auto;flex:1;color:var(--teks)}
+  .pr .pr-lebar i.md-status{font-style:normal}
+  .pr .md-isi .pr-capaian{padding:8px 0 4px;border-top:1px dashed #e2e8f0}
+  .pr .md-isi .pr-kosong{padding:4px 0 2px;text-align:center}
   .pr-ed-sub{font-size:.7rem;font-weight:700;color:var(--abu);margin:8px 0 6px}
 </style>
 </head>
@@ -1262,6 +1268,8 @@ function aturMenuPengguna(profil){
   const nama = namaTanpaGelar(profil && profil.nama).toLowerCase().replace(/\s+/g, ' ').trim();
   aksesPenuh = nama === NAMA_AKSES_PENUH;
   if (!profil) pollStatus = null;
+  const bp = $('btnPolling'), ga = $('gridAdmin');                  // Polling: admin di Fitur Admin, warga setelah Data Pengajuan
+  if (bp && ga){ if (aksesPenuh) ga.prepend(bp); else $('btnLonceng').after(bp); }
   const namaPenuh = normNama(profil && profil.nama);
   aksesRonda = aksesPenuh || NAMA_AKSES_RONDA.includes(namaPenuh) || NAMA_AKSES_RONDA.includes(nama.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim());
   aturRonda();
@@ -2312,7 +2320,7 @@ function renderArsipAset(isi){
    warga biasa hanya melihat hasil. Pengecekan Admin juga dilakukan di sisi server. */
 const BUCKET_PROFIL = 'profil_rt';
 const MIME_PETA = { 'image/jpeg':'jpg', 'image/png':'png', 'image/webp':'webp' };
-let prData = {}, prAktifIdx = 0;
+let prData = {}, prBuka = 'peta';
 
 function prMasaKerja(){
   const mulai = new Date(2026, 0, 7), akhir = new Date(2030, 0, 7), h = new Date();
@@ -2330,14 +2338,6 @@ function prWaUrl(hp){
   if (c.startsWith('0')) c = '62' + c.substring(1);
   return 'https://wa.me/' + c;
 }
-function prInisial(nama){
-  const k = String(nama || '').trim().split(/\s+/).filter(Boolean);
-  if (!k.length) return 'RT';
-  return (k.length >= 2 ? k[0][0] + k[1][0] : k[0][0]).toUpperCase();
-}
-function prAvatar(nama, kelas){
-  return `<div class="pr-avatar ${kelas || ''}"><div class="pr-avatar-fb">${esc(prInisial(nama))}</div></div>`;
-}
 function prUrlPeta(){
   const p = prData.peta && prData.peta.path; if (!p) return '';
   return db.storage.from(BUCKET_PROFIL).getPublicUrl(p).data.publicUrl;
@@ -2351,32 +2351,29 @@ function prBukaPeta(){
 }
 $('prLightbox').addEventListener('click', () => kembaliLapisan());
 
-/* ----- Tampilan data ----- */
+/* ----- Tampilan data (gaya seksi Data Pribadi di MyData) ----- */
 const prArr = (k) => Array.isArray(prData[k]) ? prData[k] : [];
 const prKosong = (t) => `<div class="pr-kosong">${t}</div>`;
+const prBaris = (label, isiHtml) => `<div class="md-baris"><span>${label}</span><span>${isiHtml}</span></div>`;
+const prNil = (v) => (v === null || v === undefined || String(v).trim() === '') ? '-' : esc(v);
 function prHtmlBangunan(){
   const a = prArr('bangunan');
   if (!a.length) return prKosong('Belum ada data bangunan.');
-  return `<div class="pr-kawasan">${a.map(x => {
+  return a.map(x => {
     const huni = Number(x.huni) || 0, tidak = Number(x.tidak) || 0;
-    return `<div class="pr-kawasan-item"><div class="pr-kawasan-name"><i class="fa-solid fa-tree-city"></i><span>${esc(x.nama)}</span></div>
-      <div class="pr-kawasan-badge">${huni}/${huni + tidak}</div></div>`;
-  }).join('')}</div>`;
+    return prBaris(esc(x.nama), `${huni} huni · ${tidak} tidak dihuni`);
+  }).join('');
 }
 function prHtmlPengurus(){
   const a = prArr('pengurus');
   if (!a.length) return prKosong('Belum ada data pengurus.');
-  return `<div class="pr-grid">${a.map(p => `<div class="pr-pcard">${prAvatar(p.nama)}
-      <span class="pr-badge">${esc(p.jabatan)}</span><div class="pr-name">${esc(p.nama)}</div>
-      ${p.alamat ? `<div class="pr-alamat"><i class="fa-solid fa-location-dot"></i> ${esc(p.alamat)}</div>` : ''}
-      ${p.hp ? `<a class="pr-wa" href="${esc(prWaUrl(p.hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> ${esc(p.hp)}</a>` : ''}</div>`).join('')}</div>`;
+  return a.map(p => `<div class="pr-grup">${prBaris('Nama', prNil(p.nama))}${prBaris('Jabatan', prNil(p.jabatan))}${prBaris('Alamat', prNil(p.alamat))}` +
+    prBaris('No. HP', p.hp ? `<a class="pr-hp" href="${esc(prWaUrl(p.hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> ${esc(p.hp)}</a>` : '-') + '</div>').join('');
 }
 function prHtmlPeriodisasi(){
   const a = prArr('periodisasi');
   if (!a.length) return prKosong('Belum ada data periodisasi.');
-  return `<div class="pr-grid">${a.map(x => `<div class="pr-pcard">${prAvatar(x.nama, 'amber')}
-      <span class="pr-badge amber">${esc(x.periode)}</span><div class="pr-name">${esc(x.nama)}</div>
-      ${x.alamat ? `<div class="pr-alamat"><i class="fa-solid fa-house"></i> ${esc(x.alamat)}</div>` : ''}</div>`).join('')}</div>`;
+  return a.map(x => `<div class="pr-grup">${prBaris('Nama', prNil(x.nama))}${prBaris('Alamat', prNil(x.alamat))}${prBaris('Periode', prNil(x.periode))}</div>`).join('');
 }
 function prHtmlProgram(){
   const p = prData.program;
@@ -2385,12 +2382,13 @@ function prHtmlProgram(){
   let total = 0, selesai = 0;
   misi.forEach(m => (m.program || []).forEach(g => { total++; if (g.selesai) selesai++; }));
   const persen = total ? Math.round(selesai / total * 100) : 0;
-  return `${p.visi ? `<div class="pr-visi"><div class="pr-visi-lbl"><i class="fa-solid fa-bullseye"></i> Visi</div><div class="pr-visi-txt">${esc(p.visi)}</div></div>` : ''}
-    ${total ? `<div class="pr-capaian"><div class="pr-capaian-t"><span>Capaian Program (${selesai} dari ${total} selesai)</span><span>${persen}%</span></div>
-      <div class="pr-masa-bar"><div class="pr-masa-fill" style="width:${persen}%"></div></div></div>` : ''}
-    ${misi.map((m, i) => `<div class="pr-misi"><div class="pr-misi-h"><span>Misi ${i + 1}</span>${esc(m.judul)}</div>
-      ${(m.program || []).map((g, j) => `<div class="pr-prog"><div class="pr-prog-t"><b>${i + 1}.${j + 1}</b><span>${esc(g.judul)}</span></div>
-        ${g.selesai ? '<span class="pr-pill selesai"><i class="fa-solid fa-circle-check"></i> Selesai</span>' : '<span class="pr-pill rencana"><i class="fa-solid fa-clock"></i> Rencana</span>'}</div>`).join('')}</div>`).join('')}`;
+  const tengah = (label, t) => `<div class="md-tengah"><small>${label}</small><b>${esc(t)}</b></div>`;
+  return (p.visi ? tengah('Visi', p.visi) : '') +
+    (total ? `<div class="pr-capaian"><div class="pr-capaian-t"><span>Capaian Program (${selesai} dari ${total} selesai)</span><span>${persen}%</span></div>
+      <div class="pr-masa-bar"><div class="pr-masa-fill" style="width:${persen}%"></div></div></div>` : '') +
+    misi.map((m, i) => `<div class="pr-grup">${tengah('Misi ' + (i + 1), m.judul)}` +
+      (m.program || []).map((g, j) => `<div class="md-baris pr-lebar"><span>${i + 1}.${j + 1} ${esc(g.judul)}</span>
+        <span><i class="md-status ${g.selesai ? 'setuju' : 'proses'}">${g.selesai ? 'Selesai' : 'Rencana'}</i></span></div>`).join('') + '</div>').join('');
 }
 
 /* ----- Editor modal (hanya Admin) ----- */
@@ -2407,7 +2405,8 @@ const PR_FORM = {
 };
 function prInputKolom(c, v){
   const t = c.num ? 'type="number" min="0" max="100000" inputmode="numeric"' : (c.tel ? 'type="tel" inputmode="tel"' : 'type="text"');
-  return fld(c.label, `<input ${t} data-k="${c.k}" ${c.max ? `maxlength="${c.max}"` : ''} ${c.ph ? `placeholder="${c.ph}"` : ''} value="${esc(v ?? (c.num ? 0 : ''))}">`, c.wajib);
+  const ph = c.num ? '0' : (c.ph || '');
+  return fld(c.label, `<input ${t} data-k="${c.k}" ${c.max ? `maxlength="${c.max}"` : ''} ${ph ? `placeholder="${ph}"` : ''} value="${esc(v ?? '')}">`, c.wajib);
 }
 function prBarisHtml(kunci, it, no){
   const f = PR_FORM[kunci], dua = f.kolom.filter(c => c.num);
@@ -2526,8 +2525,8 @@ async function prMuat(){
 }
 async function renderProfilRT(isi, pertahankan){
   const versi = versiSubform;
-  if (!pertahankan) prAktifIdx = 0;
-  if (!pertahankan) isi.innerHTML = '<div class="kosong"><i class="fa-solid fa-spinner fa-spin"></i>Memuat profil RT...</div>';
+  if (pertahankan){ const o = isi.querySelector('details.md-seksi[open]'); prBuka = o ? o.dataset.k : ''; }
+  else { prBuka = 'peta'; isi.innerHTML = '<div class="kosong"><i class="fa-solid fa-spinner fa-spin"></i>Memuat profil RT...</div>'; }
   let gagal = '';
   try{ await prMuat(); }
   catch(e){
@@ -2541,14 +2540,11 @@ async function renderProfilRT(isi, pertahankan){
   if (versi !== versiSubform) return;
 
   const masa = prMasaKerja(), admin = aksesPenuh && !gagal;
-  const tombol = (kunci, ikonTambah, labelTambah, ada) => !admin ? '' :
+  const tombol = (kunci, ada) => !admin ? '' :
     `<div class="pr-aksi"><button type="button" class="pr-btn ${ada ? 'edit' : ''}" data-prbtn="${kunci}">
-      <i class="fa-solid ${ada ? 'fa-pen-to-square' : ikonTambah}"></i> ${ada ? 'Edit' : labelTambah}</button></div>`;
-  const sek = (idx, kelas, ikon, judul, sub, isiHtml) => `<section class="pr-card ${idx === prAktifIdx ? 'active' : ''}" data-pridx="${idx}">
-      <div class="pr-head" data-prtoggle><div class="pr-head-l"><div class="pr-ico ${kelas}"><i class="fa-solid ${ikon}"></i></div>
-        <div><h2 class="pr-title">${judul}</h2><p class="pr-sub">${sub}</p></div></div>
-        <div class="pr-arrow"><i class="fa-solid fa-chevron-down"></i></div></div>
-      <div class="pr-body">${isiHtml}</div></section>`;
+      <i class="fa-solid ${ada ? 'fa-pen-to-square' : 'fa-plus'}"></i> ${ada ? 'Edit' : 'Tambah Data'}</button></div>`;
+  const sek = (kunci, judul, isiHtml) => `<details class="md-seksi" data-k="${kunci}" ${prBuka === kunci ? 'open' : ''}>
+      <summary>${judul}<i class="fa-solid fa-chevron-down chev"></i></summary><div class="md-isi">${isiHtml}</div></details>`;
 
   const urlPeta = prUrlPeta();
   const p = prData.program, adaProgram = !!(p && (p.visi || (Array.isArray(p.misi) && p.misi.length)));
@@ -2562,20 +2558,16 @@ async function renderProfilRT(isi, pertahankan){
       <div class="pr-masa-val">${esc(masa.teks)}</div>
     </div>
     ${gagal ? `<div class="kosong" style="margin-top:20px"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal)}</div>` : `
-    ${sek(0, '', 'fa-map-location-dot', 'Batas Wilayah', 'Peta Wilayah Administratif',
+    ${sek('peta', 'Batas Wilayah',
       (admin ? `<div class="pr-aksi"><button type="button" class="pr-btn ${urlPeta ? 'edit' : ''}" data-prbtn="peta">
         <i class="fa-solid ${urlPeta ? 'fa-pen-to-square' : 'fa-upload'}"></i> ${urlPeta ? 'Edit' : 'Unggah Gambar'}</button>
         <input type="file" id="prFilePeta" accept="image/jpeg,image/png,image/webp" hidden></div>` : '') +
       (urlPeta ? `<div class="pr-map" data-prpeta><img src="${esc(urlPeta)}" alt="Peta Batas Wilayah RT"><div class="pr-map-badge"><i class="fa-solid fa-expand"></i> Perbesar Peta</div></div>`
                : prKosong('Belum ada gambar batas wilayah.')))}
-    ${sek(1, 'hijau', 'fa-city', 'Keadaan Bangunan', 'Jumlah yang dihuni / Total',
-      tombol('bangunan', 'fa-plus', 'Tambah Data', prArr('bangunan').length) + prHtmlBangunan())}
-    ${sek(2, 'kuning', 'fa-user-tie', 'Pengurus RT', 'Periode 2026 s.d 2030',
-      tombol('pengurus', 'fa-plus', 'Tambah Data', prArr('pengurus').length) + prHtmlPengurus())}
-    ${sek(3, 'ungu', 'fa-list-check', 'Program Kerja', 'Visi, misi, dan capaian program',
-      tombol('program', 'fa-plus', 'Tambah Data', adaProgram) + prHtmlProgram())}
-    ${sek(4, 'kuning', 'fa-clock-rotate-left', 'Periodisasi Kepengurusan', 'Histori Ketua RT dari Masa ke Masa',
-      tombol('periodisasi', 'fa-plus', 'Tambah Data', prArr('periodisasi').length) + prHtmlPeriodisasi())}`}
+    ${sek('bangunan', 'Keadaan Bangunan', tombol('bangunan', prArr('bangunan').length) + prHtmlBangunan())}
+    ${sek('pengurus', 'Pengurus RT', tombol('pengurus', prArr('pengurus').length) + prHtmlPengurus())}
+    ${sek('program', 'Program Kerja', tombol('program', adaProgram) + prHtmlProgram())}
+    ${sek('periodisasi', 'Periodisasi Kepengurusan', tombol('periodisasi', prArr('periodisasi').length) + prHtmlPeriodisasi())}`}
   </div>`;
 
   const root = isi.querySelector('.pr');
@@ -2590,11 +2582,7 @@ async function renderProfilRT(isi, pertahankan){
       if (k === 'program') return prBukaEditorProgram();
       return prBukaEditorDaftar(k);
     }
-    if (e.target.closest('[data-prpeta]')) return prBukaPeta();
-    const kepala = e.target.closest('[data-prtoggle]'); if (!kepala) return;
-    const kartu = kepala.parentElement, aktif = kartu.classList.contains('active');
-    root.querySelectorAll('.pr-card').forEach(k => k.classList.remove('active'));
-    if (!aktif){ kartu.classList.add('active'); prAktifIdx = Number(kartu.dataset.pridx); } else prAktifIdx = -1;
+    if (e.target.closest('[data-prpeta]')) prBukaPeta();
   });
 }
 
