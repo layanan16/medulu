@@ -378,6 +378,12 @@
   .kr-kotak b{font-size:1.25rem;font-weight:700}
   .kr-kotak.d{background:#e0f2fe;color:#0369a1}
   .kr-kotak.b{background:#fce7f3;color:#be185d}
+  .kr-kotak.l{background:#fef3c7;color:#b45309}
+  .kr-kotak.a{background:#dcfce7;color:#15803d}
+  .st-biru{display:flex;align-items:center;gap:8px;font-size:.86rem;font-weight:600;color:var(--biru-tua);
+    background:#e6f0fd;padding:9px 12px;border-radius:12px;margin:0 0 12px}
+  .st-biru i{color:var(--biru)}
+  #modalStat .mf-kepala{background:#e6f0fd;border-radius:22px 22px 0 0;margin-bottom:10px}
   .kr-sub{margin:14px 0 8px;font-size:.78rem;font-weight:600;color:var(--biru-tua)}
 
   /* ---- Subform Database Warga (memakai gaya tab .ar) ---- */
@@ -1049,10 +1055,10 @@
 
       <div class="judul-seksi">Data Statistik</div>
       <div class="sp-geser" id="dsGeser" role="region" aria-label="Data Statistik" tabindex="0">
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Komposisi Jenis Kelamin"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Data Demografi"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="status" aria-label="Buka rincian Status Warga"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Domisili_wqbnfa.webp" alt="Data Statistik 2: Status Warga" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Jumlah Jiwa menurut Usia"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Disabilitas, Bumil dan Bantuan"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Data Warga Prioritas"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Keluarga Penerima Manfaat"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="pendidikan" aria-label="Buka rincian Pendidikan Terakhir"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Pendidikan_xs4usm.webp" alt="Data Statistik 5: Pendidikan Terakhir" draggable="false" loading="lazy"></button></div>
       </div>
       <div class="sp-titik" id="dsTitik" role="tablist" aria-label="Navigasi Data Statistik"></div>
@@ -1425,28 +1431,15 @@ function opsiBar(horiz, legenda){
 async function renderStatistik(isi){
   const versi = versiSubform;
   chartStat.forEach(c => c.destroy()); chartStat = [];
-  const L = statistik.laki_laki || 0, P = statistik.perempuan || 0;
   isi.innerHTML = `
     <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-venus-mars"></i> Komposisi Jenis Kelamin</h3>
-      <div class="st-donut">
-        <div class="wadah"><canvas id="stDonut"></canvas><div class="pusat-donut"><i class="fa-solid fa-users"></i></div></div>
-        <div class="st-legenda">
-          <span><i style="background:#1558c9"></i>Laki-laki<b>${fmt(L)}</b></span>
-          <span><i style="background:#ff8a1f"></i>Perempuan<b>${fmt(P)}</b></span>
-          <span style="margin-top:4px">Jumlah KK<b>${fmt(statistik.jumlah_kk)}</b></span>
-          <span>Jumlah Jiwa<b>${fmt(statistik.jumlah_jiwa)}</b></span>
-          <span>Jumlah Wafat<b>${fmt(statistik.jumlah_wafat)}</b></span>
-        </div>
-      </div>
+      <h3 class="st-judul st-biru"><i class="fa-solid fa-people-group"></i> Data Demografi</h3>
+      ${htmlGender('stDonut')}
+      <div class="kr-sub">Jumlah Jiwa menurut Usia</div>
+      <div id="stUsiaWadah"><div class="kosong" style="margin:12px 0"><i class="fa-solid fa-spinner fa-spin"></i>Memuat rincian...</div></div>
     </div>
-    <div id="stRincian"><div class="kosong"><i class="fa-solid fa-spinner fa-spin"></i>Memuat rincian...</div></div>`;
-  const kosong = (L + P) === 0;
-  chartStat.push(new Chart($('stDonut'), { type:'doughnut',
-    data:{ labels:['Laki-laki','Perempuan'], datasets:[{ data: kosong ? [1] : [L,P],
-      backgroundColor: kosong ? ['#e2e8f0'] : ['#1558c9','#ff8a1f'], borderWidth:0,
-      spacing: kosong ? 0 : 3, borderRadius: kosong ? 0 : 6, hoverOffset:4 }] },
-    options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{ enabled:!kosong } } } }));
+    <div id="stRincian"></div>`;
+  gambarGender($('stDonut'), chartStat);
 
   let kr = null, krGagal = '';
   const pKr = ambilStatKr().then(v => { kr = v; }).catch(e => { console.error(e); krGagal = pesanKr(e); });
@@ -1458,51 +1451,51 @@ async function renderStatistik(isi){
   }catch(e){ console.error(e); gagal = 'Tidak dapat memuat rincian statistik. Periksa koneksi Anda.'; }
   await pKr;
   if (versi !== versiSubform) return;
-  const wadah = $('stRincian'); if (!wadah) return;
-  if (gagal){ wadah.innerHTML = `<div class="kosong"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal)}</div>`; return; }
+  const wadah = $('stRincian'), wUsia = $('stUsiaWadah'); if (!wadah || !wUsia) return;
 
-  wadah.innerHTML = `
+  if (d){
+    wUsia.innerHTML = '<div class="st-bar"><canvas id="stUsia"></canvas></div>';
+    gambarUsia($('stUsia'), d.usia || {}, chartStat);
+  } else {
+    wUsia.innerHTML = `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal)}</div>`;
+  }
+
+  wadah.innerHTML = (d ? `
     <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-house-user"></i> Status Warga: Jumlah KK dan Jiwa</h3>
+      <h3 class="st-judul st-biru"><i class="fa-solid fa-house-user"></i> Status Warga: Jumlah KK dan Jiwa</h3>
       <div class="st-bar"><canvas id="stStatus"></canvas></div>
       <div class="st-ket">WAT = Warga Asli Tinggal • WAP = Warga Asli Pindah • WDT = Warga Datang Tinggal • WDS = Warga Datang Sementara</div>
+    </div>` : '') + `
+    <div class="kartu-stat">
+      <h3 class="st-judul st-biru"><i class="fa-solid fa-star"></i> Data Warga Prioritas</h3>
+      ${htmlPrioritas(d, kr)}
     </div>
     <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-child-reaching"></i> Jumlah Jiwa menurut Usia</h3>
-      <div class="st-bar"><canvas id="stUsia"></canvas></div>
-    </div>
-    <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-hand-holding-heart"></i> Disabilitas, Bumil dan Bantuan</h3>
+      <h3 class="st-judul st-biru"><i class="fa-solid fa-hand-holding-heart"></i> Keluarga Penerima Manfaat</h3>
       ${htmlKerentanan(kr, krGagal, 'stKr')}
-    </div>
+    </div>` + (d ? `
     <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-graduation-cap"></i> Pendidikan Terakhir</h3>
+      <h3 class="st-judul st-biru"><i class="fa-solid fa-graduation-cap"></i> Pendidikan Terakhir</h3>
       <div class="st-bar tinggi"><canvas id="stPendidikan"></canvas></div>
       <div class="st-ket">Diploma: D1–D3 • Sarjana: S1/D4 • Pascasarjana: S2-S3</div>
-    </div>`;
+    </div>` : '');
 
-  const st = d.status || {};
-  const kunciSt = ['WAT','WAP','WDT','WDS'];
-  chartStat.push(new Chart($('stStatus'), { type:'bar',
-    data:{ labels:kunciSt, datasets:[
-      { label:'Jumlah KK',   data:kunciSt.map(k => (st[k]||{}).kk   || 0), backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:34 },
-      { label:'Jumlah Jiwa', data:kunciSt.map(k => (st[k]||{}).jiwa || 0), backgroundColor:'#ff8a1f', borderRadius:6, maxBarThickness:34 } ] },
-    options:opsiBar(false, true), plugins:[pluginNilai] }));
+  if (d){
+    const st = d.status || {};
+    const kunciSt = ['WAT','WAP','WDT','WDS'];
+    chartStat.push(new Chart($('stStatus'), { type:'bar',
+      data:{ labels:kunciSt, datasets:[
+        { label:'Jumlah KK',   data:kunciSt.map(k => (st[k]||{}).kk   || 0), backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:34 },
+        { label:'Jumlah Jiwa', data:kunciSt.map(k => (st[k]||{}).jiwa || 0), backgroundColor:'#ff8a1f', borderRadius:6, maxBarThickness:34 } ] },
+      options:opsiBar(false, true), plugins:[pluginNilai] }));
 
-  const u = d.usia || {};
-  chartStat.push(new Chart($('stUsia'), { type:'bar',
-    data:{ labels:[['Prasekolah','(<6)'],['Sekolah','(6-18)'],['Prakerja','(18-25)'],['Kerja','(25-60)'],['Lansia','(>60)']],
-      datasets:[{ label:'Jiwa', data:[u.prasekolah||0, u.sekolah||0, u.prakerja||0, u.kerja||0, u.lansia||0],
-        backgroundColor:['#4aa3ff','#1558c9','#0b2a6f','#ff8a1f','#10b981'], borderRadius:6, maxBarThickness:40 }] },
-    options:opsiBar(false, false), plugins:[pluginNilai] }));
-
-  const pd = d.pendidikan || {};
-  chartStat.push(new Chart($('stPendidikan'), { type:'bar',
-    data:{ labels:['SD','SMP','SMA','Diploma','Sarjana','Pascasarjana'],
-      datasets:[{ label:'Jiwa', data:[pd.sd||0, pd.smp||0, pd.sma||0, pd.diploma||0, pd.sarjana||0, pd.pascasarjana||0],
-        backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:22 }] },
-    options:opsiBar(true, false), plugins:[pluginNilai] }));
-
+    const pd = d.pendidikan || {};
+    chartStat.push(new Chart($('stPendidikan'), { type:'bar',
+      data:{ labels:['SD','SMP','SMA','Diploma','Sarjana','Pascasarjana'],
+        datasets:[{ label:'Jiwa', data:[pd.sd||0, pd.smp||0, pd.sma||0, pd.diploma||0, pd.sarjana||0, pd.pascasarjana||0],
+          backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:22 }] },
+      options:opsiBar(true, false), plugins:[pluginNilai] }));
+  }
   if (kr) gambarChartKr($('stKr'), kr, chartStat);
 }
 
@@ -4696,10 +4689,10 @@ document.addEventListener('click', (e) => {
    ===================================================================== */
 let chartModal = [], versiModalStat = 0;
 const MODAL_STAT = {
-  gender:     { judul:'Komposisi Jenis Kelamin',           ikon:'fa-venus-mars' },
+  gender:     { judul:'Data Demografi',                    ikon:'fa-people-group' },
   status:     { judul:'Status Warga: Jumlah KK dan Jiwa',  ikon:'fa-house-user' },
-  usia:       { judul:'Jumlah Jiwa menurut Usia',          ikon:'fa-child-reaching' },
-  bantuan:    { judul:'Disabilitas, Bumil dan Bantuan',        ikon:'fa-hand-holding-heart' },
+  usia:       { judul:'Data Warga Prioritas',              ikon:'fa-star' },
+  bantuan:    { judul:'Keluarga Penerima Manfaat',         ikon:'fa-hand-holding-heart' },
   pendidikan: { judul:'Pendidikan Terakhir',               ikon:'fa-graduation-cap' }
 };
 function hapusChartModal(){ chartModal.forEach(c => c.destroy()); chartModal = []; }
@@ -4726,21 +4719,61 @@ function pesanKr(e){
   if (e && (e.code === 'PGRST202' || /could not find the function/i.test(msg))) return 'Fungsi get_statistik_kerentanan belum terpasang di Supabase. Jalankan 14_kerentanan.sql.';
   return msg || 'Data belum tersedia.';
 }
-function htmlKerentanan(kr, gagal, idCanvas){
+function htmlKerentanan(kr, gagal, idCanvas){      // kartu Keluarga Penerima Manfaat: hanya infografik penerima bantuan
   if (!kr) return `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal || 'Data belum tersedia.')}</div>`;
+  return `<div class="st-bar"><canvas id="${idCanvas}"></canvas></div>
+    <div class="st-ket">Jumlah keluarga (KK) penerima bantuan.<br>PKH = Program Keluarga Harapan • PBI-JK = Penerima Bantuan Iuran Jaminan Kesehatan • PIP = Program Indonesia Pintar • KIS = Kartu Indonesia Sehat</div>`;
+}
+/* Data Warga Prioritas: Disabilitas, Bumil (get_statistik_kerentanan), Lansia (>60) dan Balita (<5) (get_statistik_detail.usia) */
+function htmlPrioritas(d, kr){
+  const u = (d && d.usia) || {};
+  const ada = (v) => v !== null && v !== undefined;
+  const t = (v) => ada(v) ? fmt(v) : '-';
+  const balita = ada(u.balita) ? u.balita : (kr && ada(kr.balita) ? kr.balita : null);
   return `<div class="kr-dua">
-      <div class="kr-kotak d"><i class="fa-solid fa-wheelchair"></i><span>Disabilitas<b>${fmt(kr.difabel)}</b></span></div>
-      <div class="kr-kotak b"><i class="fa-solid fa-person-pregnant"></i><span>Ibu Hamil (Bumil)<b>${fmt(kr.bumil)}</b></span></div>
+      <div class="kr-kotak d"><i class="fa-solid fa-wheelchair"></i><span>Disabilitas<b>${t(kr && kr.difabel)}</b></span></div>
+      <div class="kr-kotak b"><i class="fa-solid fa-person-pregnant"></i><span>Ibu Hamil (Bumil)<b>${t(kr && kr.bumil)}</b></span></div>
+      <div class="kr-kotak l"><i class="fa-solid fa-person-cane"></i><span>Lansia (&gt;60 thn)<b>${t(u.lansia)}</b></span></div>
+      <div class="kr-kotak a"><i class="fa-solid fa-baby"></i><span>Balita (&lt;5 thn)<b>${t(balita)}</b></span></div>
     </div>
-    <div class="kr-sub">Penerima Bantuan (KK)</div>
-    <div class="st-bar"><canvas id="${idCanvas}"></canvas></div>
-    <div class="st-ket">Disabilitas dan Bumil dihitung per jiwa, Bantuan per KK.<br>PKH = Program Keluarga Harapan • PBI-JK = Penerima Bantuan Iuran Jaminan Kesehatan • PIP = Program Indonesia Pintar • KIS = Kartu Indonesia Sehat</div>`;
+    <div class="st-ket">Dihitung per jiwa (warga yang masih hidup).</div>`;
+}
+function htmlGender(idDonut){
+  const L = statistik.laki_laki || 0, P = statistik.perempuan || 0;
+  return `<div class="kr-sub" style="margin-top:0">Menurut Jenis Kelamin</div>
+    <div class="st-donut">
+      <div class="wadah"><canvas id="${idDonut}"></canvas><div class="pusat-donut"><i class="fa-solid fa-users"></i></div></div>
+      <div class="st-legenda">
+        <span><i style="background:#1558c9"></i>Laki-laki<b>${fmt(L)}</b></span>
+        <span><i style="background:#ff8a1f"></i>Perempuan<b>${fmt(P)}</b></span>
+        <span style="margin-top:4px">Jumlah KK<b>${fmt(statistik.jumlah_kk)}</b></span>
+        <span>Jumlah Jiwa<b>${fmt(statistik.jumlah_jiwa)}</b></span>
+        <span>Jumlah Wafat<b>${fmt(statistik.jumlah_wafat)}</b></span>
+      </div>
+    </div>`;
+}
+function gambarGender(canvas, daftar){
+  if (!canvas) return;
+  const L = statistik.laki_laki || 0, P = statistik.perempuan || 0, kosong = (L + P) === 0;
+  daftar.push(new Chart(canvas, { type:'doughnut',
+    data:{ labels:['Laki-laki','Perempuan'], datasets:[{ data: kosong ? [1] : [L,P],
+      backgroundColor: kosong ? ['#e2e8f0'] : ['#1558c9','#ff8a1f'], borderWidth:0,
+      spacing: kosong ? 0 : 3, borderRadius: kosong ? 0 : 6, hoverOffset:4 }] },
+    options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{ enabled:!kosong } } } }));
+}
+function gambarUsia(canvas, u, daftar){
+  if (!canvas) return;
+  daftar.push(new Chart(canvas, { type:'bar',
+    data:{ labels:[['Prasekolah','(<6)'],['Sekolah','(6-18)'],['Prakerja','(18-25)'],['Kerja','(25-60)'],['Lansia','(>60)']],
+      datasets:[{ label:'Jiwa', data:[u.prasekolah||0, u.sekolah||0, u.prakerja||0, u.kerja||0, u.lansia||0],
+        backgroundColor:['#4aa3ff','#1558c9','#0b2a6f','#ff8a1f','#10b981'], borderRadius:6, maxBarThickness:40 }] },
+    options:opsiBar(false, false), plugins:[pluginNilai] }));
 }
 function gambarChartKr(canvas, kr, daftar){
   if (!canvas) return;
   const b = kr.bantuan || {};
   daftar.push(new Chart(canvas, { type:'bar',
-    data:{ labels:KR_BANTUAN, datasets:[{ label:'Jiwa', data:KR_BANTUAN.map(k => b[k] || 0),
+    data:{ labels:KR_BANTUAN, datasets:[{ label:'KK', data:KR_BANTUAN.map(k => b[k] || 0),
       backgroundColor:['#1558c9','#ff8a1f','#10b981','#7c3aed','#e11d74'], borderRadius:6, maxBarThickness:40 }] },
     options:opsiBar(false, false), plugins:[pluginNilai] }));
 }
@@ -4758,41 +4791,41 @@ async function bukaModalStat(kunci){
   modal.classList.add('tampil'); modal.setAttribute('aria-hidden', 'false');
   if (!sudahBuka) bukaLapisan(tutupModalStat);
 
-  /* Gambar 4: Disabilitas, Bumil, dan Bantuan */
-  if (kunci === 'bantuan'){
-    let kr;
-    try{ kr = await ambilStatKr(); }
-    catch(e){
-      console.error(e);
-      if (versi !== versiModalStat) return;
-      isi.innerHTML = htmlKerentanan(null, pesanKr(e), '');
-      return;
-    }
+  /* Gambar 3: Data Warga Prioritas */
+  if (kunci === 'usia'){
+    let kr = null, d = null;
+    await Promise.all([
+      ambilStatKr().then(v => { kr = v; }).catch(e => console.error(e)),
+      ambilStatDetail().then(v => { d = v; }).catch(e => console.error(e))
+    ]);
     if (versi !== versiModalStat) return;
-    isi.innerHTML = htmlKerentanan(kr, '', 'msKr');
-    gambarChartKr($('msKr'), kr, chartModal);
+    isi.innerHTML = htmlPrioritas(d, kr);
     return;
   }
 
-  /* Gambar 1: Komposisi Jenis Kelamin (dari get_statistik, sudah ada di memori) */
+  /* Gambar 4: Keluarga Penerima Manfaat */
+  if (kunci === 'bantuan'){
+    let kr = null, krGagal = '';
+    try{ kr = await ambilStatKr(); }catch(e){ console.error(e); krGagal = pesanKr(e); }
+    if (versi !== versiModalStat) return;
+    isi.innerHTML = htmlKerentanan(kr, krGagal, 'msKr');
+    if (kr) gambarChartKr($('msKr'), kr, chartModal);
+    return;
+  }
+
+  /* Gambar 1: Data Demografi (jenis kelamin + usia) */
   if (kunci === 'gender'){
-    const L = statistik.laki_laki || 0, P = statistik.perempuan || 0, kosong = (L + P) === 0;
-    isi.innerHTML = `
-      <div class="st-donut">
-        <div class="wadah"><canvas id="msDonut"></canvas><div class="pusat-donut"><i class="fa-solid fa-users"></i></div></div>
-        <div class="st-legenda">
-          <span><i style="background:#1558c9"></i>Laki-laki<b>${fmt(L)}</b></span>
-          <span><i style="background:#ff8a1f"></i>Perempuan<b>${fmt(P)}</b></span>
-          <span style="margin-top:4px">Jumlah KK<b>${fmt(statistik.jumlah_kk)}</b></span>
-          <span>Jumlah Jiwa<b>${fmt(statistik.jumlah_jiwa)}</b></span>
-          <span>Jumlah Wafat<b>${fmt(statistik.jumlah_wafat)}</b></span>
-        </div>
-      </div>`;
-    chartModal.push(new Chart($('msDonut'), { type:'doughnut',
-      data:{ labels:['Laki-laki','Perempuan'], datasets:[{ data: kosong ? [1] : [L,P],
-        backgroundColor: kosong ? ['#e2e8f0'] : ['#1558c9','#ff8a1f'], borderWidth:0,
-        spacing: kosong ? 0 : 3, borderRadius: kosong ? 0 : 6, hoverOffset:4 }] },
-      options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{ enabled:!kosong } } } }));
+    isi.innerHTML = htmlGender('msDonut') + '<div class="kr-sub">Jumlah Jiwa menurut Usia</div>' +
+      '<div id="msUsiaWadah"><div class="kosong" style="margin:12px 0"><i class="fa-solid fa-spinner fa-spin"></i>Memuat data...</div></div>';
+    gambarGender($('msDonut'), chartModal);
+    let d = null, gagal = '';
+    try{ d = await ambilStatDetail(); }
+    catch(e){ console.error(e); gagal = e.message || 'Tidak dapat memuat rincian statistik. Periksa koneksi Anda.'; }
+    if (versi !== versiModalStat) return;
+    const wu = $('msUsiaWadah'); if (!wu) return;
+    if (!d){ wu.innerHTML = `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal)}</div>`; return; }
+    wu.innerHTML = '<div class="st-bar"><canvas id="msUsia"></canvas></div>';
+    gambarUsia($('msUsia'), d.usia || {}, chartModal);
     return;
   }
 
@@ -4817,14 +4850,6 @@ async function bukaModalStat(kunci){
         { label:'Jumlah KK',   data:kunciSt.map(k => (st[k]||{}).kk   || 0), backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:34 },
         { label:'Jumlah Jiwa', data:kunciSt.map(k => (st[k]||{}).jiwa || 0), backgroundColor:'#ff8a1f', borderRadius:6, maxBarThickness:34 } ] },
       options:opsiBar(false, true), plugins:[pluginNilai] }));
-  } else if (kunci === 'usia'){
-    isi.innerHTML = '<div class="st-bar"><canvas id="msBar"></canvas></div>';
-    const u = d.usia || {};
-    chartModal.push(new Chart($('msBar'), { type:'bar',
-      data:{ labels:[['Prasekolah','(<6)'],['Sekolah','(6-18)'],['Prakerja','(18-25)'],['Kerja','(25-60)'],['Lansia','(>60)']],
-        datasets:[{ label:'Jiwa', data:[u.prasekolah||0, u.sekolah||0, u.prakerja||0, u.kerja||0, u.lansia||0],
-          backgroundColor:['#4aa3ff','#1558c9','#0b2a6f','#ff8a1f','#10b981'], borderRadius:6, maxBarThickness:40 }] },
-      options:opsiBar(false, false), plugins:[pluginNilai] }));
   } else if (kunci === 'pendidikan'){
     isi.innerHTML = `
       <div class="st-bar tinggi"><canvas id="msBar"></canvas></div>
