@@ -356,7 +356,7 @@
   .dbm-wa{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:#15803d;text-decoration:none}
   .dbm-wa i{font-size:1.1rem;color:#25d366}
 
-  /* ---- Database Warga: kolom Difabel, Bumil, Bantuan (edit admin) ---- */
+  /* ---- Database Warga: kolom Disabilitas, Bumil, Bantuan (edit admin) ---- */
   .ar.db .db-t th.kr-c,.ar.db .db-t td.kr-c{text-align:center;white-space:nowrap}
   .db-ck{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;margin:-8px 0;cursor:pointer}
   .db-ck input{width:18px;height:18px;accent-color:#1558c9;cursor:pointer}
@@ -365,11 +365,12 @@
     cursor:pointer;text-align:left;white-space:nowrap}
   .db-bt.isi{border-style:solid;border-color:#bfdbfe;background:#eff6ff;font-weight:600}
   .db-bt:disabled{cursor:not-allowed;opacity:.5}
+  .db-bt-x{color:#94a3b8;padding:0 9px}
   .kr-pilih{display:flex;align-items:center;gap:12px;padding:11px 12px;border:1.5px solid #e2e8f0;border-radius:12px;margin-bottom:8px;
     font-size:.9rem;color:var(--teks);cursor:pointer}
   .kr-pilih input{width:20px;height:20px;accent-color:#1558c9;flex:none}
 
-  /* ---- Data Statistik: kartu Difabel, Bumil dan Bantuan ---- */
+  /* ---- Data Statistik: kartu Disabilitas, Bumil dan Bantuan ---- */
   .kr-dua{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .kr-kotak{display:flex;align-items:center;gap:10px;border-radius:14px;padding:12px;font-size:.74rem}
   .kr-kotak i{font-size:1.4rem;flex:none}
@@ -1051,7 +1052,7 @@
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Komposisi Jenis Kelamin"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="status" aria-label="Buka rincian Status Warga"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Domisili_wqbnfa.webp" alt="Data Statistik 2: Status Warga" draggable="false" loading="lazy"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Jumlah Jiwa menurut Usia"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Difabel, Bumil dan Bantuan"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Disabilitas, Bumil dan Bantuan"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
         <div class="sp-slide"><button type="button" class="ds-btn" data-stat="pendidikan" aria-label="Buka rincian Pendidikan Terakhir"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Pendidikan_xs4usm.webp" alt="Data Statistik 5: Pendidikan Terakhir" draggable="false" loading="lazy"></button></div>
       </div>
       <div class="sp-titik" id="dsTitik" role="tablist" aria-label="Navigasi Data Statistik"></div>
@@ -1178,7 +1179,7 @@ const $ = (id) => document.getElementById(id);
 let tokenSesi = null;
 let statistik = null;
 let statDetail = null;   // rincian get_statistik_detail untuk modal Data Statistik
-let statKr = null;       // hitungan Difabel/Bumil/Bantuan (get_statistik_kerentanan)
+let statKr = null;       // hitungan Disabilitas/Bumil/Bantuan (get_statistik_kerentanan)
 let pollStatus = null, pollSelisih = 0, plTimer = null, plPoll = null, plIdAdmin = '';
 let chartGender = null;
 let suratMenunggu = 0;
@@ -1471,7 +1472,7 @@ async function renderStatistik(isi){
       <div class="st-bar"><canvas id="stUsia"></canvas></div>
     </div>
     <div class="kartu-stat">
-      <h3 class="st-judul"><i class="fa-solid fa-hand-holding-heart"></i> Difabel, Bumil dan Bantuan</h3>
+      <h3 class="st-judul"><i class="fa-solid fa-hand-holding-heart"></i> Disabilitas, Bumil dan Bantuan</h3>
       ${htmlKerentanan(kr, krGagal, 'stKr')}
     </div>
     <div class="kartu-stat">
@@ -4196,8 +4197,10 @@ function dbNormal(r){
   const hp = String([r.no_hp, r.hp, r.telp].find(v => v !== null && v !== undefined && String(v).trim() !== '') ?? '').trim();
   const nama = namaTanpaGelar(r.nama) || String(r.nama ?? '');
   const alamat = String(r.alamat ?? '').trim();
+  const kkunci = ['status_kawin', 'status_nikah', 'status_perkawinan'].find(k => k in r);   // null bila kolomnya tidak dikirim server
+  const kawin = kkunci ? /^\s*(sudah\s+)?(kawin|menikah)/i.test(String(r[kkunci] ?? '')) : null;
   return {
-    nik: String(r.nik ?? '').trim(), nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat,
+    nik: String(r.nik ?? '').trim(), nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat, kawin,
     jk: String(r.jenis_kelamin ?? '').toUpperCase().slice(0,1),
     hubungan: String(r.hubungan ?? '').trim(), usia: r.usia, lahir: keDate(r.tgl_lahir),
     lokal: !wafat && DB_POLA_LOKAL.test(st), luar: !wafat && DB_POLA_LUAR.test(st),
@@ -4259,12 +4262,12 @@ async function renderDatabaseWarga(isi){
   const wadah = $('dbIsi'); if (!wadah) return;
   if (gagal){ wadah.innerHTML = `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(gagal)}</div>`; return; }
 
-  /* Kolom Difabel, Bumil, Bantuan: disimpan di tabel warga_kerentanan (14_kerentanan.sql) */
+  /* Kolom Disabilitas, Bumil, Bantuan: disimpan di tabel warga_kerentanan (14_kerentanan.sql) */
   let krSiap = true;
   try{
     const { data: kd, error: ke } = await db.rpc('get_kerentanan', { p_token: tokenSesi });
     if (ke) throw ke;
-    if (!kd || !kd.ok) throw new Error((kd && kd.pesan) || 'Gagal memuat data Difabel, Bumil, dan Bantuan.');
+    if (!kd || !kd.ok) throw new Error((kd && kd.pesan) || 'Gagal memuat data Disabilitas, Bumil, dan Bantuan.');
     const peta = new Map((kd.data || []).map(k => [String(k.nik), k]));
     semua.forEach(w => {
       const k = peta.get(w.nik) || {};
@@ -4273,22 +4276,28 @@ async function renderDatabaseWarga(isi){
     });
   }catch(e){
     console.error(e); krSiap = false;
-    toast('Kolom Difabel, Bumil, dan Bantuan belum aktif. Jalankan 14_kerentanan.sql di Supabase.');
+    toast('Kolom Disabilitas, Bumil, dan Bantuan belum aktif. Jalankan 14_kerentanan.sql di Supabase.');
   }
   if (versi !== versiSubform) return;
+  if (krSiap && semua.length && semua.every(w => w.kawin === null))
+    toast('Status kawin tidak ada pada data Database Warga, kotak Bumil belum bisa dicentang.');
 
   semua.sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
   DB_TAB.forEach(t => { $('dbN_' + t[0]).textContent = fmt(semua.filter(DB_COCOK[t[0]]).length); });
 
-  /* sel Difabel, Bumil, Bantuan satu baris (hanya bila fungsi server terpasang) */
+  /* sel Disabilitas, Bumil, Bantuan satu baris (hanya bila fungsi server terpasang) */
   function kolomKr(w){
     if (!krSiap) return '';
     const nm = esc(w.nama);
-    return `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="difabel" aria-label="Difabel: ${nm}" ${w.difabel ? 'checked' : ''} ${w.wafat ? 'disabled' : ''}></label></td>` +
-      `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="bumil" aria-label="Bumil: ${nm}" ${w.bumil ? 'checked' : ''} ${(w.wafat || w.jk !== 'P') ? 'disabled' : ''}></label></td>` +
-      `<td><button type="button" class="db-bt${w.bantuan.length ? ' isi' : ''}" data-bt ${w.wafat ? 'disabled' : ''}>${w.bantuan.length ? esc(w.bantuan.join(', ')) : '+ Pilih'}</button></td>`;
+    const bumilBisa = !w.wafat && w.jk === 'P' && w.kawin === true;   // Bumil: hanya perempuan berstatus Kawin
+    const kepala = /kepala/i.test(w.hubungan);                         // Bantuan: hanya Kepala Keluarga
+    return `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="difabel" aria-label="Disabilitas: ${nm}" ${w.difabel ? 'checked' : ''} ${w.wafat ? 'disabled' : ''}></label></td>` +
+      `<td class="kr-c"><label class="db-ck" ${bumilBisa ? '' : 'title="Hanya untuk perempuan berstatus Kawin"'}><input type="checkbox" data-kr="bumil" aria-label="Bumil: ${nm}" ${w.bumil ? 'checked' : ''} ${bumilBisa ? '' : 'disabled'}></label></td>` +
+      `<td>${kepala
+        ? `<button type="button" class="db-bt${w.bantuan.length ? ' isi' : ''}" data-bt ${w.wafat ? 'disabled' : ''}>${w.bantuan.length ? esc(w.bantuan.join(', ')) : '+ Pilih'}</button>`
+        : '<span class="db-bt-x" title="Bantuan hanya diisi pada Kepala Keluarga">-</span>'}</td>`;
   }
-  /* ceklis Difabel / Bumil: langsung disimpan; dikembalikan bila gagal */
+  /* ceklis Disabilitas / Bumil: langsung disimpan; dikembalikan bila gagal */
   async function krSimpanCek(inp){
     const tr = inp.closest('tr[data-i]'), w = tr && hasil[+tr.dataset.i];
     if (!w) return;
@@ -4307,7 +4316,7 @@ async function renderDatabaseWarga(isi){
     if (!hasil.length){ wadah.innerHTML = '<div class="kosong" style="margin:12px 0">Tidak ada data yang cocok.</div>'; return; }
     const baris = hasil.slice(0, tampil).map((w, i) =>
       `<tr data-i="${i}"><td class="fw6">${esc(w.nama)}${w.wafat ? '<span class="db-wafat">Wafat</span>' : ''}</td><td>${esc(w.alamat || '-')}</td>${kolomKr(w)}</tr>`).join('');
-    wadah.innerHTML = `<div class="ar-box"><table class="db-t${krSiap ? ' kr' : ''}"><thead><tr><th>Nama</th><th>Alamat</th>${krSiap ? '<th class="kr-c">Difabel</th><th class="kr-c">Bumil</th><th>Bantuan</th>' : ''}</tr></thead><tbody>${baris}</tbody></table></div>` +
+    wadah.innerHTML = `<div class="ar-box"><table class="db-t${krSiap ? ' kr' : ''}"><thead><tr><th>Nama</th><th>Alamat</th>${krSiap ? '<th class="kr-c">Disabilitas</th><th class="kr-c">Bumil</th><th>Bantuan</th>' : ''}</tr></thead><tbody>${baris}</tbody></table></div>` +
       (tampil < hasil.length ? '<button type="button" class="db-lain" id="dbLain">Lainnya</button>' : '');
   }
 
@@ -4323,7 +4332,7 @@ async function renderDatabaseWarga(isi){
   });
   wadah.addEventListener('click', (e) => {
     if (e.target.closest('#dbLain')){ tampil += DB_HALAMAN; return gambar(); }
-    if (e.target.closest('.db-ck')){                       // ceklis Difabel / Bumil (tidak membuka modal info)
+    if (e.target.closest('.db-ck')){                       // ceklis Disabilitas / Bumil (tidak membuka modal info)
       const inp = e.target.closest('input[data-kr]'); if (inp) krSimpanCek(inp);
       return;
     }
@@ -4358,15 +4367,16 @@ function dbModalUltah(semua){
   $('mfBatal').textContent = 'Tutup';
 }
 
-/* teks pencarian ikut memuat Difabel / Bumil / Bantuan */
+/* teks pencarian ikut memuat Disabilitas / Bumil / Bantuan */
 function krCari(w){
-  w.cari = ((w.cari0 || '') + ' ' + (w.difabel ? 'difabel ' : '') + (w.bumil ? 'bumil ibu hamil ' : '') + (w.bantuan || []).join(' ')).toLowerCase().replace(/\s+/g, ' ');
+  w.cari = ((w.cari0 || '') + ' ' + (w.difabel ? 'disabilitas difabel ' : '') + (w.bumil ? 'bumil ibu hamil ' : '') + (w.bantuan || []).join(' ')).toLowerCase().replace(/\s+/g, ' ');
 }
 /* Modal Bantuan (PKH, Sembako, PBI-JK, PIP, KIS) untuk satu warga */
 function dbModalBantuan(w, btn){
   if (!w) return;
   if (!w.nik){ toast('Data ini belum memiliki NIK.'); return; }
-  bukaModalForm('Bantuan: ' + w.nama,
+  if (!/kepala/i.test(w.hubungan)){ toast('Bantuan hanya diisi pada Kepala Keluarga.'); return; }
+  bukaModalForm('Bantuan KK: ' + w.nama,
     `<div class="mf-field">${KR_BANTUAN.map(b =>
       `<label class="kr-pilih"><input type="checkbox" name="bantuan" value="${esc(b)}" ${w.bantuan.includes(b) ? 'checked' : ''}> ${esc(b)}</label>`).join('')}</div>`,
     async (fd) => {
@@ -4689,7 +4699,7 @@ const MODAL_STAT = {
   gender:     { judul:'Komposisi Jenis Kelamin',           ikon:'fa-venus-mars' },
   status:     { judul:'Status Warga: Jumlah KK dan Jiwa',  ikon:'fa-house-user' },
   usia:       { judul:'Jumlah Jiwa menurut Usia',          ikon:'fa-child-reaching' },
-  bantuan:    { judul:'Difabel, Bumil dan Bantuan',        ikon:'fa-hand-holding-heart' },
+  bantuan:    { judul:'Disabilitas, Bumil dan Bantuan',        ikon:'fa-hand-holding-heart' },
   pendidikan: { judul:'Pendidikan Terakhir',               ikon:'fa-graduation-cap' }
 };
 function hapusChartModal(){ chartModal.forEach(c => c.destroy()); chartModal = []; }
@@ -4701,7 +4711,7 @@ async function ambilStatDetail(){
   statDetail = data;
   return data;
 }
-/* ---- Difabel, Bumil, Bantuan (dipakai modal gambar 4 dan kartu di subform) ---- */
+/* ---- Disabilitas, Bumil, Bantuan (dipakai modal gambar 4 dan kartu di subform) ---- */
 async function ambilStatKr(){
   if (statKr) return statKr;
   const { data, error } = await db.rpc('get_statistik_kerentanan', { p_token: tokenSesi });
@@ -4719,12 +4729,12 @@ function pesanKr(e){
 function htmlKerentanan(kr, gagal, idCanvas){
   if (!kr) return `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i>${esc(gagal || 'Data belum tersedia.')}</div>`;
   return `<div class="kr-dua">
-      <div class="kr-kotak d"><i class="fa-solid fa-wheelchair"></i><span>Difabel<b>${fmt(kr.difabel)}</b></span></div>
+      <div class="kr-kotak d"><i class="fa-solid fa-wheelchair"></i><span>Disabilitas<b>${fmt(kr.difabel)}</b></span></div>
       <div class="kr-kotak b"><i class="fa-solid fa-person-pregnant"></i><span>Ibu Hamil (Bumil)<b>${fmt(kr.bumil)}</b></span></div>
     </div>
-    <div class="kr-sub">Penerima Bantuan (jiwa)</div>
+    <div class="kr-sub">Penerima Bantuan (KK)</div>
     <div class="st-bar"><canvas id="${idCanvas}"></canvas></div>
-    <div class="st-ket">PKH = Program Keluarga Harapan • PBI-JK = Penerima Bantuan Iuran Jaminan Kesehatan • PIP = Program Indonesia Pintar • KIS = Kartu Indonesia Sehat</div>`;
+    <div class="st-ket">Disabilitas dan Bumil dihitung per jiwa, Bantuan per KK.<br>PKH = Program Keluarga Harapan • PBI-JK = Penerima Bantuan Iuran Jaminan Kesehatan • PIP = Program Indonesia Pintar • KIS = Kartu Indonesia Sehat</div>`;
 }
 function gambarChartKr(canvas, kr, daftar){
   if (!canvas) return;
@@ -4748,7 +4758,7 @@ async function bukaModalStat(kunci){
   modal.classList.add('tampil'); modal.setAttribute('aria-hidden', 'false');
   if (!sudahBuka) bukaLapisan(tutupModalStat);
 
-  /* Gambar 4: Difabel, Bumil, dan Bantuan */
+  /* Gambar 4: Disabilitas, Bumil, dan Bantuan */
   if (kunci === 'bantuan'){
     let kr;
     try{ kr = await ambilStatKr(); }
