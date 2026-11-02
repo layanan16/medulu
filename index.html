@@ -1067,8 +1067,7 @@
           <span class="lingkaran c2"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 9.5h3l8-4v13l-8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"/><path d="M7 14.5 8.2 19h2.4"/><path d="M18.2 9.2a4.5 4.5 0 0 1 0 5.6"/></svg></span><span class="nama">Info Aktual</span>
         </button>
         <button class="fitur nonaktif" id="btnLonceng" disabled aria-disabled="true" aria-label="Data Pengajuan"><span class="lingkaran c12"><i class="fa-solid fa-bell"></i></span><span class="badge-notif" id="badgeNotif">0</span><span class="nama">Data Pengajuan</span></button>
-        <button class="fitur" id="btnPolling" data-buka="polling" hidden><i class="fa-solid fa-circle-exclamation alert" id="alertPolling"></i><span class="lingkaran c7"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 16.5v-3.5M12 16.5V8M15.5 16.5v-5.5"/></svg></span><span class="nama">Polling</span></button>
-        <button class="fitur" data-buka="programkerja"><span class="lingkaran c14"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="4" y="4.5" width="16" height="16" rx="2.8"/><path d="M8 3v3M16 3v3M8 12.5l2.2 2.2 4-4.4M8 18h8"/></svg></span><span class="nama">Program Kerja</span></button>
+        <button class="fitur nonaktif" id="btnPolling" data-buka="polling" disabled aria-disabled="true"><i class="fa-solid fa-circle-exclamation alert" id="alertPolling"></i><span class="lingkaran c7"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 16.5v-3.5M12 16.5V8M15.5 16.5v-5.5"/></svg></span><span class="nama">Polling</span></button>
         <button class="fitur" data-buka="profilrt"><span class="lingkaran c13"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 20V9.5L12 4l8 5.5V20z"/><path d="M9.5 20v-5h5v5M8.5 11.5h1.2M14.3 11.5h1.2"/></svg></span><span class="nama">Profil RT</span></button>
         <button class="fitur" data-buka="bantuan"><span class="lingkaran c6"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect class="d" x="3" y="13" width="4" height="6" rx="1.7"/><rect class="d" x="17" y="13" width="4" height="6" rx="1.7"/><path d="M19 19v.4c0 1.2-1.3 2.1-3 2.1h-2"/></svg></span><span class="nama">Bantuan</span></button>
       </div>
@@ -1262,8 +1261,6 @@ function aturRonda(){
 function aturMenuPengguna(profil){
   const nama = namaTanpaGelar(profil && profil.nama).toLowerCase().replace(/\s+/g, ' ').trim();
   aksesPenuh = nama === NAMA_AKSES_PENUH;
-  const bp = $('btnPolling'), ga = $('gridAdmin');                  // Polling: admin di Fitur Admin, warga setelah Data Pengajuan
-  if (bp && ga){ if (aksesPenuh) ga.prepend(bp); else $('btnLonceng').after(bp); }
   if (!profil) pollStatus = null;
   const namaPenuh = normNama(profil && profil.nama);
   aksesRonda = aksesPenuh || NAMA_AKSES_RONDA.includes(namaPenuh) || NAMA_AKSES_RONDA.includes(nama.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim());
@@ -3923,7 +3920,9 @@ function ambilPollDilihat(){ try{ return localStorage.getItem(kunciPollDilihat()
 function simpanPollDilihat(id){ try{ localStorage.setItem(kunciPollDilihat(), String(id)); }catch(e){} }
 function aturPolling(){
   const b = $('btnPolling'); if (!b) return;
-  b.hidden = !pollingAktifUntukSaya();              // disembunyikan sampai admin membuka polling / menampilkan hasil (admin selalu melihatnya)
+  const aktif = pollingAktifUntukSaya();            // nonaktif (abu-abu) sampai admin membuka polling / menampilkan hasil; admin selalu aktif
+  b.hidden = false; b.disabled = !aktif; b.classList.toggle('nonaktif', !aktif); b.setAttribute('aria-disabled', String(!aktif));
+  b.title = aktif ? '' : 'Polling belum dibuka oleh admin';
   /* Warga: polling ditutup (manual) atau berakhir (otomatis) -> hasil tersedia -> alert + ikon bergoyang sampai hasilnya dibuka */
   const p = pollStatus && pollStatus.ada && pollStatus.poll;
   const baru = !aksesPenuh && !!(p && p.hasil_aktif) && ambilPollDilihat() !== String(p.id);
