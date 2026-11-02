@@ -257,6 +257,13 @@
   .sp-titik button{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:#c5d2ea;cursor:pointer;
     transition:width .25s ease, background .25s ease}
   .sp-titik button.aktif{width:22px;background:var(--biru)}
+
+  /* ---- Data Statistik (carousel gambar yang dapat diklik -> modal) ---- */
+  .ds-btn{display:block;width:100%;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .ds-btn:focus-visible{outline:3px solid rgba(21,88,201,.45);outline-offset:-3px}
+  #msIsi{padding-bottom:24px}
+  #msJudul{display:flex;align-items:center;gap:8px}
+  #msJudul i{color:var(--biru)}
   .c12{background:linear-gradient(135deg,#d97706,#fbbf24);--sh:#d97706}
   .c14{background:linear-gradient(135deg,#0891b2,#22d3ee);--sh:#0891b2}
   .c13{background:linear-gradient(135deg,#4f46e5,#818cf8);--sh:#4f46e5}
@@ -1010,6 +1017,16 @@
         </div>
       </div>
 
+      <div class="judul-seksi">Data Statistik</div>
+      <div class="sp-geser" id="dsGeser" role="region" aria-label="Data Statistik" tabindex="0">
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Komposisi Jenis Kelamin"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="status" aria-label="Buka rincian Status Warga"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Domisili_wqbnfa.webp" alt="Data Statistik 2: Status Warga" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Jumlah Jiwa menurut Usia"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Data Bantuan"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="pendidikan" aria-label="Buka rincian Pendidikan Terakhir"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Pendidikan_xs4usm.webp" alt="Data Statistik 5: Pendidikan Terakhir" draggable="false" loading="lazy"></button></div>
+      </div>
+      <div class="sp-titik" id="dsTitik" role="tablist" aria-label="Navigasi Data Statistik"></div>
+
       <div class="judul-seksi">Standar Pelayanan</div>
       <div class="sp-geser" id="spGeser" role="region" aria-label="Standar Pelayanan" tabindex="0">
         <div class="sp-slide"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743671/Hak_Akses_11zon_ntzjys.webp" alt="Standar Pelayanan 1: Hak Akses" draggable="false"></div>
@@ -1057,6 +1074,14 @@
       <div class="bday-usia" id="bdayUsia" style="display:none"></div>
       <div class="bday-pesan">Semoga panjang umur, sehat selalu, dan dilimpahi kebahagiaan serta kesuksesan.<br>Salam hangat dari seluruh warga RT 09 Bonggoeya. 🎉</div>
       <button class="bday-btn" type="button" id="bdayTutup"><i class="fa-solid fa-gift"></i> Terima Kasih</button>
+    </div>
+  </div>
+
+  <!-- Modal rincian Data Statistik (dibuka dari gambar carousel Data Statistik) -->
+  <div class="mf-latar" id="modalStat" aria-hidden="true">
+    <div class="mf-kotak" role="dialog" aria-modal="true" aria-labelledby="msJudul">
+      <div class="mf-kepala"><h3 id="msJudul">Data Statistik</h3><button type="button" id="msTutup" aria-label="Tutup"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="mf-isi" id="msIsi"></div>
     </div>
   </div>
 
@@ -1123,6 +1148,7 @@ const DURASI_SPLASH = 2600; // ms
 const $ = (id) => document.getElementById(id);
 let tokenSesi = null;
 let statistik = null;
+let statDetail = null;   // rincian get_statistik_detail untuk modal Data Statistik
 let pollStatus = null, pollSelisih = 0, plTimer = null, plPoll = null, plIdAdmin = '';
 let chartGender = null;
 let suratMenunggu = 0;
@@ -1299,7 +1325,7 @@ document.addEventListener('keydown', e => {
 async function keluar(){
   if (!(await konfirmasiKeluar())) return;
   try{ await db.rpc('logout_warga', { p_token: tokenSesi }); }catch(e){}
-  hapusToken(); tokenSesi = null; statistik = null; arData = null; telpLogin = '';
+  hapusToken(); tokenSesi = null; statistik = null; statDetail = null; arData = null; telpLogin = '';
   tampilkanLogin();
 }
 $('btnKeluar').addEventListener('click', keluar);
@@ -1310,7 +1336,7 @@ async function muatStatistik(){
     const { data, error } = await db.rpc('get_statistik', { p_token: tokenSesi });
     if (error) throw error;
     if (!data.ok){ hapusToken(); toast('Sesi berakhir, silakan masuk kembali.'); return tampilkanLogin(); }
-    statistik = data;
+    statistik = data; statDetail = null;
     $('angkaKK').textContent = fmt(data.jumlah_kk);
     $('angkaJiwa').textContent = fmt(data.jumlah_jiwa);
     $('angkaWafat').textContent = fmt(data.jumlah_wafat);
@@ -3342,6 +3368,7 @@ function resetLapisan(){
   lapisan.length = 0;
   $('subform').classList.remove('buka'); $('subform').setAttribute('aria-hidden','true');
   $('modalForm').classList.remove('tampil'); $('modalForm').setAttribute('aria-hidden','true');
+  $('modalStat').classList.remove('tampil'); $('modalStat').setAttribute('aria-hidden','true');
   mfSimpanFn = null;
   tutupSemuaModalPoll(); tutupUltah();
 }
@@ -4544,10 +4571,133 @@ document.addEventListener('click', (e) => {
 });
 
 /* =====================================================================
+   DATA STATISTIK: gambar carousel -> modal rincian
+   1 Komposisi Jenis Kelamin • 2 Status Warga • 3 Jumlah Jiwa menurut Usia
+   4 (data sedang diproses) • 5 Pendidikan Terakhir
+   ===================================================================== */
+let chartModal = [], versiModalStat = 0;
+const MODAL_STAT = {
+  gender:     { judul:'Komposisi Jenis Kelamin',           ikon:'fa-venus-mars' },
+  status:     { judul:'Status Warga: Jumlah KK dan Jiwa',  ikon:'fa-house-user' },
+  usia:       { judul:'Jumlah Jiwa menurut Usia',          ikon:'fa-child-reaching' },
+  bantuan:    { judul:'Data Bantuan',                      ikon:'fa-hand-holding-heart' },
+  pendidikan: { judul:'Pendidikan Terakhir',               ikon:'fa-graduation-cap' }
+};
+function hapusChartModal(){ chartModal.forEach(c => c.destroy()); chartModal = []; }
+async function ambilStatDetail(){
+  if (statDetail) return statDetail;
+  const { data, error } = await db.rpc('get_statistik_detail', { p_token: tokenSesi });
+  if (error) throw error;
+  if (!data || !data.ok) throw new Error((data && data.pesan) || 'Gagal memuat rincian statistik.');
+  statDetail = data;
+  return data;
+}
+async function bukaModalStat(kunci){
+  const m = MODAL_STAT[kunci]; if (!m) return;
+  if (!statistik){ toast('Data statistik belum termuat. Coba sesaat lagi.'); return; }
+  const versi = ++versiModalStat;
+  const modal = $('modalStat'), isi = $('msIsi');
+  const sudahBuka = modal.classList.contains('tampil');
+  hapusChartModal();
+  $('msJudul').innerHTML = `<i class="fa-solid ${m.ikon}"></i> ${esc(m.judul)}`;
+  isi.scrollTop = 0;
+  isi.innerHTML = '<div class="kosong" style="margin:24px 0"><i class="fa-solid fa-spinner fa-spin"></i>Memuat data...</div>';
+  modal.classList.add('tampil'); modal.setAttribute('aria-hidden', 'false');
+  if (!sudahBuka) bukaLapisan(tutupModalStat);
+
+  /* Gambar 4: data belum tersedia */
+  if (kunci === 'bantuan'){
+    isi.innerHTML = '<div class="kosong" style="margin:24px 0"><i class="fa-solid fa-hourglass-half"></i>Data sedang diproses.<br>Akan ditampilkan setelah selesai.</div>';
+    return;
+  }
+
+  /* Gambar 1: Komposisi Jenis Kelamin (dari get_statistik, sudah ada di memori) */
+  if (kunci === 'gender'){
+    const L = statistik.laki_laki || 0, P = statistik.perempuan || 0, kosong = (L + P) === 0;
+    isi.innerHTML = `
+      <div class="st-donut">
+        <div class="wadah"><canvas id="msDonut"></canvas><div class="pusat-donut"><i class="fa-solid fa-users"></i></div></div>
+        <div class="st-legenda">
+          <span><i style="background:#1558c9"></i>Laki-laki<b>${fmt(L)}</b></span>
+          <span><i style="background:#ff8a1f"></i>Perempuan<b>${fmt(P)}</b></span>
+          <span style="margin-top:4px">Jumlah KK<b>${fmt(statistik.jumlah_kk)}</b></span>
+          <span>Jumlah Jiwa<b>${fmt(statistik.jumlah_jiwa)}</b></span>
+          <span>Jumlah Wafat<b>${fmt(statistik.jumlah_wafat)}</b></span>
+        </div>
+      </div>`;
+    chartModal.push(new Chart($('msDonut'), { type:'doughnut',
+      data:{ labels:['Laki-laki','Perempuan'], datasets:[{ data: kosong ? [1] : [L,P],
+        backgroundColor: kosong ? ['#e2e8f0'] : ['#1558c9','#ff8a1f'], borderWidth:0,
+        spacing: kosong ? 0 : 3, borderRadius: kosong ? 0 : 6, hoverOffset:4 }] },
+      options:{ responsive:true, maintainAspectRatio:false, cutout:'68%', plugins:{ legend:{display:false}, tooltip:{ enabled:!kosong } } } }));
+    return;
+  }
+
+  /* Gambar 2, 3, 5: rincian dari get_statistik_detail */
+  let d;
+  try{ d = await ambilStatDetail(); }
+  catch(e){
+    console.error(e);
+    if (versi !== versiModalStat) return;
+    isi.innerHTML = `<div class="kosong" style="margin:24px 0"><i class="fa-solid fa-triangle-exclamation"></i>${esc(e.message || 'Tidak dapat memuat rincian statistik. Periksa koneksi Anda.')}</div>`;
+    return;
+  }
+  if (versi !== versiModalStat) return;   // modal sudah ditutup / diganti
+
+  if (kunci === 'status'){
+    isi.innerHTML = `
+      <div class="st-bar"><canvas id="msBar"></canvas></div>
+      <div class="st-ket">WAT = Warga Asli Tinggal • WAP = Warga Asli Pindah • WDT = Warga Datang Tinggal • WDS = Warga Datang Sementara</div>`;
+    const st = d.status || {}, kunciSt = ['WAT','WAP','WDT','WDS'];
+    chartModal.push(new Chart($('msBar'), { type:'bar',
+      data:{ labels:kunciSt, datasets:[
+        { label:'Jumlah KK',   data:kunciSt.map(k => (st[k]||{}).kk   || 0), backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:34 },
+        { label:'Jumlah Jiwa', data:kunciSt.map(k => (st[k]||{}).jiwa || 0), backgroundColor:'#ff8a1f', borderRadius:6, maxBarThickness:34 } ] },
+      options:opsiBar(false, true), plugins:[pluginNilai] }));
+  } else if (kunci === 'usia'){
+    isi.innerHTML = '<div class="st-bar"><canvas id="msBar"></canvas></div>';
+    const u = d.usia || {};
+    chartModal.push(new Chart($('msBar'), { type:'bar',
+      data:{ labels:[['Prasekolah','(<6)'],['Sekolah','(6-18)'],['Prakerja','(18-25)'],['Kerja','(25-60)'],['Lansia','(>60)']],
+        datasets:[{ label:'Jiwa', data:[u.prasekolah||0, u.sekolah||0, u.prakerja||0, u.kerja||0, u.lansia||0],
+          backgroundColor:['#4aa3ff','#1558c9','#0b2a6f','#ff8a1f','#10b981'], borderRadius:6, maxBarThickness:40 }] },
+      options:opsiBar(false, false), plugins:[pluginNilai] }));
+  } else if (kunci === 'pendidikan'){
+    isi.innerHTML = `
+      <div class="st-bar tinggi"><canvas id="msBar"></canvas></div>
+      <div class="st-ket">Diploma: D1–D3 • Sarjana: S1/D4 • Pascasarjana: S2-S3</div>`;
+    const pd = d.pendidikan || {};
+    chartModal.push(new Chart($('msBar'), { type:'bar',
+      data:{ labels:['SD','SMP','SMA','Diploma','Sarjana','Pascasarjana'],
+        datasets:[{ label:'Jiwa', data:[pd.sd||0, pd.smp||0, pd.sma||0, pd.diploma||0, pd.sarjana||0, pd.pascasarjana||0],
+          backgroundColor:'#1558c9', borderRadius:6, maxBarThickness:22 }] },
+      options:opsiBar(true, false), plugins:[pluginNilai] }));
+  }
+}
+function tutupModalStat(){
+  const modal = $('modalStat');
+  modal.classList.remove('tampil'); modal.setAttribute('aria-hidden', 'true');
+  versiModalStat++;                                   // batalkan pemuatan yang masih berjalan
+  setTimeout(() => {                                  // bersihkan setelah animasi tutup selesai
+    if (modal.classList.contains('tampil')) return;
+    hapusChartModal(); $('msIsi').innerHTML = '';
+  }, 320);
+}
+$('dsGeser').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-stat]');
+  if (b) bukaModalStat(b.dataset.stat);
+});
+$('msTutup').addEventListener('click', kembaliLapisan);
+$('modalStat').addEventListener('click', e => { if (e.target === e.currentTarget) kembaliLapisan(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('modalStat').classList.contains('tampil')) kembaliLapisan();
+});
+
+/* =====================================================================
    STANDAR PELAYANAN: carousel geser kanan + titik navigasi
    ===================================================================== */
-(function(){
-  const geser = $('spGeser'), wadah = $('spTitik');
+function pasangCarousel(idGeser, idTitik){
+  const geser = $(idGeser), wadah = $(idTitik);
   if (!geser || !wadah) return;
   const slide = geser.querySelectorAll('.sp-slide');
   slide.forEach((_, i) => {
@@ -4580,7 +4730,9 @@ document.addEventListener('click', (e) => {
     else if (e.key === 'ArrowLeft') geser.scrollBy({ left: -langkah(), behavior: 'smooth' });
   });
   tandai();
-})();
+}
+pasangCarousel('dsGeser', 'dsTitik');   // Data Statistik
+pasangCarousel('spGeser', 'spTitik');   // Standar Pelayanan
 
 mulai();
 
