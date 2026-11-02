@@ -257,6 +257,10 @@
   .sp-titik button{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:#c5d2ea;cursor:pointer;
     transition:width .25s ease, background .25s ease}
   .sp-titik button.aktif{width:22px;background:var(--biru)}
+  /* Hanya Data Statistik */
+  #dsGeser{--sp-intip:80px;}                 /* gambar lebih kecil, intipan lebih lebar */
+  #dsGeser .sp-slide{flex-basis:70%;}        /* atau atur lebar langsung dengan persen */
+  #dsGeser .sp-slide img{max-height:120px; object-fit:contain;}  /* atau batasi tinggi */
 
   /* ---- Data Statistik (carousel gambar yang dapat diklik -> modal) ---- */
   .ds-btn{display:block;width:100%;padding:0;border:0;background:none;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
