@@ -3922,7 +3922,6 @@ function aturPolling(){
   const b = $('btnPolling'); if (!b) return;
   const aktif = pollingAktifUntukSaya();            // nonaktif (abu-abu) sampai admin membuka polling / menampilkan hasil; admin selalu aktif
   b.hidden = false; b.disabled = !aktif; b.classList.toggle('nonaktif', !aktif); b.setAttribute('aria-disabled', String(!aktif));
-  b.title = aktif ? '' : 'Polling belum dibuka oleh admin';
   /* Warga: polling ditutup (manual) atau berakhir (otomatis) -> hasil tersedia -> alert + ikon bergoyang sampai hasilnya dibuka */
   const p = pollStatus && pollStatus.ada && pollStatus.poll;
   const baru = !aksesPenuh && !!(p && p.hasil_aktif) && ambilPollDilihat() !== String(p.id);
