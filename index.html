@@ -4689,6 +4689,10 @@ function dbInputKolom(k, v){
   if (/^\d{4}-\d{2}-\d{2}/.test(nilai) || /^(tgl|tanggal)/i.test(k)){
     const d = nilai.slice(0, 10); return `<input type="date" ${aw(d)} value="${esc(d)}">`;
   }
+  if (/nikah|kawin/i.test(k)){                       // Status Nikah: pilihan tetap, bukan dari isi data
+    const ada = OPSI.status.includes(nilai), awal = ada ? nilai : '';   // nilai di luar pilihan dianggap kosong (tidak ditimpa bila tidak diubah)
+    return `<select ${aw(awal)}><option value="">— Pilih —</option>${OPSI.status.map(o => `<option ${o === awal ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  }
   const opsi = dbOpsi[k];
   if (opsi && opsi.length > 1){
     const daftar = nilai && !opsi.includes(nilai) ? [nilai, ...opsi] : opsi;
