@@ -353,6 +353,9 @@
   .dbm-nilai{display:flex;align-items:center;gap:8px;font-size:.88rem;color:var(--teks);word-break:break-word}
   .dbm-nilai .nilai{font-size:.88rem;font-weight:500;font-variant-numeric:tabular-nums}
   .dbm-dua{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:start}
+  .dbm-dua.nik{grid-template-columns:1fr auto}
+  .md-tabel .md-mata{width:26px;height:26px}
+  .md-tabel .md-mata:disabled{opacity:.4;cursor:default}
   .dbm-wa{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:#15803d;text-decoration:none}
   .dbm-wa i{font-size:1.1rem;color:#25d366}
 
@@ -2776,7 +2779,7 @@ $('mfForm').addEventListener('submit', async (e) => {
   try{
     const hasil = await mfSimpanFn(new FormData($('mfForm')));
     if (hasil && hasil.ok){
-      kembaliLapisan();
+      if (!hasil.tetap) kembaliLapisan();                // hasil.tetap: modal tetap terbuka (mis. kembali ke Informasi Data)
       toast(hasil.nomor_surat ? (hasil.pesan + ' No. ' + hasil.nomor_surat) : (hasil.pesan || 'Tersimpan.'));
       muatStatistik();
     } else {
@@ -4391,6 +4394,40 @@ function dbTeksCari(r, nama, alamat, hp, wafat){
   if (wafat) t.push('wafat meninggal');
   return t.join(' ').toLowerCase().replace(/\s+/g, ' ');
 }
+/* Status nikah: kolom dicari otomatis (status_nikah / status_kawin / ...); "Sudah Nikah", "Kawin", "Menikah" dianggap sudah nikah */
+function dbKawin(r){
+  const k = Object.keys(r || {}).find(x => /nikah|kawin/i.test(x));
+  return k ? /^\s*(sudah\s+)?(kawin|menikah|nikah)/i.test(String(r[k] ?? '')) : null;   // null bila kolomnya tidak ada
+}
+function dbNonKosong(v){ return v !== null && v !== undefined && String(v).trim() !== ''; }
+/* Terapkan baris lengkap tabel warga (semua kolom) ke objek warga di tabel */
+function dbTerapkanRaw(w, row){
+  w.raw = row;
+  if ('nama' in row) w.nama = namaTanpaGelar(row.nama) || String(row.nama ?? '');
+  if ('nkk' in row) w.nkk = String(row.nkk ?? '').trim();
+  if ('alamat' in row) w.alamat = String(row.alamat ?? '').trim();
+  const hpv = [row.no_hp, row.hp, row.telp].find(dbNonKosong); if (hpv !== undefined) w.hp = String(hpv).trim();
+  if ('jenis_kelamin' in row) w.jk = String(row.jenis_kelamin ?? '').toUpperCase().slice(0, 1);
+  if ('hubungan' in row) w.hubungan = String(row.hubungan ?? '').trim();
+  if ('tgl_lahir' in row) w.lahir = keDate(row.tgl_lahir);
+  if ('usia' in row){ w.usia = row.usia; if (/thn.*bln/i.test(String(row.usia ?? ''))) w.wafat = true; }
+  if ('wafat' in row && row.wafat === true) w.wafat = true;
+  if ('status_pemilu' in row){ const st = String(row.status_pemilu ?? ''); w.lokal = !w.wafat && DB_POLA_LOKAL.test(st); w.luar = !w.wafat && DB_POLA_LUAR.test(st); }
+  w.kawin = dbKawin(row);
+  w.cari = dbTeksCari(row, w.nama, w.alamat, w.hp, w.wafat);
+  if ('cari0' in w){ w.cari0 = w.cari; krCari(w); }
+}
+let dbOpsi = {};        // pilihan isian (agama, pendidikan, dll) = nilai yang sudah ada di data warga
+function dbHitungOpsi(semua){
+  const kunci = new Set(['agama', 'pendidikan', 'hubungan', 'status_pemilu']);
+  semua.forEach(w => { const k = Object.keys(w.raw || {}).find(x => /nikah|kawin/i.test(x)); if (k) kunci.add(k); });
+  dbOpsi = {};
+  kunci.forEach(k => {
+    const set = new Set();
+    semua.forEach(w => { if (w.raw && dbNonKosong(w.raw[k])) set.add(String(w.raw[k]).trim()); });
+    if (set.size) dbOpsi[k] = [...set].sort((a, b) => a.localeCompare(b, 'id'));
+  });
+}
 function dbNormal(r){
   const usiaTeks = String(r.usia ?? '');
   const wafat = r.wafat === true || /thn.*bln/i.test(usiaTeks);
@@ -4398,8 +4435,7 @@ function dbNormal(r){
   const hp = String([r.no_hp, r.hp, r.telp].find(v => v !== null && v !== undefined && String(v).trim() !== '') ?? '').trim();
   const nama = namaTanpaGelar(r.nama) || String(r.nama ?? '');
   const alamat = String(r.alamat ?? '').trim();
-  const kkunci = ['status_kawin', 'status_nikah', 'status_perkawinan'].find(k => k in r);   // null bila kolomnya tidak dikirim server
-  const kawin = kkunci ? /^\s*(sudah\s+)?(kawin|menikah)/i.test(String(r[kkunci] ?? '')) : null;
+  const kawin = dbKawin(r);
   return {
     nik: String(r.nik ?? '').trim(), nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat, kawin,
     jk: String(r.jenis_kelamin ?? '').toUpperCase().slice(0,1),
@@ -4463,6 +4499,20 @@ async function renderDatabaseWarga(isi){
   const wadah = $('dbIsi'); if (!wadah) return;
   if (gagal){ wadah.innerHTML = `<div class="kosong" style="margin:12px 0"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(gagal)}</div>`; return; }
 
+  /* Semua kolom tabel warga (untuk status nikah dan edit data): get_warga_lengkap (17_edit_warga.sql) */
+  try{
+    const { data: rd, error: re } = await db.rpc('get_warga_lengkap', { p_token: tokenSesi });
+    if (re) throw re;
+    if (!rd || !rd.ok) throw new Error((rd && rd.pesan) || 'Gagal memuat kolom warga.');
+    const pm = new Map((rd.data || []).map(x => [String(x.nik ?? '').trim(), x]));
+    semua.forEach(w => { const x = pm.get(w.nik); if (x) dbTerapkanRaw(w, x); });
+    dbHitungOpsi(semua);
+  }catch(e){
+    console.error(e);
+    toast('Status nikah dan edit data belum aktif. Jalankan 17_edit_warga.sql di Supabase.');
+  }
+  if (versi !== versiSubform) return;
+
   /* Kolom Disabilitas, Bumil, Bantuan: disimpan di tabel warga_kerentanan (14_kerentanan.sql) */
   let krSiap = true;
   try{
@@ -4481,7 +4531,7 @@ async function renderDatabaseWarga(isi){
   }
   if (versi !== versiSubform) return;
   if (krSiap && semua.length && semua.every(w => w.kawin === null))
-    toast('Status kawin tidak ada pada data Database Warga, kotak Bumil belum bisa dicentang.');
+    toast('Status nikah tidak ada pada data warga, kotak Bumil belum bisa dicentang.');
 
   semua.sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
   DB_TAB.forEach(t => { $('dbN_' + t[0]).textContent = fmt(semua.filter(DB_COCOK[t[0]]).length); });
@@ -4490,10 +4540,10 @@ async function renderDatabaseWarga(isi){
   function kolomKr(w){
     if (!krSiap) return '';
     const nm = esc(w.nama);
-    const bumilBisa = !w.wafat && w.jk === 'P' && w.kawin === true;   // Bumil: hanya perempuan berstatus Kawin
+    const bumilBisa = !w.wafat && w.jk === 'P' && w.kawin === true;   // Bumil: hanya perempuan berstatus Sudah Nikah
     const kepala = /kepala/i.test(w.hubungan);                         // Bantuan: hanya Kepala Keluarga
     return `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="difabel" aria-label="Disabilitas: ${nm}" ${w.difabel ? 'checked' : ''} ${w.wafat ? 'disabled' : ''}></label></td>` +
-      `<td class="kr-c"><label class="db-ck" ${bumilBisa ? '' : 'title="Hanya untuk perempuan berstatus Kawin"'}><input type="checkbox" data-kr="bumil" aria-label="Bumil: ${nm}" ${w.bumil ? 'checked' : ''} ${bumilBisa ? '' : 'disabled'}></label></td>` +
+      `<td class="kr-c"><label class="db-ck" ${bumilBisa ? '' : 'title="Hanya untuk perempuan berstatus Sudah Nikah"'}><input type="checkbox" data-kr="bumil" aria-label="Bumil: ${nm}" ${w.bumil ? 'checked' : ''} ${bumilBisa ? '' : 'disabled'}></label></td>` +
       `<td>${kepala
         ? `<button type="button" class="db-bt${w.bantuan.length ? ' isi' : ''}" data-bt ${w.wafat ? 'disabled' : ''}>${w.bantuan.length ? esc(w.bantuan.join(', ')) : '+ Pilih'}</button>`
         : '<span class="db-bt-x" title="Bantuan hanya diisi pada Kepala Keluarga">-</span>'}</td>`;
@@ -4539,7 +4589,7 @@ async function renderDatabaseWarga(isi){
     }
     const bt = e.target.closest('[data-bt]');              // Bantuan: modal pilihan
     if (bt){ const t = bt.closest('tr[data-i]'); if (t) dbModalBantuan(hasil[+t.dataset.i], bt); return; }
-    const tr = e.target.closest('tr[data-i]'); if (tr) dbModalInfo(hasil[+tr.dataset.i], semua);
+    const tr = e.target.closest('tr[data-i]'); if (tr) dbModalInfo(hasil[+tr.dataset.i], semua, gambar);
   });
   $('dbUltah').disabled = false;
   $('dbUltah').addEventListener('click', () => dbModalUltah(semua));
@@ -4594,8 +4644,13 @@ function dbModalBantuan(w, btn){
 }
 
 const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
-function dbModalInfo(w, semua){
-  if (!w) return;
+const DB_URUT_KOLOM = ['nama', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'hubungan', 'agama', 'pendidikan', 'pekerjaan', 'no_hp', 'alamat', 'status_pemilu'];
+const DB_SEMBUNYI_KOLOM = /^(id|uuid|nik|created_at|updated_at|dibuat|diubah|link_kk|diubah_pada|dibuat_pada)$/i;   // kolom sistem / kunci data
+const DB_LABEL_KOLOM = { nama:'Nama Lengkap', nkk:'NKK', jenis_kelamin:'Jenis Kelamin', tempat_lahir:'Tempat Lahir', tgl_lahir:'Tanggal Lahir',
+  hubungan:'Status dalam Keluarga', agama:'Agama', pendidikan:'Pendidikan', pekerjaan:'Pekerjaan', no_hp:'Nomor HP', alamat:'Alamat', status_pemilu:'Status Politik' };
+const dbLabelKolom = (k) => DB_LABEL_KOLOM[k] || (/nikah|kawin/i.test(k) ? 'Status Nikah' : k.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()));
+
+function dbIsiInfo(w, semua){
   const anggota = w.nkk ? semua.filter(x => x.nkk === w.nkk) : [w];
   const kepala = anggota.find(x => /kepala/i.test(x.hubungan));
   const kk = kepala || w;
@@ -4603,19 +4658,91 @@ function dbModalInfo(w, semua){
   const urut = anggota.slice().sort((a, b) =>
     (/kepala/i.test(b.hubungan) - /kepala/i.test(a.hubungan)) ||
     ((a.lahir ? a.lahir.getTime() : Infinity) - (b.lahir ? b.lahir.getTime() : Infinity)));
-  const baris = urut.map(x => `<tr><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td></tr>`).join('');
-  const nkk = w.nkk;
+  const baris = urut.map(x => `<tr><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td>` +
+    `<td class="nw"><button type="button" class="md-mata" data-mf="ubah:${esc(x.nik)}" ${x.raw && x.nik ? '' : 'disabled'} aria-label="Edit data ${esc(x.nama)}" title="Edit data"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`).join('');
+  const nkk = w.nkk, nik = w.nik;
   const hpHtml = hp
     ? `<a class="dbm-wa" href="${esc(prWaUrl(hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> ${esc(hp)}</a>`
     : '<span class="dbm-nilai">-</span>';
-  bukaModalForm('Informasi Data',
-    `<div class="dbm"><div class="dbm-blok"><small>Nama KK</small><span class="dbm-nilai" style="font-weight:600">${esc(kk.nama)}</span></div>` +
-    `<div class="dbm-dua"><div class="dbm-blok"><small>NKK</small><span class="dbm-nilai"><span class="nilai" data-nilai="${esc(nkk)}" data-tampil="0">${nkk ? '*'.repeat(nkk.length) : '-'}</span>` +
-      (nkk ? `<button type="button" class="md-mata" data-mata aria-label="Tampilkan NKK"><i class="fa-solid fa-eye"></i></button>` : '') + `</span></div>` +
+  const samar = (v, label) => `<span class="dbm-nilai"><span class="nilai" data-nilai="${esc(v)}" data-tampil="0">${v ? '*'.repeat(v.length) : '-'}</span>` +
+    (v ? `<button type="button" class="md-mata" data-mata aria-label="Tampilkan ${label}"><i class="fa-solid fa-eye"></i></button>` : '') + '</span>';
+  return `<div class="dbm"><div class="dbm-dua nik"><div class="dbm-blok"><small>Nama Warga</small><span class="dbm-nilai" style="font-weight:600">${esc(w.nama)}</span></div>` +
+    `<div class="dbm-blok"><small>NIK</small>${samar(nik, 'NIK')}</div></div>` +
+    `<div class="dbm-dua"><div class="dbm-blok"><small>NKK</small>${samar(nkk, 'NKK')}</div>` +
     `<div class="dbm-blok"><small>Nomor HP</small>${hpHtml}</div></div></div>` +
-    `<div class="md-tabel-wadah" style="margin:14px 0 8px"><table class="md-tabel"><thead><tr><th>Nama</th><th>Usia</th><th>Hubungan</th></tr></thead><tbody>${baris}</tbody></table></div>`,
-    null);
+    `<div class="md-tabel-wadah" style="margin:14px 0 8px"><table class="md-tabel"><thead><tr><th>Nama</th><th>Usia</th><th>Hubungan</th><th></th></tr></thead><tbody>${baris}</tbody></table></div>`;
+}
+/* ganti isi modal yang sedang terbuka (tanpa membuka lapisan baru) */
+function dbGantiModal(judul, html, simpanFn, labelSimpan){
+  $('mfJudul').textContent = judul; $('mfIsi').innerHTML = html; $('mfGalat').classList.remove('tampil');
+  $('mfSimpan').textContent = labelSimpan || 'Simpan'; $('mfSimpan').style.display = simpanFn ? '' : 'none';
+  mfSimpanFn = simpanFn; $('mfBatal').textContent = simpanFn ? 'Batal' : 'Tutup'; $('mfIsi').scrollTop = 0;
+}
+function dbInputKolom(k, v){
+  const aw = (x) => `data-wk="${esc(k)}" data-awal="${esc(x)}"`;
+  if (typeof v === 'boolean') return `<label class="kr-pilih"><input type="checkbox" ${aw(String(v))} ${v ? 'checked' : ''}> Ya</label>`;
+  const nilai = (v === null || v === undefined) ? '' : String(v);
+  if (k === 'jenis_kelamin'){
+    const jk = nilai.toUpperCase().slice(0, 1);
+    return `<select ${aw(jk)}><option value="">— Pilih —</option><option value="L" ${jk === 'L' ? 'selected' : ''}>Laki-laki</option><option value="P" ${jk === 'P' ? 'selected' : ''}>Perempuan</option></select>`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(nilai) || /^(tgl|tanggal)/i.test(k)){
+    const d = nilai.slice(0, 10); return `<input type="date" ${aw(d)} value="${esc(d)}">`;
+  }
+  const opsi = dbOpsi[k];
+  if (opsi && opsi.length > 1){
+    const daftar = nilai && !opsi.includes(nilai) ? [nilai, ...opsi] : opsi;
+    return `<select ${aw(nilai)}><option value="">— Pilih —</option>${daftar.map(o => `<option ${o === nilai ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
+  }
+  if (typeof v === 'number') return `<input type="number" step="any" ${aw(nilai)} value="${esc(nilai)}">`;
+  if (k === 'alamat' || nilai.length > 80) return `<textarea ${aw(nilai)}>${esc(nilai)}</textarea>`;
+  return `<input type="text" ${aw(nilai)} value="${esc(nilai)}">`;
+}
+function dbTampilInfo(w, semua, segarkan, baru){
+  const isi = dbIsiInfo(w, semua);
+  if (baru) bukaModalForm('Informasi Data', isi, null); else dbGantiModal('Informasi Data', isi, null);
   $('mfBatal').textContent = 'Tutup';
+  mfNavFn = (aksi) => {
+    if (!aksi.startsWith('ubah:')) return;
+    const nik = aksi.slice(5), x = semua.find(m => m.nik === nik);
+    if (x && x.raw) dbTampilEdit(x, w, semua, segarkan);
+  };
+}
+function dbTampilEdit(x, asal, semua, segarkan){
+  const raw = x.raw;
+  const kunci = Object.keys(raw).filter(k => !DB_SEMBUNYI_KOLOM.test(k));
+  kunci.sort((a, b) => {
+    const ia = DB_URUT_KOLOM.indexOf(/nikah|kawin/i.test(a) ? 'x' : a), ib = DB_URUT_KOLOM.indexOf(/nikah|kawin/i.test(b) ? 'x' : b);
+    const ra = /nikah|kawin/i.test(a) ? 6.5 : (ia < 0 ? 99 : ia), rb = /nikah|kawin/i.test(b) ? 6.5 : (ib < 0 ? 99 : ib);
+    return ra - rb || a.localeCompare(b);
+  });
+  const html = `<button type="button" class="pr-ed-add" data-mf="kembali" style="margin-bottom:12px"><i class="fa-solid fa-arrow-left"></i> Kembali ke Informasi Data</button>` +
+    fld('NIK (kunci data, tidak dapat diubah)', `<input type="text" value="${esc(x.nik)}" disabled>`) +
+    kunci.map(k => fld(dbLabelKolom(k), dbInputKolom(k, raw[k]))).join('');
+  dbGantiModal('Edit Data: ' + x.nama, html, async () => {
+    const data = {};
+    for (const el of $('mfIsi').querySelectorAll('[data-wk]')){
+      const k = el.dataset.wk, awal = el.dataset.awal;
+      if (el.type === 'checkbox'){ if (String(el.checked) !== awal) data[k] = el.checked; continue; }
+      const nv = el.value.trim();
+      if (nv === awal) continue;
+      if (k === 'nama' && !nv) return { ok:false, pesan:'Nama lengkap wajib diisi.' };
+      data[k] = nv === '' ? null : (el.type === 'number' ? Number(nv) : nv);
+    }
+    if (!Object.keys(data).length) return { ok:false, pesan:'Tidak ada perubahan.' };
+    const r = await kirimRpc('update_warga', { nik: x.nik, data });
+    if (!r || !r.ok) return r || { ok:false, pesan:'Gagal menyimpan.' };
+    dbTerapkanRaw(x, r.row || Object.assign({}, raw, data));
+    dbHitungOpsi(semua);
+    if (segarkan) segarkan();
+    dbTampilInfo(asal, semua, segarkan, false);
+    return { ok:true, tetap:true, pesan:'Data warga tersimpan.' };
+  }, 'Simpan');
+  mfNavFn = (aksi) => { if (aksi === 'kembali') dbTampilInfo(asal, semua, segarkan, false); };
+}
+function dbModalInfo(w, semua, segarkan){
+  if (!w) return;
+  dbTampilInfo(w, semua, segarkan, true);
 }
 
 /* =====================================================================
