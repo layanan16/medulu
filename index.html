@@ -961,8 +961,8 @@
   .pr-ed-prog input[type=checkbox]{width:18px;height:18px;accent-color:#10b981}
   .pr .pr-grup + .pr-grup{margin-top:10px;border-top:2px solid #e2e8f0}
   .pr .pr-hp{background:#25d366;color:#fff;font-weight:700;font-size:.74rem;text-decoration:none;padding:6px 12px;border-radius:9px;display:inline-flex;align-items:center;gap:6px}
-  .pr .pr-warna{border-radius:14px;padding:2px 12px 4px;margin-top:10px;border-top:0!important}
-  .pr .pr-warna .md-baris{border-top-color:rgba(15,23,42,.14)}
+  .pr .pr-peng > .md-baris:first-child{border-top:0}
+  .pr .pr-jab{font-style:normal;font-weight:700;font-size:.74rem;color:#0f172a;padding:4px 12px;border-radius:999px;display:inline-block}
   .pr .pr-periode{font-style:normal;background:#dbeafe;color:#1d4ed8;font-weight:600;padding:3px 10px;border-radius:999px}
   .pr .pr-subj{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px;font-size:.8rem;font-weight:700;color:var(--biru-tua)}
   .pr .pr-subj:first-child{margin-top:2px}
@@ -971,6 +971,19 @@
   .pr .md-isi .pr-capaian{padding:8px 0 4px;border-top:1px dashed #e2e8f0}
   .pr .md-isi .pr-kosong{padding:4px 0 2px;text-align:center}
   .pr-ed-sub{font-size:.7rem;font-weight:700;color:var(--abu);margin:8px 0 6px}
+  /* Keadaan Bangunan: kolom nama diperlebar agar tidak turun ke 2 baris */
+  .pr details.md-seksi[data-k="bangunan"] .md-baris span:first-child{width:auto;flex:1 1 auto;min-width:0}
+  .pr details.md-seksi[data-k="bangunan"] .md-baris span:last-child{flex:none;white-space:nowrap}
+  /* Judul seksi + ikon panah berwarna (gaya seksi Program Kerja) */
+  .pr details.md-seksi{--sk:#2563eb;--sk-soft:rgba(37,99,235,.12)}
+  .pr details.md-seksi[data-k="peta"]{--sk:#0891b2;--sk-soft:rgba(8,145,178,.12)}
+  .pr details.md-seksi[data-k="bangunan"]{--sk:#2563eb;--sk-soft:rgba(37,99,235,.12)}
+  .pr details.md-seksi[data-k="pengurus"]{--sk:#7c3aed;--sk-soft:rgba(124,58,237,.12)}
+  .pr details.md-seksi[data-k="program"]{--sk:#059669;--sk-soft:rgba(5,150,105,.12)}
+  .pr details.md-seksi[data-k="periodisasi"]{--sk:#ea580c;--sk-soft:rgba(234,88,12,.12)}
+  .pr details.md-seksi summary{color:var(--sk);font-weight:700}
+  .pr details.md-seksi summary .chev{width:30px;height:30px;border-radius:50%;background:var(--sk-soft);color:var(--sk);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;transition:transform .3s ease,background .3s ease,color .3s ease}
+  .pr details.md-seksi[open] summary .chev{background:var(--sk);color:#fff}
 </style>
 </head>
 <body>
@@ -2389,7 +2402,8 @@ function prHtmlPengurus(){
   return a.map(p => {
     const kj = String(p.jabatan || '').trim().toLowerCase();
     let i = jabatan.indexOf(kj); if (i < 0){ jabatan.push(kj); i = jabatan.length - 1; }
-    return `<div class="pr-grup pr-warna" style="background:${PR_WARNA_JABATAN[i % PR_WARNA_JABATAN.length]}">${prBaris('Nama', prNil(p.nama))}${prBaris('Jabatan', prNil(p.jabatan))}${prBaris('Alamat', prNil(p.alamat))}` +
+    const jab = String(p.jabatan || '').trim() ? `<i class="pr-jab" style="background:${PR_WARNA_JABATAN[i % PR_WARNA_JABATAN.length]}">${esc(p.jabatan)}</i>` : '-';
+    return `<div class="pr-grup pr-peng">${prBaris('Nama', prNil(p.nama))}${prBaris('Jabatan', jab)}${prBaris('Alamat', prNil(p.alamat))}` +
       prBaris('No. HP', p.hp ? `<a class="pr-hp" href="${esc(prWaUrl(p.hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> Kontak WA</a>` : '-') + '</div>';
   }).join('');
 }
