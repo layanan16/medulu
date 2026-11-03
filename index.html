@@ -4330,7 +4330,7 @@ document.addEventListener('click', (e) => {
 
 const OPSI = {
   agama: ['Islam','Kristen','Katolik','Hindu','Buddha','Khonghucu'],
-  status: ['Belum Kawin','Kawin','Cerai Hidup','Cerai Mati'],
+  status: ['Belum Nikah','Sudah Nikah','Cerai Hidup','Cerai Mati'],
   pendidikan: ['Tidak/Belum Sekolah','SD/Sederajat','SMP/Sederajat','SMA/Sederajat','Diploma','S1','S2','S3'],
   hubungan: ['Kepala Keluarga','Istri','Suami','Anak','Menantu','Cucu','Orang Tua','Mertua','Famili Lain','Lainnya']
 };
@@ -4394,10 +4394,10 @@ function dbTeksCari(r, nama, alamat, hp, wafat){
   if (wafat) t.push('wafat meninggal');
   return t.join(' ').toLowerCase().replace(/\s+/g, ' ');
 }
-/* Status nikah: kolom dicari otomatis (status_nikah / status_kawin / ...); "Sudah Nikah", "Kawin", "Menikah" dianggap sudah nikah */
-function dbKawin(r){
+/* Status nikah: kolom dicari otomatis; pilihan: Belum Nikah, Sudah Nikah, Cerai Hidup, Cerai Mati */
+function dbSudahNikah(r){
   const k = Object.keys(r || {}).find(x => /nikah|kawin/i.test(x));
-  return k ? /^\s*(sudah\s+)?(kawin|menikah|nikah)/i.test(String(r[k] ?? '')) : null;   // null bila kolomnya tidak ada
+  return k ? /^\s*sudah\s+nikah\b/i.test(String(r[k] ?? '')) : null;   // null bila kolomnya tidak ada
 }
 function dbNonKosong(v){ return v !== null && v !== undefined && String(v).trim() !== ''; }
 /* Terapkan baris lengkap tabel warga (semua kolom) ke objek warga di tabel */
@@ -4413,7 +4413,7 @@ function dbTerapkanRaw(w, row){
   if ('usia' in row){ w.usia = row.usia; if (/thn.*bln/i.test(String(row.usia ?? ''))) w.wafat = true; }
   if ('wafat' in row && row.wafat === true) w.wafat = true;
   if ('status_pemilu' in row){ const st = String(row.status_pemilu ?? ''); w.lokal = !w.wafat && DB_POLA_LOKAL.test(st); w.luar = !w.wafat && DB_POLA_LUAR.test(st); }
-  w.kawin = dbKawin(row);
+  w.sudahNikah = dbSudahNikah(row);
   w.cari = dbTeksCari(row, w.nama, w.alamat, w.hp, w.wafat);
   if ('cari0' in w){ w.cari0 = w.cari; krCari(w); }
 }
@@ -4435,9 +4435,9 @@ function dbNormal(r){
   const hp = String([r.no_hp, r.hp, r.telp].find(v => v !== null && v !== undefined && String(v).trim() !== '') ?? '').trim();
   const nama = namaTanpaGelar(r.nama) || String(r.nama ?? '');
   const alamat = String(r.alamat ?? '').trim();
-  const kawin = dbKawin(r);
+  const sudahNikah = dbSudahNikah(r);
   return {
-    nik: String(r.nik ?? '').trim(), nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat, kawin,
+    nik: String(r.nik ?? '').trim(), nkk: String(r.nkk ?? '').trim(), nama, alamat, hp, wafat, sudahNikah,
     jk: String(r.jenis_kelamin ?? '').toUpperCase().slice(0,1),
     hubungan: String(r.hubungan ?? '').trim(), usia: r.usia, lahir: keDate(r.tgl_lahir),
     lokal: !wafat && DB_POLA_LOKAL.test(st), luar: !wafat && DB_POLA_LUAR.test(st),
@@ -4530,7 +4530,7 @@ async function renderDatabaseWarga(isi){
     toast('Kolom Disabilitas, Bumil, dan Bantuan belum aktif. Jalankan 14_kerentanan.sql di Supabase.');
   }
   if (versi !== versiSubform) return;
-  if (krSiap && semua.length && semua.every(w => w.kawin === null))
+  if (krSiap && semua.length && semua.every(w => w.sudahNikah === null))
     toast('Status nikah tidak ada pada data warga, kotak Bumil belum bisa dicentang.');
 
   semua.sort((a, b) => a.nama.localeCompare(b.nama, 'id'));
@@ -4540,7 +4540,7 @@ async function renderDatabaseWarga(isi){
   function kolomKr(w){
     if (!krSiap) return '';
     const nm = esc(w.nama);
-    const bumilBisa = !w.wafat && w.jk === 'P' && w.kawin === true;   // Bumil: hanya perempuan berstatus Sudah Nikah
+    const bumilBisa = !w.wafat && w.jk === 'P' && w.sudahNikah === true;   // Bumil: hanya perempuan berstatus Sudah Nikah
     const kepala = /kepala/i.test(w.hubungan);                         // Bantuan: hanya Kepala Keluarga
     return `<td class="kr-c"><label class="db-ck"><input type="checkbox" data-kr="difabel" aria-label="Disabilitas: ${nm}" ${w.difabel ? 'checked' : ''} ${w.wafat ? 'disabled' : ''}></label></td>` +
       `<td class="kr-c"><label class="db-ck" ${bumilBisa ? '' : 'title="Hanya untuk perempuan berstatus Sudah Nikah"'}><input type="checkbox" data-kr="bumil" aria-label="Bumil: ${nm}" ${w.bumil ? 'checked' : ''} ${bumilBisa ? '' : 'disabled'}></label></td>` +
