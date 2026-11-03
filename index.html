@@ -4781,6 +4781,8 @@ const JENIS_SURAT = [
   ['sk_kematian','Surat Keterangan Kematian'], ['sk_usaha','Surat Keterangan Usaha'],
   ['sk_izin_acara','Surat Keterangan Izin Acara/Kegiatan'], ['sk_pindah_domisili','Surat Keterangan Pindah Domisili']
 ];
+const JENIS_SURAT_ADMIN = [['sk_ahli_waris','Surat Keterangan Ahli Waris']];   // hanya tampil untuk Admin (server juga wajib menolak non-Admin)
+const daftarJenisSurat = () => adminSurat ? JENIS_SURAT.concat(JENIS_SURAT_ADMIN) : JENIS_SURAT;
 const fs = (label, ikon, html) => `<div class="mf-field"><label><i class="fa-solid ${ikon}"></i>${label}</label>${html}</div>`;
 const inp = (nama, tipe, ph) => `<input name="${nama}" type="${tipe}" ${ph ? `placeholder="${ph}"` : ''} required>`;
 const opsiManual = (nama, manual, daftar, ph) =>
@@ -4820,6 +4822,12 @@ function isianSurat(jenis){
       return fs('Tanggal Mulai Acara', 'fa-calendar-plus', inp('tgl_mulai','date')) +
              fs('Tanggal Selesai Acara', 'fa-calendar-minus', inp('tgl_selesai','date')) +
              fs('Estimasi Jumlah Tamu', 'fa-users', '<input name="jml_tamu" type="number" min="0" inputmode="numeric" placeholder="Jumlah perkiraan undangan/tamu" required>');
+    case 'sk_ahli_waris':
+      if (!adminSurat) return '';
+      return fs('Nama Pewaris', 'fa-user-large', inp('nama_pewaris','text','Nama lengkap pewaris (almarhum/ah)')) +
+             fs('Tanggal Pernyataan', 'fa-calendar-check', inp('tgl_pernyataan','date')) +
+             fs('Tanggal Kuasa', 'fa-calendar-day', inp('tgl_kuasa','date')) +
+             '<div class="pesan-info" style="font-size:.72rem;color:var(--abu);margin:-2px 2px 12px"><i class="fa-solid fa-circle-info"></i> No. surat (.../SPAW/RT.09/bulan_tahun) dan tanggal surat dibuat otomatis saat pengajuan dikirim.</div>';
     case 'sk_pindah_domisili':
       return fs('Pilihan Pindah', 'fa-truck-ramp-box', '<select name="opsi_pindah" required><option value="">-- Pilih Status Pindah --</option><option value="Masuk">Masuk (Datang ke RT 09)</option><option value="Keluar">Keluar (Pindah dari RT 09)</option></select>') +
              '<div id="pindahAlamat"></div>';
@@ -4853,7 +4861,7 @@ async function renderFormSurat(isi){
       </div>
       ${fs('Jenis Surat Pengantar', 'fa-file-signature',
         '<select name="jenis_surat" required><option value="">-- Pilih Jenis Surat --</option>' +
-        JENIS_SURAT.map((j, i) => `<option value="${j[0]}">${i + 1}. ${j[1]}</option>`).join('') + '</select>')}
+        daftarJenisSurat().map((j, i) => `<option value="${j[0]}">${i + 1}. ${j[1]}</option>`).join('') + '</select>')}
       <div id="isianSurat"></div>
       <button type="submit" class="md-tombol" id="btnKirimSurat" disabled><i class="fa-solid fa-paper-plane"></i> Kirim Pengajuan</button>
       <div id="pesanSurat"></div>
@@ -4911,7 +4919,8 @@ const LABEL_DATA = {
   usia_alm:'Usia Almarhum/ah', tempat_wafat:'Tempat Wafat', sebab_wafat:'Sebab Wafat',
   nama_usaha:'Nama Usaha', jenis_usaha:'Jenis Usaha', alamat_usaha:'Alamat Usaha',
   tgl_mulai:'Tanggal Mulai', tgl_selesai:'Tanggal Selesai', jml_tamu:'Jumlah Tamu',
-  opsi_pindah:'Pilihan Pindah', alamat_pindah:'Alamat'
+  opsi_pindah:'Pilihan Pindah', alamat_pindah:'Alamat',
+  nama_pewaris:'Nama Pewaris', tgl_pernyataan:'Tanggal Pernyataan', tgl_kuasa:'Tanggal Kuasa'
 };
 const ORDER_DATA = Object.keys(LABEL_DATA);
 const linkAman = (u) => /^https?:\/\//i.test(u || '') ? u : '';
