@@ -4826,8 +4826,7 @@ function isianSurat(jenis){
       if (!adminSurat) return '';
       return fs('Nama Pewaris', 'fa-user-large', inp('nama_pewaris','text','Nama lengkap pewaris (almarhum/ah)')) +
              fs('Tanggal Pernyataan', 'fa-calendar-check', inp('tgl_pernyataan','date')) +
-             fs('Tanggal Kuasa', 'fa-calendar-day', inp('tgl_kuasa','date')) +
-             '<div class="pesan-info" style="font-size:.72rem;color:var(--abu);margin:-2px 2px 12px"><i class="fa-solid fa-circle-info"></i> No. surat (.../SPAW/RT.09/bulan_tahun) dan tanggal surat dibuat otomatis saat pengajuan dikirim.</div>';
+             fs('Tanggal Kuasa', 'fa-calendar-day', inp('tgl_kuasa','date'));
     case 'sk_pindah_domisili':
       return fs('Pilihan Pindah', 'fa-truck-ramp-box', '<select name="opsi_pindah" required><option value="">-- Pilih Status Pindah --</option><option value="Masuk">Masuk (Datang ke RT 09)</option><option value="Keluar">Keluar (Pindah dari RT 09)</option></select>') +
              '<div id="pindahAlamat"></div>';
