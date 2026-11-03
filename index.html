@@ -2367,12 +2367,13 @@ function prSubJudul(judul, kunci, ada){
   return `<div class="pr-subj"><span>${judul}</span>${tb}</div>`;
 }
 function prTotalHuni(){ return prArr('bangunan').reduce((n, x) => n + (Number(x.huni) || 0), 0); }
+function prTotalTidak(){ return prArr('bangunan').reduce((n, x) => n + (Number(x.tidak) || 0), 0); }
 function prHtmlBangunan(){
   const hun = prArr('bangunan'), fung = prArr('fungsional');
   const kawasan = hun.length
     ? hun.map(x => prBaris(esc(x.nama), `${Number(x.huni) || 0} H | ${Number(x.tidak) || 0} TH`)).join('')
     : prKosong('Belum ada data kawasan hunian.');
-  const fungsional = prBaris('Bangunan Huni', `${prTotalHuni()}`) +
+  const fungsional = prBaris('Bangunan Huni/Kosong', `${prTotalHuni()} H | ${prTotalTidak()} TH`) +
     fung.map(x => prBaris(esc(x.nama), `${Number(x.jumlah) || 0}`)).join('');
   return prSubJudul('Kawasan Hunian', 'bangunan', hun.length) + kawasan +
          prSubJudul('Bangunan Fungsional', 'fungsional', fung.length) + fungsional;
