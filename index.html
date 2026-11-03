@@ -4824,7 +4824,8 @@ function isianSurat(jenis){
              fs('Estimasi Jumlah Tamu', 'fa-users', '<input name="jml_tamu" type="number" min="0" inputmode="numeric" placeholder="Jumlah perkiraan undangan/tamu" required>');
     case 'sk_ahli_waris':
       if (!adminSurat) return '';
-      return fs('Nama Pewaris', 'fa-user-large', inp('nama_pewaris','text','Nama lengkap pewaris (almarhum/ah)')) +
+      return fs('NIK Pengaju (Pemohon)', 'fa-id-card-clip', inpNik('nik_pengaju','16 digit NIK pengaju')) +
+             fs('Nama Pewaris', 'fa-user-large', inp('nama_pewaris','text','Nama lengkap pewaris (almarhum/ah)')) +
              fs('Tanggal Pernyataan', 'fa-calendar-check', inp('tgl_pernyataan','date')) +
              fs('Tanggal Kuasa', 'fa-calendar-day', inp('tgl_kuasa','date'));
     case 'sk_pindah_domisili':
@@ -4853,7 +4854,7 @@ async function renderFormSurat(isi){
   nikSurat = '';
   isi.innerHTML = `<div class="kartu-stat">
     <form id="formSurat" autocomplete="off" novalidate>
-      <div class="md-id" style="margin:0 0 14px"><small><i class="fa-solid fa-id-card"></i> NIK Pemohon (Otomatis)</small>
+      <div class="md-id" id="boxNikPemohon" style="margin:0 0 14px"><small><i class="fa-solid fa-id-card"></i> NIK Pemohon (Otomatis)</small>
         <div class="baris"><span class="nilai" id="nikSuratTampil" data-nilai="" data-tampil="0">Memuat...</span>
           <button type="button" class="md-mata" data-mata aria-label="Tampilkan NIK"><i class="fa-solid fa-eye"></i></button></div>
         <div class="peringatan-nik" id="peringatanNik" hidden><i class="fa-solid fa-circle-exclamation"></i> NIK tidak terdeteksi! Pengajuan tidak dapat dikirim.</div>
@@ -4867,11 +4868,13 @@ async function renderFormSurat(isi){
     </form></div>`;
 
   const form = $('formSurat');
+  // Ahli Waris: pemohon = NIK Pengaju yang diketik Admin, jadi kotak NIK Admin otomatis disembunyikan
+  const aturBoxNik = (jenis) => { $('boxNikPemohon').style.display = jenis === 'sk_ahli_waris' ? 'none' : ''; };
   const validasi = () => { $('btnKirimSurat').disabled = !(nikSurat && form.checkValidity()); };
   form.addEventListener('input', validasi);
   form.addEventListener('change', (e) => {
     const t = e.target;
-    if (t.name === 'jenis_surat'){ $('isianSurat').innerHTML = isianSurat(t.value); }
+    if (t.name === 'jenis_surat'){ $('isianSurat').innerHTML = isianSurat(t.value); aturBoxNik(t.value); }
     else if (t.name === 'opsi_pindah'){ $('pindahAlamat').innerHTML = isianPindah(t.value); }
     else if (t.dataset && t.dataset.manual){
       const m = $(t.dataset.manual), pakai = t.value === 'Lainnya';
@@ -4887,7 +4890,7 @@ async function renderFormSurat(isi){
     const r = await kirimRpc('ajukan_surat', obj);
     if (r.ok){
       pesan.innerHTML = `<div class="pesan-ok"><i class="fa-solid fa-circle-check"></i> ${esc(r.pesan)}</div>`;
-      form.reset(); $('isianSurat').innerHTML = '';
+      form.reset(); $('isianSurat').innerHTML = ''; aturBoxNik('');
       muatStatistik();
     } else {
       pesan.innerHTML = `<div class="pesan-err"><i class="fa-solid fa-circle-exclamation"></i> ${esc(r.pesan || 'Terjadi kesalahan pada sistem.')}</div>`;
