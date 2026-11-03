@@ -957,7 +957,12 @@
   .pr-ed-prog label{display:flex;align-items:center;gap:4px;font-size:.68rem;color:var(--abu);white-space:nowrap;cursor:pointer}
   .pr-ed-prog input[type=checkbox]{width:18px;height:18px;accent-color:#10b981}
   .pr .pr-grup + .pr-grup{margin-top:10px;border-top:2px solid #e2e8f0}
-  .pr .pr-hp{color:#15803d;font-weight:600;text-decoration:none}
+  .pr .pr-hp{background:#25d366;color:#fff;font-weight:700;font-size:.74rem;text-decoration:none;padding:6px 12px;border-radius:9px;display:inline-flex;align-items:center;gap:6px}
+  .pr .pr-warna{border-radius:14px;padding:2px 12px 4px;margin-top:10px;border-top:0!important}
+  .pr .pr-warna .md-baris{border-top-color:rgba(15,23,42,.14)}
+  .pr .pr-periode{font-style:normal;background:#dbeafe;color:#1d4ed8;font-weight:600;padding:3px 10px;border-radius:999px}
+  .pr .pr-subj{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px;font-size:.8rem;font-weight:700;color:var(--biru-tua)}
+  .pr .pr-subj:first-child{margin-top:2px}
   .pr .pr-lebar span:first-child{width:auto;flex:1;color:var(--teks)}
   .pr .pr-lebar i.md-status{font-style:normal}
   .pr .md-isi .pr-capaian{padding:8px 0 4px;border-top:1px dashed #e2e8f0}
@@ -2356,24 +2361,38 @@ const prArr = (k) => Array.isArray(prData[k]) ? prData[k] : [];
 const prKosong = (t) => `<div class="pr-kosong">${t}</div>`;
 const prBaris = (label, isiHtml) => `<div class="md-baris"><span>${label}</span><span>${isiHtml}</span></div>`;
 const prNil = (v) => (v === null || v === undefined || String(v).trim() === '') ? '-' : esc(v);
-function prHtmlBangunan(){
-  const a = prArr('bangunan');
-  if (!a.length) return prKosong('Belum ada data bangunan.');
-  return a.map(x => {
-    const huni = Number(x.huni) || 0, tidak = Number(x.tidak) || 0;
-    return prBaris(esc(x.nama), `${huni} huni · ${tidak} tidak dihuni`);
-  }).join('');
+function prSubJudul(judul, kunci, ada){
+  const tb = !aksesPenuh ? '' : `<button type="button" class="pr-btn ${ada ? 'edit' : ''}" data-prbtn="${kunci}">
+      <i class="fa-solid ${ada ? 'fa-pen-to-square' : 'fa-plus'}"></i> ${ada ? 'Edit' : 'Tambah Data'}</button>`;
+  return `<div class="pr-subj"><span>${judul}</span>${tb}</div>`;
 }
+function prTotalHuni(){ return prArr('bangunan').reduce((n, x) => n + (Number(x.huni) || 0), 0); }
+function prHtmlBangunan(){
+  const hun = prArr('bangunan'), fung = prArr('fungsional');
+  const kawasan = hun.length
+    ? hun.map(x => prBaris(esc(x.nama), `${Number(x.huni) || 0} H | ${Number(x.tidak) || 0} TH`)).join('')
+    : prKosong('Belum ada data kawasan hunian.');
+  const fungsional = prBaris('Bangunan Huni', `${prTotalHuni()}`) +
+    fung.map(x => prBaris(esc(x.nama), `${Number(x.jumlah) || 0}`)).join('');
+  return prSubJudul('Kawasan Hunian', 'bangunan', hun.length) + kawasan +
+         prSubJudul('Bangunan Fungsional', 'fungsional', fung.length) + fungsional;
+}
+const PR_WARNA_JABATAN = ['#e0f2fe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#ccfbf1','#ffedd5','#fee2e2'];
 function prHtmlPengurus(){
   const a = prArr('pengurus');
   if (!a.length) return prKosong('Belum ada data pengurus.');
-  return a.map(p => `<div class="pr-grup">${prBaris('Nama', prNil(p.nama))}${prBaris('Jabatan', prNil(p.jabatan))}${prBaris('Alamat', prNil(p.alamat))}` +
-    prBaris('No. HP', p.hp ? `<a class="pr-hp" href="${esc(prWaUrl(p.hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> ${esc(p.hp)}</a>` : '-') + '</div>').join('');
+  const jabatan = [];                                   // satu warna per jabatan (urut kemunculan)
+  return a.map(p => {
+    const kj = String(p.jabatan || '').trim().toLowerCase();
+    let i = jabatan.indexOf(kj); if (i < 0){ jabatan.push(kj); i = jabatan.length - 1; }
+    return `<div class="pr-grup pr-warna" style="background:${PR_WARNA_JABATAN[i % PR_WARNA_JABATAN.length]}">${prBaris('Nama', prNil(p.nama))}${prBaris('Jabatan', prNil(p.jabatan))}${prBaris('Alamat', prNil(p.alamat))}` +
+      prBaris('No. HP', p.hp ? `<a class="pr-hp" href="${esc(prWaUrl(p.hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> Kontak WA</a>` : '-') + '</div>';
+  }).join('');
 }
 function prHtmlPeriodisasi(){
   const a = prArr('periodisasi');
   if (!a.length) return prKosong('Belum ada data periodisasi.');
-  return a.map(x => `<div class="pr-grup">${prBaris('Nama', prNil(x.nama))}${prBaris('Alamat', prNil(x.alamat))}${prBaris('Periode', prNil(x.periode))}</div>`).join('');
+  return a.map(x => `<div class="pr-grup">${prBaris('Nama', prNil(x.nama))}${prBaris('Alamat', prNil(x.alamat))}${prBaris('Periode', x.periode ? `<i class="pr-periode">${esc(x.periode)}</i>` : '-')}</div>`).join('');
 }
 function prHtmlProgram(){
   const p = prData.program;
@@ -2393,9 +2412,11 @@ function prHtmlProgram(){
 
 /* ----- Editor modal (hanya Admin) ----- */
 const PR_FORM = {
-  bangunan:   { judul:'Keadaan Bangunan', satu:'Bangunan', wajib:['nama'], kolom:[
+  bangunan:   { judul:'Kawasan Hunian', satu:'Kawasan', wajib:['nama'], kolom:[
     { k:'nama',   label:'Nama/Jenis/Kawasan Bangunan', max:120, wajib:1 },
     { k:'huni',   label:'Huni', num:1 }, { k:'tidak', label:'Tidak dihuni', num:1 } ] },
+  fungsional: { judul:'Bangunan Fungsional', satu:'Bangunan', wajib:['nama'], kolom:[
+    { k:'nama', label:'Nama Bangunan', max:120, wajib:1 }, { k:'jumlah', label:'Jumlah', num:1 } ] },
   pengurus:   { judul:'Pengurus RT', satu:'Pengurus', wajib:['nama','jabatan'], kolom:[
     { k:'nama', label:'Nama', max:120, wajib:1 }, { k:'jabatan', label:'Jabatan', max:80, wajib:1 },
     { k:'alamat', label:'Alamat', max:200 }, { k:'hp', label:'No. HP', max:20, tel:1 } ] },
@@ -2411,7 +2432,7 @@ function prInputKolom(c, v){
 function prBarisHtml(kunci, it, no){
   const f = PR_FORM[kunci], dua = f.kolom.filter(c => c.num);
   const biasa = f.kolom.filter(c => !c.num).map(c => prInputKolom(c, it[c.k])).join('');
-  const angka = dua.length ? `<div class="mf-dua">${dua.map(c => prInputKolom(c, it[c.k])).join('')}</div>` : '';
+  const angka = dua.length > 1 ? `<div class="mf-dua">${dua.map(c => prInputKolom(c, it[c.k])).join('')}</div>` : dua.map(c => prInputKolom(c, it[c.k])).join('');
   return `<div class="pr-ed-row"><div class="pr-ed-head"><span>${f.satu} <i data-no>${no}</i></span>
     <button type="button" class="pr-ed-del" data-pred="hapus" aria-label="Hapus"><i class="fa-solid fa-trash"></i></button></div>${biasa}${angka}</div>`;
 }
@@ -2564,7 +2585,7 @@ async function renderProfilRT(isi, pertahankan){
         <input type="file" id="prFilePeta" accept="image/jpeg,image/png,image/webp" hidden></div>` : '') +
       (urlPeta ? `<div class="pr-map" data-prpeta><img src="${esc(urlPeta)}" alt="Peta Batas Wilayah RT"><div class="pr-map-badge"><i class="fa-solid fa-expand"></i> Perbesar Peta</div></div>`
                : prKosong('Belum ada gambar batas wilayah.')))}
-    ${sek('bangunan', 'Keadaan Bangunan', tombol('bangunan', prArr('bangunan').length) + prHtmlBangunan())}
+    ${sek('bangunan', 'Keadaan Bangunan', prHtmlBangunan())}
     ${sek('pengurus', 'Pengurus RT', tombol('pengurus', prArr('pengurus').length) + prHtmlPengurus())}
     ${sek('program', 'Program Kerja', tombol('program', adaProgram) + prHtmlProgram())}
     ${sek('periodisasi', 'Periodisasi Kepengurusan', tombol('periodisasi', prArr('periodisasi').length) + prHtmlPeriodisasi())}`}
