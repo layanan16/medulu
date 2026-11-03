@@ -5086,9 +5086,9 @@ function htmlPrioritas(d, kr){
   const balita = ada(u.balita) ? u.balita : (kr && ada(kr.balita) ? kr.balita : null);
   return `<div class="kr-dua">
       <div class="kr-kotak d"><i class="fa-solid fa-wheelchair"></i><span>Disabilitas<b>${t(kr && kr.difabel)}</b></span></div>
-      <div class="kr-kotak b"><i class="fa-solid fa-person-pregnant"></i><span>Ibu Hamil (Bumil)<b>${t(kr && kr.bumil)}</b></span></div>
-      <div class="kr-kotak l"><i class="fa-solid fa-person-cane"></i><span>Lansia (&gt;60 thn)<b>${t(u.lansia)}</b></span></div>
-      <div class="kr-kotak a"><i class="fa-solid fa-baby"></i><span>Balita (&lt;5 thn)<b>${t(balita)}</b></span></div>
+      <div class="kr-kotak b"><i class="fa-solid fa-person-pregnant"></i><span>Ibu Hamil<b>${t(kr && kr.bumil)}</b></span></div>
+      <div class="kr-kotak l"><i class="fa-solid fa-person-cane"></i><span>Lansia (&gt;60 th)<b>${t(u.lansia)}</b></span></div>
+      <div class="kr-kotak a"><i class="fa-solid fa-baby"></i><span>Balita (&lt;5 th)<b>${t(balita)}</b></span></div>
     </div>`;
 }
 function htmlGender(idDonut){
