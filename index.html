@@ -357,8 +357,8 @@
   .md-tabel .md-mata{width:26px;height:26px}
   .md-tabel .md-mata:disabled{opacity:.4;cursor:default}
   /* field terkunci (diburamkan) di modal Edit Data */
-  .mf-field input.dbk-mati{background:#e9eef5;border-color:#dbe2ea;opacity:.75;cursor:not-allowed;user-select:none;
-    color:transparent;-webkit-text-fill-color:transparent;text-shadow:0 0 2.5px rgba(71,85,105,.75)}   /* teks diburamkan (naikkan 2.5px agar lebih buram) */
+  .mf-field input.dbk-mati{background:#e9eef5;border-color:#dbe2ea;cursor:not-allowed;user-select:none;
+    color:transparent;-webkit-text-fill-color:transparent;text-shadow:0 0 3px rgba(148,163,184,.55)}   /* teks lembut, nyaris menyatu dengan latar (naikkan alpha .55 agar lebih jelas) */
   .mf-field:has(input.dbk-mati) label{color:#b4bfcc}
   /* warga wafat di tabel anggota (Modal Informasi Data): latar agak merah, tidak dapat diedit */
   .md-tabel tr.wafat td,.md-tabel tr.saya.wafat td{background:#fde8e8;color:#9b1c1c}
@@ -4676,8 +4676,8 @@ function dbModalBantuan(w, btn){
 /* Modal Edit Data: kolom dicocokkan lewat nama kolom tanpa tanda baca/huruf besar (mis. "Nama Asli" = nama_asli).
    Bila nama kolom di tabel warga berbeda, tambahkan di daftar berikut. */
 const dbNormKunci = (k) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
-const DB_KUNCI_TERKUNCI = new Set(['namaasli', 'namakk', 'nokk', 'nkk', 'statushidup', 'statustinggal', 'wat', 'statuswarga']);   // tampil, diburamkan, tidak dapat diedit
-const DB_KUNCI_SEMBUNYI = new Set(['nourut', 'urut', 'peran']);                                                  // tidak ditampilkan
+const DB_KUNCI_TERKUNCI = new Set(['statushidup']);   // tampil, diburamkan, tidak dapat diedit (NIK juga terkunci)
+const DB_KUNCI_SEMBUNYI = new Set(['nourut', 'urut', 'peran', 'namaasli', 'namakk', 'nokk', 'nkk']);               // tidak ditampilkan
 const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
 const DB_URUT_KOLOM = ['nama', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'hubungan', 'agama', 'pendidikan', 'pekerjaan', 'no_hp', 'alamat', 'status_pemilu'];
 const DB_SEMBUNYI_KOLOM = /^(id|uuid|nik|created_at|updated_at|dibuat|diubah|link_kk|diubah_pada|dibuat_pada)$/i;   // kolom sistem / kunci data
