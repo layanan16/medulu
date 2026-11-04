@@ -356,6 +356,11 @@
   .dbm-dua.nik{grid-template-columns:1fr auto}
   .md-tabel .md-mata{width:26px;height:26px}
   .md-tabel .md-mata:disabled{opacity:.4;cursor:default}
+  /* field terkunci (diburamkan) di modal Edit Data */
+  .mf-field input.dbk-mati{background:#e9eef5;color:#94a3b8;opacity:.7;cursor:not-allowed;-webkit-text-fill-color:#94a3b8}
+  /* warga wafat di tabel anggota (Modal Informasi Data): latar agak merah, tidak dapat diedit */
+  .md-tabel tr.wafat td,.md-tabel tr.saya.wafat td{background:#fde8e8;color:#9b1c1c}
+  .md-tabel tr.wafat td:first-child{box-shadow:inset 3px 0 0 #f87171}
   .dbm-wa{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;font-weight:600;color:#15803d;text-decoration:none}
   .dbm-wa i{font-size:1.1rem;color:#25d366}
 
@@ -4666,6 +4671,11 @@ function dbModalBantuan(w, btn){
     }, 'Simpan');
 }
 
+/* Modal Edit Data: kolom dicocokkan lewat nama kolom tanpa tanda baca/huruf besar (mis. "Nama Asli" = nama_asli).
+   Bila nama kolom di tabel warga berbeda, tambahkan di daftar berikut. */
+const dbNormKunci = (k) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
+const DB_KUNCI_TERKUNCI = new Set(['namaasli', 'namakk', 'nokk', 'nkk', 'statushidup', 'wat', 'statuswarga']);   // tampil, diburamkan, tidak dapat diedit
+const DB_KUNCI_SEMBUNYI = new Set(['nourut', 'urut', 'peran']);                                                  // tidak ditampilkan
 const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
 const DB_URUT_KOLOM = ['nama', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'hubungan', 'agama', 'pendidikan', 'pekerjaan', 'no_hp', 'alamat', 'status_pemilu'];
 const DB_SEMBUNYI_KOLOM = /^(id|uuid|nik|created_at|updated_at|dibuat|diubah|link_kk|diubah_pada|dibuat_pada)$/i;   // kolom sistem / kunci data
@@ -4681,8 +4691,8 @@ function dbIsiInfo(w, semua){
   const urut = anggota.slice().sort((a, b) =>
     (/kepala/i.test(b.hubungan) - /kepala/i.test(a.hubungan)) ||
     ((a.lahir ? a.lahir.getTime() : Infinity) - (b.lahir ? b.lahir.getTime() : Infinity)));
-  const baris = urut.map(x => `<tr${x === w ? ' class="saya"' : ''}><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td>` +
-    `<td class="nw"><button type="button" class="md-mata" data-mf="ubah:${esc(x.nik)}" ${x.raw && x.nik ? '' : 'disabled'} aria-label="Edit data ${esc(x.nama)}" title="Edit data"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`).join('');
+  const baris = urut.map(x => `<tr class="${x === w ? 'saya' : ''}${x.wafat ? ' wafat' : ''}"><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td>` +
+    `<td class="nw"><button type="button" class="md-mata" data-mf="ubah:${esc(x.nik)}" ${x.raw && x.nik && !x.wafat ? '' : 'disabled'} aria-label="Edit data ${esc(x.nama)}" title="${x.wafat ? 'Warga wafat: data tidak dapat diedit' : 'Edit data'}"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`).join('');
   const nkk = w.nkk, nik = w.nik;
   const hpHtml = hp
     ? `<a class="dbm-wa" href="${esc(prWaUrl(hp))}" target="_blank" rel="noopener noreferrer"><i class="fa-brands fa-whatsapp"></i> ${esc(hp)}</a>`
@@ -4732,20 +4742,24 @@ function dbTampilInfo(w, semua, segarkan, baru){
   mfNavFn = (aksi) => {
     if (!aksi.startsWith('ubah:')) return;
     const nik = aksi.slice(5), x = semua.find(m => m.nik === nik);
-    if (x && x.raw) dbTampilEdit(x, w, semua, segarkan);
+    if (x && x.raw && !x.wafat) dbTampilEdit(x, w, semua, segarkan);
   };
 }
 function dbTampilEdit(x, asal, semua, segarkan){
   const raw = x.raw;
-  const kunci = Object.keys(raw).filter(k => !DB_SEMBUNYI_KOLOM.test(k));
+  const kunci = Object.keys(raw).filter(k => !DB_SEMBUNYI_KOLOM.test(k) && !DB_KUNCI_SEMBUNYI.has(dbNormKunci(k)));
   kunci.sort((a, b) => {
     const ia = DB_URUT_KOLOM.indexOf(/nikah|kawin/i.test(a) ? 'x' : a), ib = DB_URUT_KOLOM.indexOf(/nikah|kawin/i.test(b) ? 'x' : b);
     const ra = /nikah|kawin/i.test(a) ? 6.5 : (ia < 0 ? 99 : ia), rb = /nikah|kawin/i.test(b) ? 6.5 : (ib < 0 ? 99 : ib);
     return ra - rb || a.localeCompare(b);
   });
   const html = `<button type="button" class="pr-ed-add" data-mf="kembali" style="margin-bottom:12px"><i class="fa-solid fa-arrow-left"></i> Kembali ke Informasi Data</button>` +
-    fld('NIK (kunci data, tidak dapat diubah)', `<input type="text" value="${esc(x.nik)}" disabled>`) +
-    kunci.map(k => fld(dbLabelKolom(k), dbInputKolom(k, raw[k]))).join('');
+    fld('NIK (kunci data, tidak dapat diubah)', `<input type="text" class="dbk-mati" value="${esc(x.nik)}" disabled>`) +
+    kunci.map(k => {
+      if (!DB_KUNCI_TERKUNCI.has(dbNormKunci(k))) return fld(dbLabelKolom(k), dbInputKolom(k, raw[k]));
+      const v = raw[k], teks = v === true ? 'Ya' : v === false ? 'Tidak' : (v === null || v === undefined ? '' : String(v));
+      return fld(dbLabelKolom(k), `<input type="text" class="dbk-mati" value="${esc(teks)}" disabled>`);   // tanpa data-wk: tidak ikut disimpan
+    }).join('');
   dbGantiModal('Edit Data: ' + x.nama, html, async () => {
     const data = {};
     for (const el of $('mfIsi').querySelectorAll('[data-wk]')){
