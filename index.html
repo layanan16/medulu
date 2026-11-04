@@ -4676,7 +4676,7 @@ function dbModalBantuan(w, btn){
 /* Modal Edit Data: kolom dicocokkan lewat nama kolom tanpa tanda baca/huruf besar (mis. "Nama Asli" = nama_asli).
    Bila nama kolom di tabel warga berbeda, tambahkan di daftar berikut. */
 const dbNormKunci = (k) => String(k).toLowerCase().replace(/[^a-z0-9]/g, '');
-const DB_KUNCI_TERKUNCI = new Set(['namaasli', 'namakk', 'nokk', 'nkk', 'statushidup', 'wat', 'statuswarga']);   // tampil, diburamkan, tidak dapat diedit
+const DB_KUNCI_TERKUNCI = new Set(['namaasli', 'namakk', 'nokk', 'nkk', 'statushidup', 'statustinggal', 'wat', 'statuswarga']);   // tampil, diburamkan, tidak dapat diedit
 const DB_KUNCI_SEMBUNYI = new Set(['nourut', 'urut', 'peran']);                                                  // tidak ditampilkan
 const dbHubungan = (h) => String(h || '').replace(/kepala\s+keluarga/i, 'Kepala Kel.') || '-';
 const DB_URUT_KOLOM = ['nama', 'nkk', 'jenis_kelamin', 'tempat_lahir', 'tgl_lahir', 'hubungan', 'agama', 'pendidikan', 'pekerjaan', 'no_hp', 'alamat', 'status_pemilu'];
