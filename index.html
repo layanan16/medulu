@@ -358,7 +358,7 @@
   .md-tabel .md-mata:disabled{opacity:.4;cursor:default}
   /* field terkunci (diburamkan) di modal Edit Data */
   .mf-field input.dbk-mati{background:#e9eef5;border-color:#dbe2ea;cursor:not-allowed;user-select:none;
-    color:#b3bdca;-webkit-text-fill-color:#b3bdca;text-shadow:none}   /* teks samar tanpa bayangan (ganti #b3bdca: lebih terang = lebih samar) */
+    color:#b3bdca;-webkit-text-fill-color:#b3bdca;text-shadow:none;filter:blur(1px)}   /* nilai samar + buram (naikkan 1px = lebih buram; #b3bdca lebih terang = lebih samar) */
   .mf-field:has(input.dbk-mati) label{color:#b4bfcc}
   /* warga wafat di tabel anggota (Modal Informasi Data): latar agak merah, tidak dapat diedit */
   .md-tabel tr.wafat td,.md-tabel tr.saya.wafat td{background:#fde8e8;color:#9b1c1c}
@@ -4713,6 +4713,7 @@ function dbGantiModal(judul, html, simpanFn, labelSimpan){
   $('mfSimpan').textContent = labelSimpan || 'Simpan'; $('mfSimpan').style.display = simpanFn ? '' : 'none';
   mfSimpanFn = simpanFn; $('mfBatal').textContent = simpanFn ? 'Batal' : 'Tutup'; $('mfIsi').scrollTop = 0;
 }
+const OPSI_AGAMA = ['Islam', 'Kristen', 'Hindu', 'Budha'];   // pilihan Agama di Modal Edit Data
 function dbInputKolom(k, v){
   const aw = (x) => `data-wk="${esc(k)}" data-awal="${esc(x)}"`;
   if (typeof v === 'boolean') return `<label class="kr-pilih"><input type="checkbox" ${aw(String(v))} ${v ? 'checked' : ''}> Ya</label>`;
@@ -4723,6 +4724,10 @@ function dbInputKolom(k, v){
   }
   if (/^\d{4}-\d{2}-\d{2}/.test(nilai) || /^(tgl|tanggal)/i.test(k)){
     const d = nilai.slice(0, 10); return `<input type="date" ${aw(d)} value="${esc(d)}">`;
+  }
+  if (k === 'agama'){                               // Agama: pilihan tetap
+    const ada = OPSI_AGAMA.includes(nilai), awal = ada ? nilai : '';   // nilai di luar pilihan dianggap kosong (tidak ditimpa bila tidak diubah)
+    return `<select ${aw(awal)}><option value="">— Pilih —</option>${OPSI_AGAMA.map(o => `<option ${o === awal ? 'selected' : ''}>${esc(o)}</option>`).join('')}</select>`;
   }
   if (/nikah|kawin/i.test(k)){                       // Status Nikah: pilihan tetap, bukan dari isi data
     const ada = OPSI.status.includes(nilai), awal = ada ? nilai : '';   // nilai di luar pilihan dianggap kosong (tidak ditimpa bila tidak diubah)
