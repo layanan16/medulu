@@ -4404,7 +4404,7 @@ const DB_TAB = [
   ['luar',  'Pemilih Luar', 'fa-earth-asia', '#ffedd5', '#ea580c']
 ];
 const DB_COCOK = {
-  semua: () => true,
+  semua: w => !w.wafat,          // Jumlah = warga hidup (L + P); yang wafat hanya di tab Wafat
   L: w => !w.wafat && w.jk === 'L',
   P: w => !w.wafat && w.jk === 'P',
   wafat: w => w.wafat,
