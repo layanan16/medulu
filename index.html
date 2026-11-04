@@ -357,7 +357,9 @@
   .md-tabel .md-mata{width:26px;height:26px}
   .md-tabel .md-mata:disabled{opacity:.4;cursor:default}
   /* field terkunci (diburamkan) di modal Edit Data */
-  .mf-field input.dbk-mati{background:#e9eef5;color:#94a3b8;opacity:.7;cursor:not-allowed;-webkit-text-fill-color:#94a3b8}
+  .mf-field input.dbk-mati{background:#e9eef5;border-color:#dbe2ea;opacity:.75;cursor:not-allowed;user-select:none;
+    color:transparent;-webkit-text-fill-color:transparent;text-shadow:0 0 2.5px rgba(71,85,105,.75)}   /* teks diburamkan (naikkan 2.5px agar lebih buram) */
+  .mf-field:has(input.dbk-mati) label{color:#b4bfcc}
   /* warga wafat di tabel anggota (Modal Informasi Data): latar agak merah, tidak dapat diedit */
   .md-tabel tr.wafat td,.md-tabel tr.saya.wafat td{background:#fde8e8;color:#9b1c1c}
   .md-tabel tr.wafat td:first-child{box-shadow:inset 3px 0 0 #f87171}
