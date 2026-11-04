@@ -400,6 +400,11 @@
   .ar.db .db-jml b{font-size:1.05rem;font-weight:800;line-height:1.1}
   .ar.db .db-jml small{font-size:.62rem;opacity:.9}
   .ar.db .ar-cari{flex:1;margin:0;min-width:0}
+  .ar.db .ar-cari input{padding-right:38px}
+  .ar.db .ar-cari .ar-hapus{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:30px;height:30px;border:0;background:transparent;color:#94a3b8;border-radius:50%;cursor:pointer;display:none;align-items:center;justify-content:center;padding:0}
+  .ar.db .ar-cari .ar-hapus.tampil{display:flex}
+  .ar.db .ar-cari .ar-hapus:hover,.ar.db .ar-cari .ar-hapus:active{color:#475569;background:#f1f5f9}
+  .ar.db .ar-cari .ar-hapus i{position:static;transform:none;font-size:1rem;color:inherit}
   .ar.db .db-t{width:100%}
   .ar.db .db-t.kr{min-width:620px}
   .ar.db .db-t th{background:#f8fafc;color:#000;font-weight:700;font-size:.75rem;padding:8px 9px;text-align:left;white-space:nowrap;border-bottom:2px solid #cbd5e1}
@@ -4487,7 +4492,7 @@ async function renderDatabaseWarga(isi){
       </div>
       <div class="db-cari">
         <div class="db-jml"><b id="dbJml">0</b><small>Hasil</small></div>
-        <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="dbCari" placeholder="Cari nama, alamat, pekerjaan, NIK, dll..." autocomplete="off" enterkeyhint="search"></div>
+        <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="dbCari" placeholder="Cari nama, alamat, pekerjaan, NIK, dll..." autocomplete="off" enterkeyhint="search"><button type="button" class="ar-hapus" id="dbCariHapus" aria-label="Hapus pencarian" title="Hapus pencarian"><i class="fa-solid fa-circle-xmark"></i></button></div>
       </div>
     </div>
     <div class="kartu-stat">
@@ -4588,12 +4593,16 @@ async function renderDatabaseWarga(isi){
   $('dbTab').addEventListener('click', (e) => {
     const b = e.target.closest('[data-f]'); if (!b) return;
     filter = b.dataset.f; tampil = DB_HALAMAN;
-    kata = ''; $('dbCari').value = '';                    // kotak cari dikosongkan saat tab dipilih
+    kata = ''; $('dbCari').value = ''; aturHapusCari();   // kotak cari dikosongkan saat tab dipilih
     $('dbTab').querySelectorAll('.ar-stat').forEach(x => x.classList.toggle('aktif', x === b));
     gambar();
   });
+  const aturHapusCari = () => $('dbCariHapus').classList.toggle('tampil', $('dbCari').value !== '');
   $('dbCari').addEventListener('input', (e) => {          // bekerja sejak karakter pertama
-    kata = e.target.value.toLowerCase().replace(/\s+/g, ' ').trim(); tampil = DB_HALAMAN; gambar();
+    kata = e.target.value.toLowerCase().replace(/\s+/g, ' ').trim(); tampil = DB_HALAMAN; aturHapusCari(); gambar();
+  });
+  $('dbCariHapus').addEventListener('click', () => {      // tombol silang: hapus kata pencarian
+    $('dbCari').value = ''; kata = ''; tampil = DB_HALAMAN; aturHapusCari(); gambar(); $('dbCari').focus();
   });
   wadah.addEventListener('click', (e) => {
     if (e.target.closest('#dbLain')){ tampil += DB_HALAMAN; return gambar(); }
@@ -4672,7 +4681,7 @@ function dbIsiInfo(w, semua){
   const urut = anggota.slice().sort((a, b) =>
     (/kepala/i.test(b.hubungan) - /kepala/i.test(a.hubungan)) ||
     ((a.lahir ? a.lahir.getTime() : Infinity) - (b.lahir ? b.lahir.getTime() : Infinity)));
-  const baris = urut.map(x => `<tr><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td>` +
+  const baris = urut.map(x => `<tr${x === w ? ' class="saya"' : ''}><td>${esc(x.nama)}${x.wafat ? '<span class="db-wafat" style="margin-left:5px;font-size:.58rem;background:#e2e8f0;color:#475569;border-radius:999px;padding:1px 7px">Wafat</span>' : ''}</td><td class="nw">${esc(dbUsia(x))}</td><td>${esc(dbHubungan(x.hubungan))}</td>` +
     `<td class="nw"><button type="button" class="md-mata" data-mf="ubah:${esc(x.nik)}" ${x.raw && x.nik ? '' : 'disabled'} aria-label="Edit data ${esc(x.nama)}" title="Edit data"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`).join('');
   const nkk = w.nkk, nik = w.nik;
   const hpHtml = hp
