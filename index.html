@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#0b2a6f">
-<title>Sistem Informasi dan Pelayanan Administrasi</title>
+<title>Manajemen Data Terpadu untuk Layanan Publik</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1008,7 +1008,7 @@
       <i class="bentuk b5"></i><i class="bentuk b6"></i><i class="bentuk b7"></i>
     </div>
     <div class="logo-pusat">
-      <img src="https://res.cloudinary.com/q7sznixw/image/upload/v1793918148/Medulu_vyxqyb.webp" alt="Logo MySapa">
+      <img src="https://res.cloudinary.com/q7sznixw/image/upload/v1793918148/Medulu_vyxqyb.webp" alt="Logo Medulu">
     </div>
     <div class="footer-splash">
       <div>Dikembangkan dengan sistem keamanan terbaik.</div>
@@ -1025,7 +1025,7 @@
       <i class="bentuk b5"></i><i class="bentuk b6"></i><i class="bentuk b7"></i>
     </div>
     <form class="kotak-login" id="formLogin" autocomplete="off" novalidate>
-      <img class="logo-kecil" src="https://res.cloudinary.com/q7sznixw/image/upload/v1793918148/Medulu_vyxqyb.webp" alt="Logo MySapa">
+      <img class="logo-kecil" src="https://res.cloudinary.com/q7sznixw/image/upload/v1793918148/Medulu_vyxqyb.webp" alt="Logo Medulu">
       <h1>Manajemen Data Terpadu<br>untuk Layanan Publik</h1>
       <p class="sub">Silakan Login untuk masuk</p>
 
@@ -1245,7 +1245,7 @@ const SUPABASE_URL = 'https://uiogfdqhhjepambzvrmu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gXXzfdYBEWbTNx_PkcWgqA_wIA7mRFd';
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-const KUNCI_TOKEN = 'mysapa_sipa_token';
+const KUNCI_TOKEN = 'medulu_sipa_token';
 const DURASI_SPLASH = 2600; // ms
 
 const $ = (id) => document.getElementById(id);
@@ -1659,7 +1659,7 @@ function renderProgramKerja(isi){
               <div class="program-box" data-status="realized">
                 <div class="program-left-content">
                   <span class="program-num-tag">1.1</span>
-                  <div class="program-title-text">Menciptakan Aplikasi Sistem Informasi dan Pelayanan Administrasi (MySAPA)</div>
+                  <div class="program-title-text">Menciptakan Manajemen Data Terpadu untuk Layanan Publik (Medulu)</div>
                 </div>
                 <span class="status-pill status-realized">
                   <i class="fa-solid fa-circle-check"></i> Terealisasi
@@ -2039,7 +2039,7 @@ function renderBantuan(isi){
             Pada dashboard utama, ada beberapa pilihan informasi yang dapat anda lihat (klik) terkait data pribadi dan keluarga, jumlah warga, keadaan wilayah, arsip dan inventaris, dan sebagainya termasuk pengajuan Surat Pengantar RT yang mungkin anda butuhkan yaitu dengan Klik tombol <strong><mark>Ajukan Sekarang</mark></strong>
             <div class="recommendation-card">
               <i class="fa-solid fa-lightbulb me-1"></i> <strong>PENTING DIKETAHUI:</strong><br>
-              MySAPA kami rancang dengan tujuan untuk <strong>tertib administrasi,</strong> pemenuhan kebutuhan <strong>informasi</strong> warga, dan kemudahan dalam pengajuan <strong>Surat Pengantar RT</strong> karena semuanya dapat dilakukan menggunakan HP secara online (kapan dan dimana saja).<br>
+              Medulu kami rancang dengan tujuan untuk <strong>tertib administrasi,</strong> pemenuhan kebutuhan <strong>informasi</strong> warga, dan kemudahan dalam pengajuan <strong>Surat Pengantar RT</strong> karena semuanya dapat dilakukan menggunakan HP secara online (kapan dan dimana saja).<br>
             </div>
           </div>
         </div>
@@ -3017,7 +3017,7 @@ async function formNotula(){
 const LAP = {
   judul:'Laporan Kondusifitas Wilayah RT.09 RW.05', judul2:'Kelurahan Bonggoeya Kecamatan Wua-Wua',
   qr:'Poerwanto | Ketua RT.09', nama:'Poerwanto, S.Pd, M.Pd', jabatan:'Ketua RT.09',
-  arsip:'Arsip: aplikasi MySAPA © 2026',
+  arsip:'Arsip: Medulu © 2026',
   qrMm:17.2,        // ukuran QR (setara 65 px)
   jarakMm:6.4       // jarak QR dari tabel (setara 24 px)
 };
@@ -3533,7 +3533,7 @@ async function formInventaris(){
 /* ---------- Info Aktual: kartu Agenda RT ---------- */
 const NAMA_JENIS = { masuk:'Surat Masuk', keluar:'Surat Keluar', undangan:'Undangan' };
 /* Penanda "agenda baru": waktu terakhir pengguna membuka Info Aktual disimpan per pengguna di perangkat */
-const kunciInfoDilihat = () => 'mysapa_info_dilihat_' + ((profilSaya && (profilSaya.nik || profilSaya.nama)) || 'anon');
+const kunciInfoDilihat = () => 'medulu_info_dilihat_' + ((profilSaya && (profilSaya.nik || profilSaya.nama)) || 'anon');
 function ambilInfoDilihat(){ try{ const v = localStorage.getItem(kunciInfoDilihat()); return v ? Number(v) : 0; }catch(e){ return 0; } }
 function simpanInfoDilihat(ms){ try{ localStorage.setItem(kunciInfoDilihat(), String(ms)); }catch(e){} }
 const ms = v => Date.parse(v) || 0;
@@ -3897,7 +3897,7 @@ async function cekUlangTahun(){
     if (error || !data || !data.ok || !data.profil) return;
     const bd = parseTglLahir(data.profil.tgl_lahir), now = new Date();
     if (!bd || !hariUlangTahun(bd, now)) return;
-    const kunci = 'mysapa_ultah_' + (data.profil.nik || profilSaya.nik || profilSaya.nama) + '_' + now.getFullYear() + dua(now.getMonth() + 1) + dua(now.getDate());
+    const kunci = 'medulu_ultah_' + (data.profil.nik || profilSaya.nik || profilSaya.nama) + '_' + now.getFullYear() + dua(now.getMonth() + 1) + dua(now.getDate());
     try{ if (localStorage.getItem(kunci)) return; localStorage.setItem(kunci, '1'); }catch(e){}
     if (!$('utama').classList.contains('tampil')) return;           // sudah keluar sebelum data tiba
     tampilkanUltah(now.getFullYear() - bd.y, data.profil.nama || profilSaya.nama);
@@ -3954,7 +3954,7 @@ function tglWaktuPoll(iso){
 function pollingAktifUntukSaya(){
   return aksesPenuh || !!(pollStatus && pollStatus.ada && pollStatus.poll && (pollStatus.poll.terbuka || pollStatus.poll.hasil_aktif));
 }
-const kunciPollDilihat = () => 'mysapa_poll_hasil_' + ((profilSaya && (profilSaya.nik || profilSaya.nama)) || 'anon');
+const kunciPollDilihat = () => 'medulu_poll_hasil_' + ((profilSaya && (profilSaya.nik || profilSaya.nama)) || 'anon');
 function ambilPollDilihat(){ try{ return localStorage.getItem(kunciPollDilihat()) || ''; }catch(e){ return ''; } }
 function simpanPollDilihat(id){ try{ localStorage.setItem(kunciPollDilihat(), String(id)); }catch(e){} }
 function aturPolling(){
