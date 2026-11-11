@@ -26,6 +26,8 @@
     --bg:#eef3fb;
     --kartu:#ffffff;
     --radius:18px;
+    --dur-anim:.3s;                                   /* durasi seragam: buka subform, mekar/menciut seksi */
+    --ease-anim:cubic-bezier(.4,0,.2,1);
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -194,7 +196,9 @@
   .baris-angka b{font-size:1.05rem;color:var(--biru-tua)}
 
   .isi{padding:16px 16px 24px}
-  .judul-seksi{font-size:.92rem;font-weight:600;color:var(--biru-tua);margin:14px 2px 10px}
+  .judul-seksi{font-size:.92rem;font-weight:600;color:var(--biru-tua);margin:28px 2px 12px;display:flex;align-items:center;gap:9px}
+  .judul-seksi i{flex:none;width:26px;height:26px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;
+    background:rgba(21,88,201,.10);color:var(--biru);font-size:.78rem}
 
   .kartu-surat{
     display:flex;align-items:center;gap:14px;padding:16px;border-radius:var(--radius);color:#fff;
@@ -304,8 +308,15 @@
   details.md-seksi summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;
     padding:14px 16px;font-size:.88rem;font-weight:600;color:var(--biru-tua)}
   details.md-seksi summary::-webkit-details-marker{display:none}
-  details.md-seksi summary .chev{color:var(--abu);font-size:.8rem;transition:transform .2s}
-  details.md-seksi[open] summary .chev{transform:rotate(180deg)}
+  details.md-seksi summary .chev{color:var(--abu);font-size:.8rem;transition:transform var(--dur-anim) var(--ease-anim),background var(--dur-anim) ease,color var(--dur-anim) ease}
+  details.md-seksi[open]:not(.menciut) summary .chev{transform:rotate(180deg)}
+  details.md-seksi{--sk:#1558c9;--sk-soft:rgba(21,88,201,.12)}
+  details.md-seksi[data-k="keluarga"]{--sk:#e11d74;--sk-soft:rgba(225,29,116,.12)}
+  details.md-seksi[data-k="surat"]{--sk:#059669;--sk-soft:rgba(5,150,105,.12)}
+  details.md-seksi .sk-judul{display:flex;align-items:center;gap:11px;min-width:0}
+  details.md-seksi .sk-ikon{flex:none;width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+    background:var(--sk-soft);color:var(--sk);font-size:.95rem;transition:background var(--dur-anim) ease,color var(--dur-anim) ease}
+  details.md-seksi[open]:not(.menciut) .sk-ikon{background:var(--sk);color:#fff}
   .md-isi{padding:0 16px 14px}
   .md-baris{display:flex;gap:10px;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px dashed #e2e8f0;font-size:.78rem}
   .md-baris span:first-child{color:var(--abu);flex:none;width:40%}
@@ -695,11 +706,11 @@
     position:absolute;inset:0;z-index:40;background:var(--bg);display:flex;flex-direction:column;
     transform:translateX(100%);visibility:hidden;will-change:transform;backface-visibility:hidden;
     /* menutup: geser ke kanan; visibility baru berubah setelah geseran selesai agar animasi terlihat */
-    transition:transform .25s cubic-bezier(.4,0,.2,1), visibility 0s linear .25s;
+    transition:transform var(--dur-anim) var(--ease-anim), visibility 0s linear var(--dur-anim);
   }
   .subform.buka{
     transform:none;visibility:visible;
-    transition:transform .25s cubic-bezier(.4,0,.2,1), visibility 0s;
+    transition:transform var(--dur-anim) var(--ease-anim), visibility 0s;
   }
   .subform-header{display:flex;align-items:center;gap:12px;color:#fff;
     padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
@@ -789,7 +800,7 @@
   .pk .misi-text-box h2{font-size: 14px; font-weight: 700; color: var(--text-main); line-height: 1.35;}
   .pk .misi-text-box span{font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 2px; display: block;}
   .pk .toggle-arrow{width: 30px; height: 30px; border-radius: 50%; background: var(--bg-canvas); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text-muted); transition: transform 0.3s ease, background 0.3s ease;}
-  .pk .misi-card-body{max-height: 0; overflow: hidden; transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1); background: #FAFAFA; border-top: 1px solid transparent;}
+  .pk .misi-card-body{max-height: 0; overflow: hidden; transition: max-height var(--dur-anim) var(--ease-anim); background: #FAFAFA; border-top: 1px solid transparent;}
   .pk .program-inner-list{padding: 14px; display: flex; flex-direction: column; gap: 10px;}
   .pk .program-box{background: #FFFFFF; border: 1px solid var(--border-color); border-radius: 12px; padding: 12px 14px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;}
   .pk .program-left-content{display: flex; align-items: flex-start; gap: 10px; flex: 1;}
@@ -812,7 +823,7 @@
   .bt ol{margin:0 0 .5rem}
   .bt .accordion-button{display:flex;align-items:center;width:100%;text-align:left;border:0;cursor:pointer;position:relative}
   .bt .accordion-button span{flex:1}
-  .bt .accordion-button::after{content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;margin-left:auto;font-size:12px;color:#64748b;transition:transform .25s}
+  .bt .accordion-button::after{content:"\f078";font-family:"Font Awesome 6 Free";font-weight:900;margin-left:auto;font-size:12px;color:#64748b;transition:transform var(--dur-anim) var(--ease-anim)}
   .bt .accordion-button:not(.collapsed)::after{transform:rotate(180deg)}
   .bt .accordion-collapse{display:none}
   .bt .accordion-collapse.show{display:block}
@@ -822,7 +833,7 @@
   .bt .search-card{background: #ffffff; border-radius: 20px; height: 48px; padding: 0 18px; box-shadow: 0 8px 24px rgba(0, 51, 102, 0.08); border: 1px solid #e2e8f0; margin-bottom: 24px; display: flex; align-items: center; gap: 12px;}
   .bt .search-card i{color: #00529c; font-size: 19px;}
   .bt .search-card input{border: none; outline: none; width: 100%; height: 100%; background: transparent; font-size: 15px; font-weight: 500; color: #1e293b;}
-  .bt .custom-accordion .accordion-item{background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px !important; margin-bottom: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03); overflow: hidden; transition: all 0.25s ease;}
+  .bt .custom-accordion .accordion-item{background: #ffffff; border: 1px solid rgba(226, 232, 240, 0.8); border-radius: 20px !important; margin-bottom: 16px; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03); overflow: hidden; transition: border-color var(--dur-anim) ease, box-shadow var(--dur-anim) ease;}
   .bt .custom-accordion .accordion-item:hover{border-color: #bfdbfe; box-shadow: 0 8px 24px rgba(0, 51, 102, 0.08);}
   .bt .custom-accordion .accordion-button{background-color: #ffffff; color: #0f172a; font-weight: 700; font-size: 13.5px; padding: 14px 16px; border: none; box-shadow: none !important; gap: 10px;}
   .bt .custom-accordion .accordion-button:not(.collapsed){background-color: #f8fafc; color: #00529c; border-bottom: 1px solid #f1f5f9;}
@@ -994,8 +1005,8 @@
   .pr details.md-seksi[data-k="program"]{--sk:#059669;--sk-soft:rgba(5,150,105,.12)}
   .pr details.md-seksi[data-k="periodisasi"]{--sk:#ea580c;--sk-soft:rgba(234,88,12,.12)}
   .pr details.md-seksi summary{color:var(--sk);font-weight:700}
-  .pr details.md-seksi summary .chev{width:30px;height:30px;border-radius:50%;background:var(--sk-soft);color:var(--sk);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;transition:transform .3s ease,background .3s ease,color .3s ease}
-  .pr details.md-seksi[open] summary .chev{background:var(--sk);color:#fff}
+  .pr details.md-seksi summary .chev{width:30px;height:30px;border-radius:50%;background:var(--sk-soft);color:var(--sk);display:flex;align-items:center;justify-content:center;font-size:.75rem;flex-shrink:0;transition:transform var(--dur-anim) var(--ease-anim),background var(--dur-anim) ease,color var(--dur-anim) ease}
+  .pr details.md-seksi[open]:not(.menciut) summary .chev{background:var(--sk);color:#fff}
 </style>
 </head>
 <body>
@@ -1096,41 +1107,7 @@
         </div>
       </div>
 
-      <div class="judul-seksi">Fitur Utama</div>
-      <div class="grid-fitur">
-        <button class="fitur" data-buka="mydata"><span class="lingkaran c3"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="2.5" y="5" width="19" height="14" rx="3"/><circle cx="9" cy="10.8" r="2.2"/><path d="M5.4 16.4c.7-1.6 2-2.4 3.6-2.4s2.9.8 3.6 2.4"/><path d="M15 10h3.5M15 13.5h3"/></svg></span><span class="nama">MyData</span></button>
-        <button class="fitur" data-buka="arsip"><span class="lingkaran c1"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3" y="4" width="18" height="4.5" rx="1.3"/><path d="M5 8.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5"/><path d="M10 12.5h4"/></svg></span><span class="nama">Info Arsip &amp; Aset</span></button>
-        <button class="fitur nonaktif" id="btnRonda" data-buka="absensironda" disabled aria-disabled="true"><span class="lingkaran c15"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="4" y="4.5" width="16" height="16" rx="2.8"/><path d="M9 4.5V3.2h6v1.3"/><path d="m8.5 13 2.4 2.4 4.6-4.9"/></svg></span><span class="nama">Absensi Ronda</span></button>
-        <button class="fitur" id="btnInfo" data-buka="info">
-          <i class="fa-solid fa-circle-exclamation alert" id="alertInfo"></i>
-          <span class="lingkaran c2"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 9.5h3l8-4v13l-8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"/><path d="M7 14.5 8.2 19h2.4"/><path d="M18.2 9.2a4.5 4.5 0 0 1 0 5.6"/></svg></span><span class="nama">Info Aktual</span>
-        </button>
-        <button class="fitur nonaktif" id="btnLonceng" disabled aria-disabled="true" aria-label="Data Pengajuan"><span class="lingkaran c12"><i class="fa-solid fa-bell"></i></span><span class="badge-notif" id="badgeNotif">0</span><span class="nama">Data Pengajuan</span></button>
-        <button class="fitur nonaktif" id="btnPolling" data-buka="polling" disabled aria-disabled="true"><i class="fa-solid fa-circle-exclamation alert" id="alertPolling"></i><span class="lingkaran c7"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 16.5v-3.5M12 16.5V8M15.5 16.5v-5.5"/></svg></span><span class="nama">Polling</span></button>
-        <button class="fitur" data-buka="profilrt"><span class="lingkaran c13"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 20V9.5L12 4l8 5.5V20z"/><path d="M9.5 20v-5h5v5M8.5 11.5h1.2M14.3 11.5h1.2"/></svg></span><span class="nama">Profil RT</span></button>
-        <button class="fitur" data-buka="bantuan"><span class="lingkaran c6"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect class="d" x="3" y="13" width="4" height="6" rx="1.7"/><rect class="d" x="17" y="13" width="4" height="6" rx="1.7"/><path d="M19 19v.4c0 1.2-1.3 2.1-3 2.1h-2"/></svg></span><span class="nama">Bantuan</span></button>
-      </div>
-
-      <div data-akses="khusus" hidden>
-        <div class="judul-seksi">Fitur Admin</div>
-        <div class="grid-fitur" id="gridAdmin">
-        <button class="fitur" data-buka="korespondensi" data-akses="khusus" hidden><span class="lingkaran c4"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3" y="5.5" width="18" height="13" rx="2.8"/><path d="m3.8 7.8 8.2 5.6 8.2-5.6"/></svg></span><span class="nama">Administrasi</span></button>
-        <button class="fitur" data-buka="database" data-akses="khusus" hidden><span class="lingkaran c5"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><ellipse class="d" cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg></span><span class="nama">Database</span></button>
-        <button class="fitur" data-buka="pendataan" data-akses="khusus" hidden><span class="lingkaran c10"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="5" y="4.5" width="14" height="16" rx="2.5"/><path d="M9 4.5V3.2h6v1.3M8.5 10h7M8.5 13.5h7M8.5 17h4"/></svg></span><span class="nama">Pendataan</span></button>
-        </div>
-      </div>
-
-      <div class="judul-seksi">Data Statistik</div>
-      <div class="sp-geser" id="dsGeser" role="region" aria-label="Data Statistik" tabindex="0">
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Data Demografi"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="status" aria-label="Buka rincian Status Warga"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Domisili_wqbnfa.webp" alt="Data Statistik 2: Status Warga" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Data Warga Prioritas"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Keluarga Penerima Manfaat"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
-        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="pendidikan" aria-label="Buka rincian Pendidikan Terakhir"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Pendidikan_xs4usm.webp" alt="Data Statistik 5: Pendidikan Terakhir" draggable="false" loading="lazy"></button></div>
-      </div>
-      <div class="sp-titik" id="dsTitik" role="tablist" aria-label="Navigasi Data Statistik"></div>
-
-      <div class="judul-seksi">Standar Pelayanan</div>
+      <div class="judul-seksi"><i class="fa-solid fa-clipboard-check" aria-hidden="true"></i>Standar Pelayanan</div>
       <div class="sp-geser" id="spGeser" role="region" aria-label="Standar Pelayanan" tabindex="0">
         <div class="sp-slide"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743671/Hak_Akses_11zon_ntzjys.webp" alt="Standar Pelayanan 1: Hak Akses" draggable="false"></div>
         <div class="sp-slide"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743670/SP_11zon_edea6t.webp" alt="Standar Pelayanan 2: Surat Pengantar" draggable="false" loading="lazy"></div>
@@ -1139,6 +1116,40 @@
         <div class="sp-slide"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1793163058/Jika_Disetujui_Cek_Notifikasi_ybmfrf.webp" alt="Standar Pelayanan 5: Persetujuan" draggable="false" loading="lazy"></div>
       </div>
       <div class="sp-titik" id="spTitik" role="tablist" aria-label="Navigasi Standar Pelayanan"></div>
+
+      <div class="judul-seksi"><i class="fa-solid fa-table-cells-large" aria-hidden="true"></i>Fitur Utama</div>
+      <div class="grid-fitur">
+        <button class="fitur" data-buka="mydata"><span class="lingkaran c3"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="2.5" y="5" width="19" height="14" rx="3"/><circle cx="9" cy="10.8" r="2.2"/><path d="M5.4 16.4c.7-1.6 2-2.4 3.6-2.4s2.9.8 3.6 2.4"/><path d="M15 10h3.5M15 13.5h3"/></svg></span><span class="nama">MyData</span></button>
+        <button class="fitur" data-buka="arsip"><span class="lingkaran c1"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3" y="4" width="18" height="4.5" rx="1.3"/><path d="M5 8.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5"/><path d="M10 12.5h4"/></svg></span><span class="nama">Info Arsip &amp; Aset</span></button>
+        <button class="fitur nonaktif" id="btnRonda" data-buka="absensironda" disabled aria-disabled="true"><span class="lingkaran c15"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="4" y="4.5" width="16" height="16" rx="2.8"/><path d="M9 4.5V3.2h6v1.3"/><path d="m8.5 13 2.4 2.4 4.6-4.9"/></svg></span><span class="nama">Absensi Ronda</span></button>
+        <button class="fitur nonaktif" id="btnLonceng" disabled aria-disabled="true" aria-label="Data Pengajuan"><span class="lingkaran c12"><i class="fa-solid fa-bell"></i></span><span class="badge-notif" id="badgeNotif">0</span><span class="nama">Data Pengajuan</span></button>
+        <button class="fitur" id="btnInfo" data-buka="info">
+          <i class="fa-solid fa-circle-exclamation alert" id="alertInfo"></i>
+          <span class="lingkaran c2"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 9.5h3l8-4v13l-8-4H4a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1Z"/><path d="M7 14.5 8.2 19h2.4"/><path d="M18.2 9.2a4.5 4.5 0 0 1 0 5.6"/></svg></span><span class="nama">Info Aktual</span>
+        </button>
+        <button class="fitur nonaktif" id="btnPolling" data-buka="polling" disabled aria-disabled="true" hidden><i class="fa-solid fa-circle-exclamation alert" id="alertPolling"></i><span class="lingkaran c7"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 16.5v-3.5M12 16.5V8M15.5 16.5v-5.5"/></svg></span><span class="nama">Polling</span></button>
+        <button class="fitur" data-buka="profilrt"><span class="lingkaran c13"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 20V9.5L12 4l8 5.5V20z"/><path d="M9.5 20v-5h5v5M8.5 11.5h1.2M14.3 11.5h1.2"/></svg></span><span class="nama">Profil RT</span></button>
+        <button class="fitur" data-buka="bantuan"><span class="lingkaran c6"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect class="d" x="3" y="13" width="4" height="6" rx="1.7"/><rect class="d" x="17" y="13" width="4" height="6" rx="1.7"/><path d="M19 19v.4c0 1.2-1.3 2.1-3 2.1h-2"/></svg></span><span class="nama">Bantuan</span></button>
+      </div>
+
+      <div data-akses="khusus" hidden>
+        <div class="judul-seksi"><i class="fa-solid fa-user-shield" aria-hidden="true"></i>Fitur Admin</div>
+        <div class="grid-fitur" id="gridAdmin">
+        <button class="fitur" data-buka="korespondensi" data-akses="khusus" hidden><span class="lingkaran c4"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3" y="5.5" width="18" height="13" rx="2.8"/><path d="m3.8 7.8 8.2 5.6 8.2-5.6"/></svg></span><span class="nama">Administrasi</span></button>
+        <button class="fitur" data-buka="database" data-akses="khusus" hidden><span class="lingkaran c5"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><ellipse class="d" cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg></span><span class="nama">Database</span></button>
+        <button class="fitur" data-buka="pendataan" data-akses="khusus" hidden><span class="lingkaran c10"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="5" y="4.5" width="14" height="16" rx="2.5"/><path d="M9 4.5V3.2h6v1.3M8.5 10h7M8.5 13.5h7M8.5 17h4"/></svg></span><span class="nama">Pendataan</span></button>
+        </div>
+      </div>
+
+      <div class="judul-seksi"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Data Statistik</div>
+      <div class="sp-geser" id="dsGeser" role="region" aria-label="Data Statistik" tabindex="0">
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="gender" aria-label="Buka rincian Data Demografi"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Warga_o7zh2v.webp" alt="Data Statistik 1: Komposisi Jenis Kelamin" draggable="false"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="status" aria-label="Buka rincian Status Warga"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Domisili_wqbnfa.webp" alt="Data Statistik 2: Status Warga" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="usia" aria-label="Buka rincian Data Warga Prioritas"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743569/Prioritas_11zon_n42ho4.webp" alt="Data Statistik 3: Jumlah Jiwa menurut Usia" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="bantuan" aria-label="Buka rincian Keluarga Penerima Manfaat"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Bantuan_11zon_a1rqbs.webp" alt="Data Statistik 4: Data Bantuan" draggable="false" loading="lazy"></button></div>
+        <div class="sp-slide"><button type="button" class="ds-btn" data-stat="pendidikan" aria-label="Buka rincian Pendidikan Terakhir"><img src="https://res.cloudinary.com/q7sznixw/image/upload/v1790743570/Pendidikan_xs4usm.webp" alt="Data Statistik 5: Pendidikan Terakhir" draggable="false" loading="lazy"></button></div>
+      </div>
+      <div class="sp-titik" id="dsTitik" role="tablist" aria-label="Navigasi Data Statistik"></div>
 
       <div class="footer-utama" style="margin-top:26px">Powered by Anto Design Concept &copy; 2026</div>
     </div>
@@ -1301,8 +1312,8 @@ function aturMenuPengguna(profil){
   const nama = namaTanpaGelar(profil && profil.nama).toLowerCase().replace(/\s+/g, ' ').trim();
   aksesPenuh = nama === NAMA_AKSES_PENUH;
   if (!profil) pollStatus = null;
-  const bp = $('btnPolling'), ga = $('gridAdmin');                  // Polling: admin di Fitur Admin, warga setelah Data Pengajuan
-  if (bp && ga){ if (aksesPenuh) ga.prepend(bp); else $('btnLonceng').after(bp); }
+  const bp = $('btnPolling'), ga = $('gridAdmin');                  // Polling: admin di Fitur Admin, warga setelah Info Aktual
+  if (bp && ga){ if (aksesPenuh) ga.prepend(bp); else $('btnInfo').after(bp); }
   const namaPenuh = normNama(profil && profil.nama);
   aksesRonda = aksesPenuh || NAMA_AKSES_RONDA.includes(namaPenuh) || NAMA_AKSES_RONDA.includes(nama.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim());
   aturRonda();
@@ -1937,6 +1948,23 @@ function renderProgramKerja(isi){
 }
 
 
+/* Bantuan: animasi tinggi panel jawaban (durasi & easing sama dengan seksi MyData/Profil RT) */
+function geserKolaps(el, buka){
+  if (!el) return;
+  const saatIni = el._tujuan !== undefined ? el._tujuan : el.classList.contains('show');
+  if (saatIni === buka) return;
+  el._tujuan = buka;
+  const awal = el.offsetHeight;
+  if (el._anim){ el._anim.cancel(); el._anim = null; }
+  if (kurangGerak()){ el.classList.toggle('show', buka); return; }
+  if (buka) el.classList.add('show');
+  const akhir = buka ? el.offsetHeight : 0;
+  el.style.overflow = 'hidden';
+  const a = el.animate({ height: [awal + 'px', akhir + 'px'], opacity: [awal ? 1 : 0, buka ? 1 : 0] },
+                       { duration: durasiAnim(), easing: EASE_ANIM, fill: 'forwards' });
+  el._anim = a;
+  a.onfinish = () => { if (el._anim !== a) return; el._anim = null; el.classList.toggle('show', buka); el.style.overflow = ''; a.cancel(); };
+}
 /* ---------- Subform Bantuan (FAQ) ---------- */
 function renderBantuan(isi){
   isi.innerHTML = `<div class="bt" id="btRoot">
@@ -2120,15 +2148,14 @@ function renderBantuan(isi){
     const item = tombol.closest('.accordion-item');
     const buka = tombol.classList.contains('collapsed');      // sedang tertutup -> akan dibuka
     root.querySelectorAll('.accordion-item').forEach(it => {  // hanya satu terbuka
+      if (it === item) return;
       it.querySelector('.accordion-button').classList.add('collapsed');
       it.querySelector('.accordion-button').setAttribute('aria-expanded', 'false');
-      it.querySelector('.accordion-collapse').classList.remove('show');
+      geserKolaps(it.querySelector('.accordion-collapse'), false);
     });
-    if (buka){
-      tombol.classList.remove('collapsed');
-      tombol.setAttribute('aria-expanded', 'true');
-      item.querySelector('.accordion-collapse').classList.add('show');
-    }
+    tombol.classList.toggle('collapsed', !buka);
+    tombol.setAttribute('aria-expanded', String(buka));
+    geserKolaps(item.querySelector('.accordion-collapse'), buka);
   });
   $('btCari').addEventListener('input', () => {
     const kata = $('btCari').value.trim().toLowerCase();
@@ -2594,8 +2621,9 @@ async function renderProfilRT(isi, pertahankan){
   const tombol = (kunci, ada) => !admin ? '' :
     `<div class="pr-aksi"><button type="button" class="pr-btn ${ada ? 'edit' : ''}" data-prbtn="${kunci}">
       <i class="fa-solid ${ada ? 'fa-pen-to-square' : 'fa-plus'}"></i> ${ada ? 'Edit' : 'Tambah Data'}</button></div>`;
+  const IKON_PR = { peta:'fa-map-location-dot', bangunan:'fa-building', pengurus:'fa-users', program:'fa-list-check', periodisasi:'fa-timeline' };
   const sek = (kunci, judul, isiHtml) => `<details class="md-seksi" data-k="${kunci}" ${prBuka === kunci ? 'open' : ''}>
-      <summary>${judul}<i class="fa-solid fa-chevron-down chev"></i></summary><div class="md-isi">${isiHtml}</div></details>`;
+      <summary><span class="sk-judul"><i class="fa-solid ${IKON_PR[kunci] || 'fa-folder'} sk-ikon" aria-hidden="true"></i>${judul}</span><i class="fa-solid fa-chevron-down chev"></i></summary><div class="md-isi">${isiHtml}</div></details>`;
 
   const urlPeta = prUrlPeta();
   const p = prData.program, adaProgram = !!(p && (p.visi || (Array.isArray(p.misi) && p.misi.length)));
@@ -3959,8 +3987,8 @@ function ambilPollDilihat(){ try{ return localStorage.getItem(kunciPollDilihat()
 function simpanPollDilihat(id){ try{ localStorage.setItem(kunciPollDilihat(), String(id)); }catch(e){} }
 function aturPolling(){
   const b = $('btnPolling'); if (!b) return;
-  const aktif = pollingAktifUntukSaya();            // nonaktif (abu-abu) sampai admin membuka polling / menampilkan hasil; admin selalu aktif
-  b.hidden = false; b.disabled = !aktif; b.classList.toggle('nonaktif', !aktif); b.setAttribute('aria-disabled', String(!aktif));
+  const aktif = pollingAktifUntukSaya();            // tersembunyi sampai admin membuka polling / menampilkan hasil; admin selalu tampil
+  b.hidden = !aktif; b.disabled = !aktif; b.classList.toggle('nonaktif', !aktif); b.setAttribute('aria-disabled', String(!aktif));
   /* Warga: polling ditutup (manual) atau berakhir (otomatis) -> hasil tersedia -> alert + ikon bergoyang sampai hasilnya dibuka */
   const p = pollStatus && pollStatus.ada && pollStatus.poll;
   const baru = !aksesPenuh && !!(p && p.hasil_aktif) && ambilPollDilihat() !== String(p.id);
@@ -4284,9 +4312,10 @@ async function renderMyData(isi){
   const idBaris = (label, v) => `<div class="md-id"><small>${label}</small><div class="baris">
       <span class="nilai" data-nilai="${esc(v)}" data-tampil="0">${'*'.repeat(String(v || '').length || 16)}</span>
       <button type="button" class="md-mata" data-mata aria-label="Tampilkan ${label}"><i class="fa-solid fa-eye"></i></button></div></div>`;
+  const IKON_MD = { pribadi:'fa-id-card', keluarga:'fa-people-roof', surat:'fa-envelope-open-text' };
   const seksi = (kunci, judul, isiHtml, bukaDefault) =>
     `<details class="md-seksi" data-k="${kunci}" ${(kunci in terbuka ? terbuka[kunci] : bukaDefault) ? 'open' : ''}>
-       <summary>${judul}<i class="fa-solid fa-chevron-down chev"></i></summary><div class="md-isi">${isiHtml}</div></details>`;
+       <summary><span class="sk-judul"><i class="fa-solid ${IKON_MD[kunci] || 'fa-folder'} sk-ikon" aria-hidden="true"></i>${judul}</span><i class="fa-solid fa-chevron-down chev"></i></summary><div class="md-isi">${isiHtml}</div></details>`;
 
   const pribadi =
     baris('Jenis Kelamin', nilai(JK_LABEL[p.jenis_kelamin])) + baris('Tempat Lahir', nilai(p.tempat_lahir)) +
@@ -4333,12 +4362,40 @@ async function renderMyData(isi){
     ${seksi('surat', 'Arsip Surat Pengantar', arsip, true)}`;
 }
 
+/* Animasi lembut mekar/menciut (MyData, Profil RT, Bantuan): durasi sama, dibaca dari --dur-anim */
+const durasiAnim = () => Math.round(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur-anim')) * 1000) || 300;
+const EASE_ANIM = 'cubic-bezier(.4,0,.2,1)';
+const kurangGerak = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Seksi <details>: animasikan tinggi kotak, isi memudar halus */
+function geserSeksi(d, buka){
+  const kepala = d.querySelector(':scope > summary'), isi = d.querySelector(':scope > .md-isi');
+  const tujuanSaatIni = d._tujuan !== undefined ? d._tujuan : d.open;
+  if (tujuanSaatIni === buka) return;
+  d._tujuan = buka;
+  const awal = d.offsetHeight;                              // tinggi saat ini (bisa di tengah animasi)
+  if (d._anim){ d._anim.cancel(); d._anim = null; }
+  if (kurangGerak()){ d.open = buka; d.classList.remove('menciut'); return; }
+  d.classList.toggle('menciut', !buka);
+  if (buka) d.open = true;
+  const akhir = buka ? d.offsetHeight : kepala.offsetHeight;
+  const opt = { duration: durasiAnim(), easing: EASE_ANIM, fill: 'forwards' };
+  const a = d.animate({ height: [awal + 'px', akhir + 'px'] }, opt);
+  d._anim = a;
+  if (isi) isi.animate({ opacity: buka ? [0, 1] : [1, 0] }, opt).onfinish = function(){ this.cancel(); };
+  const selesai = () => { if (d._anim !== a) return; d._anim = null; d.open = buka; d.classList.remove('menciut'); a.cancel(); };
+  a.onfinish = selesai;
+}
 /* Akordeon: membuka satu seksi menciutkan seksi lainnya */
-document.addEventListener('toggle', (e) => {
-  const d = e.target;
-  if (!d.matches || !d.matches('details.md-seksi') || !d.open) return;
-  d.parentElement.querySelectorAll('details.md-seksi').forEach(o => { if (o !== d) o.open = false; });
-}, true);
+document.addEventListener('click', (e) => {
+  const kepala = e.target.closest && e.target.closest('details.md-seksi > summary');
+  if (!kepala) return;
+  e.preventDefault();                                       // buka/tutup dikendalikan animasi
+  const d = kepala.parentElement;
+  const buka = !(d._tujuan !== undefined ? d._tujuan : d.open);
+  if (buka) d.parentElement.querySelectorAll(':scope > details.md-seksi').forEach(o => { if (o !== d) geserSeksi(o, false); });
+  geserSeksi(d, buka);
+});
 
 document.addEventListener('click', (e) => {
   const mata = e.target.closest('[data-mata]');
