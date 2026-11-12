@@ -4880,6 +4880,12 @@ const JENIS_SURAT = [
 ];
 const JENIS_SURAT_ADMIN = [['sk_ahli_waris','Surat Keterangan Ahli Waris']];   // hanya tampil untuk Admin (server juga wajib menolak non-Admin)
 const daftarJenisSurat = () => adminSurat ? JENIS_SURAT.concat(JENIS_SURAT_ADMIN) : JENIS_SURAT;
+/* SEMENTARA - input manual data lama oleh Admin: tanggal pengajuan diisi sendiri (menggantikan timestamp otomatis).
+   Setelah semua data lama selesai diinput, ubah menjadi false untuk mengembalikan ke pengaturan semula. */
+const TGL_MANUAL_ADMIN = true;
+const isianTglManual = (jenis) => (TGL_MANUAL_ADMIN && adminSurat)
+  ? fs('Tanggal Surat (Input Manual)', 'fa-calendar-days', inp('tgl_surat','date')) +
+    (jenis === 'sk_ahli_waris' ? '' : fs('NIK Pemohon (Warga)', 'fa-id-card-clip', inpNik('nik_pengaju','16 digit NIK warga pemohon'))) : '';
 const fs = (label, ikon, html) => `<div class="mf-field"><label><i class="fa-solid ${ikon}"></i>${label}</label>${html}</div>`;
 const inp = (nama, tipe, ph) => `<input name="${nama}" type="${tipe}" ${ph ? `placeholder="${ph}"` : ''} required>`;
 const opsiManual = (nama, manual, daftar, ph) =>
@@ -4966,12 +4972,13 @@ async function renderFormSurat(isi){
 
   const form = $('formSurat');
   // Ahli Waris: pemohon = NIK Pengaju yang diketik Admin, jadi kotak NIK Admin otomatis disembunyikan
-  const aturBoxNik = (jenis) => { $('boxNikPemohon').style.display = jenis === 'sk_ahli_waris' ? 'none' : ''; };
+  const aturBoxNik = (jenis) => { $('boxNikPemohon').style.display = (jenis === 'sk_ahli_waris' || (TGL_MANUAL_ADMIN && adminSurat)) ? 'none' : ''; };
+  aturBoxNik('');
   const validasi = () => { $('btnKirimSurat').disabled = !(nikSurat && form.checkValidity()); };
   form.addEventListener('input', validasi);
   form.addEventListener('change', (e) => {
     const t = e.target;
-    if (t.name === 'jenis_surat'){ $('isianSurat').innerHTML = isianSurat(t.value); aturBoxNik(t.value); }
+    if (t.name === 'jenis_surat'){ $('isianSurat').innerHTML = (t.value ? isianTglManual(t.value) : '') + isianSurat(t.value); aturBoxNik(t.value); }
     else if (t.name === 'opsi_pindah'){ $('pindahAlamat').innerHTML = isianPindah(t.value); }
     else if (t.dataset && t.dataset.manual){
       const m = $(t.dataset.manual), pakai = t.value === 'Lainnya';
