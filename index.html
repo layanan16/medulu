@@ -884,7 +884,8 @@
   /* Kolom Arsip (khusus Admin) di tab Surat Pengantar */
   /* Admin: tabel dilebarkan 130% agar Perihal lebih lebar; kolom Arsip berada di luar layar (geser ke kanan) */
   .ar .ar-v.adm{width:130%;table-layout:fixed}
-  .ar .ar-v.adm th:nth-child(1){width:28%}.ar .ar-v.adm th:nth-child(2){width:14%}.ar .ar-v.adm th:nth-child(3){width:35%}.ar .ar-v.adm th:nth-child(4){width:23%}
+  .ar .ar-v.adm th:nth-child(1){width:28%}.ar .ar-v.adm th:nth-child(2){width:15%}.ar .ar-v.adm th:nth-child(3){width:34%}.ar .ar-v.adm th:nth-child(4){width:23%}
+  .ar .ar-v.adm td:nth-child(2){white-space:normal;overflow:hidden}   /* tanggal boleh 2 baris agar tidak tertimpa kolom Perihal */
   .ar .ar-v.adm th:nth-child(4),.ar .ar-v.adm td:nth-child(4){text-align:center}
   .ar a.ar-btn{text-decoration:none}
   .ar .ar-v td{background:#fff;color:#000;font-size:.78rem;padding:8px 9px;text-align:left;vertical-align:middle;overflow-wrap:anywhere;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
@@ -4361,7 +4362,7 @@ async function renderMyData(isi){
     const tgl = keDate(x.tanggal);
     const link = /^https?:\/\//i.test(x.link || '') ? `<a class="md-link" href="${esc(x.link)}" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> Arsip Surat (PDF)</a>` : '';
     return `<div class="md-surat"><div class="judul"><span>${esc(x.jenis)}</span>${statusBadge(x.status)}</div>
-      <div class="ket">${x.no_surat ? esc(x.no_surat) + '<br>' : ''}${tgl ? tglIndoDT(x.tanggal) + ' · <b>' + durasiDari(tgl) + '</b>' : '-'}</div>${link ? `<div style="margin-top:6px">${link}</div>` : ''}</div>`;
+      <div class="ket">${x.nama ? '<b>' + esc(namaTanpaGelar(x.nama)) + '</b>' + (x.saya ? ' (Anda)' : '') + '<br>' : ''}${x.no_surat ? esc(x.no_surat) + '<br>' : ''}${tgl ? tglIndoDT(x.tanggal) + ' · <b>' + durasiDari(tgl) + '</b>' : '-'}</div>${link ? `<div style="margin-top:6px">${link}</div>` : ''}</div>`;
   }).join('') : '<div class="kosong" style="margin:8px 0 4px">Belum ada pengajuan surat pengantar.</div>';
 
   isi.innerHTML = `
