@@ -2738,7 +2738,7 @@ function bukaSubform(kunci, dariAdmin){
   isi.classList.toggle('penuh', kunci === 'pendataan');
 
   if (kunci === 'pendataan'){
-    isi.innerHTML = '<iframe src="https://mysidak.github.io/nkk" title="Pendataan" allow="clipboard-write; camera; geolocation"></iframe>';
+    isi.innerHTML = '<iframe src="https://layanan16.github.io/nkk" title="Pendataan" allow="clipboard-write; camera; geolocation"></iframe>';
   } else if (kunci === 'statistik' && statistik){
     renderStatistik(isi);
   } else if (kunci === 'verifikasi'){
@@ -2903,10 +2903,10 @@ function renderKorespondensi(isi){
   isi.innerHTML = `<div class="daftar-menu">
     ${baris('pengaduan','c11','fa-comment-dots','Pengaduan','Pencatatan pengaduan warga')}
     ${baris('laporan','c9','fa-file-lines','Laporan','Kondisi wilayah dan kegiatan RT')}
-    ${baris('cetaklaporan','c5','fa-print','Cetak Laporan','Cetak dan arsipkan laporan kondusifitas')}
+    ${baris('cetaklaporan','c5','fa-print','Cetak Laporan','Output Laporan Kegiatan')}
     ${baris('polling','c7','fa-square-poll-vertical','Polling','Pengelolaan polling pendapat warga','buka')}
-    ${baris('database','c5','fa-database','Database','Data warga, rekapitulasi, dan pencarian','buka')}
-    ${baris('pendataan','c10','fa-clipboard-list','Pendataan','Formulir pendataan warga dan keluarga','buka')}
+    ${baris('database','c5','fa-database','Database','Basis data keluarga dan pribadi','buka')}
+    ${baris('pendataan','c10','fa-clipboard-list','Pendataan','Formulir data keluarga dan pribadi','buka')}
   </div>`;
 }
 document.addEventListener('click', (e) => {
