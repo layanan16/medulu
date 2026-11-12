@@ -2984,8 +2984,10 @@ function formSuratMasuk(){
   });
 }
 
+/* Perihal surat keluar -> kode nomor (dihitung di server): HIM, SPY, PMB, PEN, SED, SP1, SP2, SPK, LL
+   Format nomor: 001/HIM-RT09/XI/2026 */
 const PERIHAL_KELUAR = ['Himbauan','Penyampaian','Pemberitahuan','Pengumuman','Edaran',
-                        'Rekomendasi','Peringatan','Pemberhentian','Pengangkatan'];
+                        'Peringatan 1','Peringatan 2','Pengangkatan','Lain-lain'];
 function formSuratKeluar(){
   modalRiwayat({
     judul:'Surat Keluar', rpc:'daftar_surat_keluar',
@@ -2994,6 +2996,7 @@ function formSuratKeluar(){
       return (dis ? fld('Nomor Surat', `<input type="text" value="${esc(it.nomor_surat || '-')}" disabled>`) : '') +
       fld('Tanggal Surat', `<input name="tgl_surat" type="date" value="${esc(tgl10(it.tgl_surat) || hariIni())}" ${dis}>`, 1) +
       fld('Perihal', `<select name="perihal" ${dis}><option value="">— Pilih perihal —</option>` +
+        (it.perihal && !PERIHAL_KELUAR.includes(it.perihal) ? `<option selected>${esc(it.perihal)}</option>` : '') +   // data lama (mis. Rekomendasi) tetap terbaca
         PERIHAL_KELUAR.map(p => `<option ${p === it.perihal ? 'selected' : ''}>${p}</option>`).join('') + '</select>', 1) +
       fld('Kepada', `<input name="kepada" type="text" maxlength="200" value="${esc(it.kepada || '')}" ${dis}>`, 1) +
       fld('Pembuka', `<textarea name="pembuka" placeholder="Paragraf pembuka" ${dis}>${esc(it.pembuka || '')}</textarea>`) +
