@@ -882,7 +882,9 @@
   .ar .ar-v th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#000;font-weight:700;font-size:.75rem;padding:8px 9px;text-align:left;white-space:nowrap;border-right:1px solid #e2e8f0;border-bottom:2px solid #cbd5e1}
   .ar .ar-v th:nth-child(1){width:45%}.ar .ar-v th:nth-child(2){width:20%}.ar .ar-v th:nth-child(3){width:35%}
   /* Kolom Arsip (khusus Admin) di tab Surat Pengantar */
-  .ar .ar-v.adm th:nth-child(1){width:34%}.ar .ar-v.adm th:nth-child(2){width:17%}.ar .ar-v.adm th:nth-child(3){width:27%}.ar .ar-v.adm th:nth-child(4){width:22%}
+  /* Admin: tabel dilebarkan 130% agar Perihal lebih lebar; kolom Arsip berada di luar layar (geser ke kanan) */
+  .ar .ar-v.adm{width:130%;table-layout:fixed}
+  .ar .ar-v.adm th:nth-child(1){width:28%}.ar .ar-v.adm th:nth-child(2){width:14%}.ar .ar-v.adm th:nth-child(3){width:35%}.ar .ar-v.adm th:nth-child(4){width:23%}
   .ar .ar-v.adm th:nth-child(4),.ar .ar-v.adm td:nth-child(4){text-align:center}
   .ar a.ar-btn{text-decoration:none}
   .ar .ar-v td{background:#fff;color:#000;font-size:.78rem;padding:8px 9px;text-align:left;vertical-align:middle;overflow-wrap:anywhere;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
@@ -2270,6 +2272,7 @@ function renderArsipAset(isi){
   function tampilSp(list, bag){
     const t = el('arTSp');
     t.classList.toggle('adm', aksesPenuh);          // kolom Arsip hanya untuk Admin
+    t.parentElement.style.overflowX = aksesPenuh ? 'auto' : 'hidden';   // Admin: geser ke kanan untuk kolom Arsip
     if (!list.length){ t.innerHTML = kosong(bag, 'Tidak ada data surat pengantar.'); batasiTinggiSp(); return; }
     const rows = list.map(it => {
       const kolomArsip = !aksesPenuh ? '' : `<td class="tc">${linkAman(it.link)
