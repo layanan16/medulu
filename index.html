@@ -1267,8 +1267,6 @@ const SUPABASE_URL = 'https://uiogfdqhhjepambzvrmu.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_gXXzfdYBEWbTNx_PkcWgqA_wIA7mRFd';
 
 const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-/* Bucket arsip_surat PUBLIK: tautan langsung, tanpa tautan sementara. Nama berkas UUID acak. */
-const urlArsip = (p) => p ? SUPABASE_URL + '/storage/v1/object/public/arsip_surat/' + String(p).split('/').map(encodeURIComponent).join('/') : '';
 const KUNCI_TOKEN = 'medulu_sipa_token';
 const DURASI_SPLASH = 2600; // ms
 
@@ -2210,20 +2208,21 @@ function arBadge(jenis){
   const j = String(jenis ?? '').toLowerCase();
   return j.includes('masuk') ? 'masuk' : j.includes('keluar') ? 'keluar' : j.includes('undangan') ? 'undangan' : j.includes('notula') ? 'notula' : '';
 }
-/* PDF surat keluar / undangan / notula dibuat otomatis (Apps Script, +-1 menit setelah disimpan) */
-function arSedangDibuat(it){
-  if (!['Surat Keluar', 'Undangan', 'Notula'].includes(it.jenisSurat)) return false;
-  const t = Date.parse(it.urut);
-  return !isNaN(t) && Date.now() - t < 30 * 60 * 1000;
-}
 function arNum(v){ const n = parseFloat(String(v ?? '').replace(',','.')); return isNaN(n) ? 0 : n; }
 
-/* Buka arsip surat (bucket publik): PDF tampil di penampil aplikasi, gambar dibuka di tab baru */
+/* Buka arsip surat (bucket privat -> tautan sementara 5 menit) */
 async function arBukaArsip(path, nama){
   if (/\.pdf$/i.test(String(path))) return pdfBukaDariArsip(path, nama);   // PDF: tampil dulu, unduh bila perlu
-  const url = urlArsip(path);
-  if (!url) return toast('Arsip belum dapat dibuka.');
-  window.open(url, '_blank', 'noopener');
+  const w = window.open('', '_blank');   // dibuka dulu agar tidak diblokir browser
+  try{
+    const { data, error } = await db.storage.from('arsip_surat').createSignedUrl(path, 300);
+    if (error || !data || !data.signedUrl) throw new Error('ditolak');
+    if (w){ w.opener = null; w.location.href = data.signedUrl; }
+    else window.location.href = data.signedUrl;
+  }catch(e){
+    if (w) w.close();
+    toast('Arsip belum dapat dibuka.');
+  }
 }
 
 function renderArsipAset(isi){
@@ -2264,8 +2263,8 @@ function renderArsipAset(isi){
     list.forEach(it => {
       const btn = it.arsipPath
         ? `<button type="button" class="ar-btn" data-arsip="${esc(it.arsipPath)}" data-nama="${esc(String(it.perihal || it.noSurat || 'Arsip surat').replace(/[\/\\:*?"<>|]+/g, '-'))}.pdf"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Arsip</button>`
-        : (arSedangDibuat(it)
-            ? '<span style="color:#64748b;font-size:12px;white-space:nowrap"><i class="fa-solid fa-spinner fa-spin"></i> Memproses…</span>'
+        : (aksesPenuh && ['keluar','undangan','notula'].includes(it.kode) && it.id
+            ? `<button type="button" class="ar-btn" data-buatpdf="${esc(it.kode)}" data-id="${esc(it.id)}"><i class="fa-solid fa-file-circle-plus"></i> Buat PDF</button>`
             : '<span style="color:#000">-</span>');
       r1 += `<td class="fw6">${esc(it.noSurat || '-')}</td>`;
       r2 += `<td class="nw">${esc(arFmtTgl(it.tanggal))}</td>`;
@@ -2382,7 +2381,7 @@ function renderArsipAset(isi){
       : { items:[], err:String((r && (r.pesan || r.message)) || 'Gagal memuat data.') };
     arData = {
       surat: (() => {
-        const pt = x => ({ noSurat:x.nomor_surat, tanggal:x.tgl_surat, jenisSurat:x.jenis, perihal:x.perihal, arsipPath:x.arsip_path, urut:x.urut });
+        const pt = x => ({ id:x.id, kode:x.kode, noSurat:x.nomor_surat, tanggal:x.tgl_surat, jenisSurat:x.jenis, perihal:x.perihal, arsipPath:x.arsip_path, urut:x.urut });
         const sr = ambil(a, pt);
         // Laporan Kondusifitas yang sudah dicetak ditampilkan sebagai Surat Keluar
         if (d && d.ok === true) sr.items = sr.items.concat((d.items || []).map(pt));
@@ -2403,6 +2402,16 @@ function renderArsipAset(isi){
     }
     if (e.target.closest('#arTambahAset')){ if (aksesPenuh) formInventaris(true); return; }
     const k = e.target.closest('.ar-stat'); if (k){ pindahTab(k.dataset.tab); return; }
+    const bp = e.target.closest('[data-buatpdf]');
+    if (bp){
+      if (!aksesPenuh || bp.disabled) return;
+      bp.disabled = true; bp.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Membuat...';
+      buatArsipPdf(bp.dataset.buatpdf, bp.dataset.id).then(r => {
+        toast(r.ok ? 'PDF berhasil dibuat.' : (r.pesan || 'PDF belum dapat dibuat.'));
+        if (versi === versiSubform) muat().catch(console.error);
+      });
+      return;
+    }
     const b = e.target.closest('[data-arsip]'); if (b) arBukaArsip(b.getAttribute('data-arsip'), b.getAttribute('data-nama'));
   });
   el('arCari').addEventListener('input', saring);
@@ -2956,8 +2965,9 @@ function formSuratMasuk(){
     },
     arsip: async (it) => {
       if (!it || !it.arsip_path) return;
-      if (/\.pdf$/i.test(String(it.arsip_path))) return pdfBukaDariArsip(it.arsip_path, (it.perihal || it.nomor_surat || 'Arsip surat') + '.pdf');
-      window.open(urlArsip(it.arsip_path), '_blank', 'noopener');
+      const { data, error } = await db.storage.from('arsip_surat').createSignedUrl(it.arsip_path, 300);
+      if (error || !data) return toast('Arsip tidak dapat dibuka.');
+      window.open(data.signedUrl, '_blank', 'noopener');
     },
     simpan: async (fd) => {
       const nomor = val(fd,'nomor_surat'), perihal = val(fd,'perihal'), dari = val(fd,'dari');
@@ -2984,6 +2994,43 @@ function formSuratMasuk(){
   });
 }
 
+/* ---------- Arsip PDF (Surat Keluar, Undangan, Notula) ----------
+   Dokumen dibuat dari template Google Docs oleh Apps Script (aksi "buat_arsip"), lalu disimpan
+   di bucket arsip_surat (folder keluar/, undangan/, notula/). Aplikasi hanya memicu & membuka hasilnya. */
+const LABEL_ARSIP = { keluar:'Surat Keluar', undangan:'Undangan', notula:'Notula' };
+async function buatArsipPdf(jenis, id){
+  if (!id) return { ok:false, pesan:'ID dokumen tidak ditemukan.' };
+  if (!URL_PERSETUJUAN) return { ok:false, pesan:'Layanan pembuat PDF belum dihubungkan (URL_PERSETUJUAN kosong).' };
+  try{
+    const resp = await fetch(URL_PERSETUJUAN, {
+      method:'POST', headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+      body: JSON.stringify({ aksi:'buat_arsip', token:tokenSesi, jenis, id }) });
+    const r = await resp.json();
+    return r || { ok:false, pesan:'Tidak ada respons dari layanan pembuat PDF.' };
+  }catch(err){
+    console.error(err);
+    return { ok:false, pesan:'Tidak dapat menghubungi layanan pembuat PDF. Coba lagi dari kolom Arsip.' };
+  }
+}
+/* Dipanggil setelah data tersimpan: PDF dibuat di latar belakang, daftar Arsip diperbarui setelah selesai */
+async function sesudahSimpan(janji, jenis){
+  const r = await janji;
+  if (!r || !r.ok || !r.id) return r;
+  buatArsipPdf(jenis, r.id).then(h => {
+    toast(h.ok ? 'PDF ' + LABEL_ARSIP[jenis] + ' siap di kolom Arsip.' : (h.pesan || 'PDF belum dapat dibuat. Gunakan tombol Buat PDF di kolom Arsip.'));
+    if (arRefreshFn) arRefreshFn();
+  });
+  return { ...r, pesan:(r.pesan || 'Tersimpan.') + ' PDF sedang dibuat...' };
+}
+const fldArsip = (it, dis) => !dis ? '' : fld('Arsip', (it && it.arsip_path)
+  ? '<div class="mf-aksi-baris" style="margin-top:0"><button type="button" class="utama" data-mf="arsip"><i class="fa-solid fa-file-pdf"></i> Buka Arsip</button></div>'
+  : '<input type="text" value="PDF belum tersedia" disabled>');
+const bukaArsipPdf = (jenis) => async (it) => {
+  if (!it || !it.arsip_path) return;
+  const nama = (LABEL_ARSIP[jenis] + ' ' + (it.nomor_notula || it.nomor_surat || '')).trim().replace(/[\/\\:*?"<>|]+/g, '-') + '.pdf';
+  arBukaArsip(it.arsip_path, nama);
+};
+
 const PERIHAL_KELUAR = ['Himbauan','Penyampaian','Pemberitahuan','Pengumuman','Edaran',
                         'Rekomendasi','Peringatan','Pemberhentian','Pengangkatan'];
 function formSuratKeluar(){
@@ -2998,16 +3045,18 @@ function formSuratKeluar(){
       fld('Kepada', `<input name="kepada" type="text" maxlength="200" value="${esc(it.kepada || '')}" ${dis}>`, 1) +
       fld('Pembuka', `<textarea name="pembuka" placeholder="Paragraf pembuka" ${dis}>${esc(it.pembuka || '')}</textarea>`) +
       fld('Penutup', `<textarea name="penutup" placeholder="Paragraf penutup" ${dis}>${esc(it.penutup || '')}</textarea>`) +
-      fld('Tembusan', `<textarea name="tembusan" placeholder="Contoh: 1. Ketua RW&#10;2. Arsip" ${dis}>${esc(it.tembusan || '')}</textarea>`);
+      fld('Tembusan', `<textarea name="tembusan" placeholder="Tembusan surat (satu per baris)" ${dis}>${esc(it.tembusan || '')}</textarea>`) +
+      fldArsip(it, dis);
     },
+    arsip: bukaArsipPdf('keluar'),
     simpan: async (fd) => {
       if (!val(fd,'tgl_surat')) return { ok:false, pesan:'Tanggal surat wajib diisi.' };
       if (!val(fd,'perihal')) return { ok:false, pesan:'Perihal wajib dipilih.' };
       if (!val(fd,'kepada'))  return { ok:false, pesan:'Kepada wajib diisi.' };
-      return kirimRpc('simpan_surat_keluar', {
+      return sesudahSimpan(kirimRpc('simpan_surat_keluar', {
         tgl_surat:val(fd,'tgl_surat'), perihal:val(fd,'perihal'), kepada:val(fd,'kepada'), pembuka:val(fd,'pembuka'),
         penutup:val(fd,'penutup'), tembusan:val(fd,'tembusan')
-      });
+      }), 'keluar');
     }
   });
 }
@@ -3029,19 +3078,21 @@ function formUndangan(){
       fld('Agenda', `<textarea name="agenda" ${dis}>${esc(it.agenda || '')}</textarea>`) +
       fld('Pembuka', `<textarea name="pembuka" placeholder="Paragraf pembuka" ${dis}>${esc(it.pembuka || '')}</textarea>`) +
       fld('Penutup', `<textarea name="penutup" placeholder="Paragraf penutup" ${dis}>${esc(it.penutup || '')}</textarea>`) +
-      fld('Tembusan', `<textarea name="tembusan" placeholder="Contoh: 1. Ketua RW&#10;2. Arsip" ${dis}>${esc(it.tembusan || '')}</textarea>`);
+      fld('Tembusan', `<textarea name="tembusan" placeholder="Tembusan undangan (satu per baris)" ${dis}>${esc(it.tembusan || '')}</textarea>`) +
+      fldArsip(it, dis);
     },
+    arsip: bukaArsipPdf('undangan'),
     simpan: async (fd) => {
       if (!val(fd,'tgl_surat')) return { ok:false, pesan:'Tanggal surat wajib diisi.' };
       if (!val(fd,'perihal')) return { ok:false, pesan:'Perihal wajib diisi.' };
       if (!val(fd,'kepada'))  return { ok:false, pesan:'Kepada wajib diisi.' };
       if (!val(fd,'tgl_acara') || !val(fd,'jam_acara')) return { ok:false, pesan:'Tanggal dan jam wajib diisi.' };
       if (!val(fd,'tempat'))  return { ok:false, pesan:'Tempat wajib diisi.' };
-      return kirimRpc('simpan_undangan', {
+      return sesudahSimpan(kirimRpc('simpan_undangan', {
         tgl_surat:val(fd,'tgl_surat'), perihal:val(fd,'perihal'), kepada:val(fd,'kepada'), tgl_acara:val(fd,'tgl_acara'),
         jam_acara:val(fd,'jam_acara'), tempat:val(fd,'tempat'), agenda:val(fd,'agenda'),
         pembuka:val(fd,'pembuka'), penutup:val(fd,'penutup'), tembusan:val(fd,'tembusan')
-      });
+      }), 'undangan');
     }
   });
 }
@@ -3058,6 +3109,7 @@ async function formNotula(){
   modalRiwayat({
     judul:'Notula', rpc:'daftar_notula',
     bisaSimpan: () => daftar.length > 0,
+    arsip: bukaArsipPdf('notula'),
     isi:(it, dis) => {
       if (!it && !daftar.length)
         return '<div class="kosong" style="margin:10px 0 20px"><i class="fa-solid fa-file-circle-question"></i>' +
@@ -3075,7 +3127,8 @@ async function formNotula(){
         fld('Jam Selesai', `<input name="jam_selesai" type="time" value="${esc(jam5(it.jam_selesai))}" ${dis}>`, 1) +
       '</div>' +
       fld('Pembahasan Rapat', `<textarea name="pembahasan" ${dis}>${esc(it.pembahasan || '')}</textarea>`, 1) +
-      fld('Hasil Rapat', `<textarea name="hasil" ${dis}>${esc(it.hasil || '')}</textarea>`, 1);
+      fld('Hasil Rapat', `<textarea name="hasil" ${dis}>${esc(it.hasil || '')}</textarea>`, 1) +
+      fldArsip(it, dis);
     },
     simpan: async (fd) => {
       if (!val(fd,'undangan_id')) return { ok:false, pesan:'Nomor undangan wajib dipilih.' };
@@ -3083,11 +3136,11 @@ async function formNotula(){
       if (!val(fd,'jam_mulai') || !val(fd,'jam_selesai')) return { ok:false, pesan:'Jam mulai dan jam selesai wajib diisi.' };
       if (!val(fd,'pembahasan')) return { ok:false, pesan:'Pembahasan rapat wajib diisi.' };
       if (!val(fd,'hasil')) return { ok:false, pesan:'Hasil rapat wajib diisi.' };
-      return kirimRpc('simpan_notula', {
+      return sesudahSimpan(kirimRpc('simpan_notula', {
         undangan_id:val(fd,'undangan_id'), jumlah_peserta:val(fd,'jumlah_peserta'),
         jam_mulai:val(fd,'jam_mulai'), jam_selesai:val(fd,'jam_selesai'),
         pembahasan:val(fd,'pembahasan'), hasil:val(fd,'hasil')
-      });
+      }), 'notula');
     }
   });
 }
@@ -3269,17 +3322,12 @@ async function pdfTampilkan(blob, nama){
 function pdfBuka(blob, nama, judul){            // dokumen sudah ada di memori (baru dicetak)
   pdfBukaLayar(judul || nama); return pdfTampilkan(blob, nama);
 }
-async function ambilBlobArsip(path){
-  try{ const r = await fetch(urlArsip(path)); if (r.ok) return await r.blob(); }catch(e){ /* lanjut ke cadangan */ }
-  const { data, error } = await db.storage.from('arsip_surat').download(path);
-  if (error || !data) throw new Error('ditolak');
-  return data;
-}
-async function pdfBukaDariArsip(path, nama){    // dokumen diambil dari penyimpanan (URL publik)
+async function pdfBukaDariArsip(path, nama){    // dokumen diambil dari penyimpanan
   pdfBukaLayar(nama || 'Arsip surat');
   const id = pdfReq;
   try{
-    const data = await ambilBlobArsip(path);
+    const { data, error } = await db.storage.from('arsip_surat').download(path);
+    if (error || !data) throw new Error('ditolak');
     if (id !== pdfReq) return;
     await pdfTampilkan(data, nama || String(path).split('/').pop());
   }catch(e){
