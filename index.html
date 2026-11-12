@@ -881,6 +881,10 @@
   .ar .ar-v{width:100%}
   .ar .ar-v th{position:sticky;top:0;z-index:2;background:#f8fafc;color:#000;font-weight:700;font-size:.75rem;padding:8px 9px;text-align:left;white-space:nowrap;border-right:1px solid #e2e8f0;border-bottom:2px solid #cbd5e1}
   .ar .ar-v th:nth-child(1){width:45%}.ar .ar-v th:nth-child(2){width:20%}.ar .ar-v th:nth-child(3){width:35%}
+  /* Kolom Arsip (khusus Admin) di tab Surat Pengantar */
+  .ar .ar-v.adm th:nth-child(1){width:34%}.ar .ar-v.adm th:nth-child(2){width:17%}.ar .ar-v.adm th:nth-child(3){width:27%}.ar .ar-v.adm th:nth-child(4){width:22%}
+  .ar .ar-v.adm th:nth-child(4),.ar .ar-v.adm td:nth-child(4){text-align:center}
+  .ar a.ar-btn{text-decoration:none}
   .ar .ar-v td{background:#fff;color:#000;font-size:.78rem;padding:8px 9px;text-align:left;vertical-align:middle;overflow-wrap:anywhere;border-right:1px solid #e2e8f0;border-bottom:1px solid #e2e8f0}
   .ar .ar-v th:last-child,.ar .ar-v td:last-child{border-right:none}
   .ar .ar-v tr:last-child td{border-bottom:none}
@@ -2265,12 +2269,18 @@ function renderArsipAset(isi){
   }
   function tampilSp(list, bag){
     const t = el('arTSp');
+    t.classList.toggle('adm', aksesPenuh);          // kolom Arsip hanya untuk Admin
     if (!list.length){ t.innerHTML = kosong(bag, 'Tidak ada data surat pengantar.'); batasiTinggiSp(); return; }
-    const rows = list.map(it => `<tr>
+    const rows = list.map(it => {
+      const kolomArsip = !aksesPenuh ? '' : `<td class="tc">${linkAman(it.link)
+        ? `<a class="ar-btn" href="${esc(linkAman(it.link))}" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> Buka</a>`
+        : '<span style="color:#000">-</span>'}</td>`;
+      return `<tr>
       <td class="fw6">${esc(it.noSurat || '-').replace(/\//g, '/<wbr>')}</td>
       <td class="nw">${esc(arFmtTgl(it.tanggal))}</td>
-      <td>${esc(it.perihal || '-')}</td></tr>`).join('');
-    t.innerHTML = `<thead><tr><th>No. Surat</th><th>Tanggal</th><th>Perihal</th></tr></thead><tbody>${rows}</tbody>`;
+      <td>${esc(it.perihal || '-')}</td>${kolomArsip}</tr>`;
+    }).join('');
+    t.innerHTML = `<thead><tr><th>No. Surat</th><th>Tanggal</th><th>Perihal</th>${aksesPenuh ? '<th>Arsip</th>' : ''}</tr></thead><tbody>${rows}</tbody>`;
     batasiTinggiSp();
   }
 
@@ -2354,7 +2364,7 @@ function renderArsipAset(isi){
         if (d && d.ok === true) sr.items = sr.items.concat((d.items || []).map(pt));
         return sr;
       })(),
-      sp:    ambil(b, x => ({ noSurat:x.nomor_surat, tanggal:x.tgl_surat, perihal:x.perihal, urut:x.urut })),
+      sp:    ambil(b, x => ({ noSurat:x.nomor_surat, tanggal:x.tgl_surat, perihal:x.perihal, link:x.link || x.link_arsip || x.arsip, urut:x.urut })),
       inv:   ambil(c, x => ({ tglTerima:x.tgl_terima, namaAset:x.nama_barang, baik:x.baik, ringan:x.rusak_ringan, berat:x.rusak_berat, lokasi:x.lokasi, ket:x.sumber }))
     };
     tampilkan();
