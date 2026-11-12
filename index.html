@@ -4882,7 +4882,7 @@ const JENIS_SURAT_ADMIN = [['sk_ahli_waris','Surat Keterangan Ahli Waris']];   /
 const daftarJenisSurat = () => adminSurat ? JENIS_SURAT.concat(JENIS_SURAT_ADMIN) : JENIS_SURAT;
 /* SEMENTARA - input manual data lama oleh Admin: tanggal pengajuan diisi sendiri (menggantikan timestamp otomatis).
    Setelah semua data lama selesai diinput, ubah menjadi false untuk mengembalikan ke pengaturan semula. */
-const TGL_MANUAL_ADMIN = true;
+const TGL_MANUAL_ADMIN = false;
 const isianTglManual = (jenis) => (TGL_MANUAL_ADMIN && adminSurat)
   ? fs('Tanggal Surat (Input Manual)', 'fa-calendar-days', inp('tgl_surat','date')) +
     (jenis === 'sk_ahli_waris' ? '' : fs('NIK Pemohon (Warga)', 'fa-id-card-clip', inpNik('nik_pengaju','16 digit NIK warga pemohon'))) : '';
