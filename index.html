@@ -863,6 +863,18 @@
   .ar .ar-stat.aktif .ar-tt{color:rgba(255,255,255,.88)}
   .ar .ar-stat.aktif .ar-vl{color:#fff}
   .ar .ar-cari{position:relative;margin-bottom:12px}
+  /* Admin: tombol aksi di Info Arsip & Aset */
+  .ar .ar-aksi{display:none;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  .ar .ar-aksi.tampil{display:grid}
+  .ar .ar-aksi button{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:8px 2px 7px;box-shadow:0 4px 12px rgba(0,0,0,.06);display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;min-width:0;font:inherit}
+  .ar .ar-aksi button:active{transform:scale(.97)}
+  .ar .ar-aksi .ar-ic{width:30px;height:30px;border-radius:10px;font-size:14px}
+  .ar .ar-aksi span.tt{font-size:11.5px;font-weight:700;color:#334155;line-height:1.1}
+  .ar .ar-barcari{display:flex;gap:8px;align-items:center;margin-bottom:12px}
+  .ar .ar-barcari .ar-cari{flex:1;margin:0;min-width:0}
+  .ar .ar-tambah{display:none;height:42px;padding:0 14px;border:0;border-radius:12px;background:linear-gradient(135deg,#00529c,#0072ce);color:#fff;font-weight:700;font-size:13px;white-space:nowrap;cursor:pointer;align-items:center;gap:6px;flex:none}
+  .ar .ar-tambah.tampil{display:flex}
+  .ar .ar-tambah:active{transform:scale(.97)}
   .ar .ar-cari i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8}
   .ar .ar-cari input{width:100%;height:42px;border-radius:12px;padding:0 12px 0 40px;border:1px solid #cbd5e1;background:#fff;font-size:13px;outline:none}
   .ar .ar-cari input:focus{border-color:#0072ce}
@@ -1136,16 +1148,8 @@
         </button>
         <button class="fitur nonaktif" id="btnPolling" data-buka="polling" disabled aria-disabled="true" hidden><i class="fa-solid fa-circle-exclamation alert" id="alertPolling"></i><span class="lingkaran c7"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M8.5 16.5v-3.5M12 16.5V8M15.5 16.5v-5.5"/></svg></span><span class="nama">Polling</span></button>
         <button class="fitur" data-buka="profilrt"><span class="lingkaran c13"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 20V9.5L12 4l8 5.5V20z"/><path d="M9.5 20v-5h5v5M8.5 11.5h1.2M14.3 11.5h1.2"/></svg></span><span class="nama">Profil RT</span></button>
-        <button class="fitur" data-buka="bantuan"><span class="lingkaran c6"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect class="d" x="3" y="13" width="4" height="6" rx="1.7"/><rect class="d" x="17" y="13" width="4" height="6" rx="1.7"/><path d="M19 19v.4c0 1.2-1.3 2.1-3 2.1h-2"/></svg></span><span class="nama">Bantuan</span></button>
-      </div>
-
-      <div data-akses="khusus" hidden>
-        <div class="judul-seksi"><i class="fa-solid fa-user-shield" aria-hidden="true"></i>Fitur Admin</div>
-        <div class="grid-fitur" id="gridAdmin">
         <button class="fitur" data-buka="korespondensi" data-akses="khusus" hidden><span class="lingkaran c4"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3" y="5.5" width="18" height="13" rx="2.8"/><path d="m3.8 7.8 8.2 5.6 8.2-5.6"/></svg></span><span class="nama">Administrasi</span></button>
-        <button class="fitur" data-buka="database" data-akses="khusus" hidden><span class="lingkaran c5"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><ellipse class="d" cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg></span><span class="nama">Database</span></button>
-        <button class="fitur" data-buka="pendataan" data-akses="khusus" hidden><span class="lingkaran c10"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="5" y="4.5" width="14" height="16" rx="2.5"/><path d="M9 4.5V3.2h6v1.3M8.5 10h7M8.5 13.5h7M8.5 17h4"/></svg></span><span class="nama">Pendataan</span></button>
-        </div>
+        <button class="fitur" data-buka="bantuan"><span class="lingkaran c6"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 14v-2a7.5 7.5 0 0 1 15 0v2"/><rect class="d" x="3" y="13" width="4" height="6" rx="1.7"/><rect class="d" x="17" y="13" width="4" height="6" rx="1.7"/><path d="M19 19v.4c0 1.2-1.3 2.1-3 2.1h-2"/></svg></span><span class="nama">Bantuan</span></button>
       </div>
 
       <div class="judul-seksi"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Data Statistik</div>
@@ -1319,8 +1323,8 @@ function aturMenuPengguna(profil){
   const nama = namaTanpaGelar(profil && profil.nama).toLowerCase().replace(/\s+/g, ' ').trim();
   aksesPenuh = nama === NAMA_AKSES_PENUH;
   if (!profil) pollStatus = null;
-  const bp = $('btnPolling'), ga = $('gridAdmin');                  // Polling: admin di Fitur Admin, warga setelah Info Aktual
-  if (bp && ga){ if (aksesPenuh) ga.prepend(bp); else $('btnInfo').after(bp); }
+  const bp = $('btnPolling');                                      // Polling di halaman utama: khusus warga (Admin lewat subform Administrasi)
+  if (bp) $('btnInfo').after(bp);
   const namaPenuh = normNama(profil && profil.nama);
   aksesRonda = aksesPenuh || NAMA_AKSES_RONDA.includes(namaPenuh) || NAMA_AKSES_RONDA.includes(nama.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim());
   aturRonda();
@@ -2173,7 +2177,7 @@ function renderBantuan(isi){
 }
 
 /* ---------- Subform Info Arsip & Aset ---------- */
-let arData = null;
+let arData = null, arRefreshFn = null;
 const AR_BLN = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 const AR_BLN_IDX = {jan:0,feb:1,mar:2,apr:3,mei:4,may:4,jun:5,jul:6,agu:7,agt:7,aug:7,sep:8,okt:9,oct:9,nov:10,nop:10,des:11,dec:11};
 function arParseTgl(val){
@@ -2230,7 +2234,16 @@ function renderArsipAset(isi){
       <button type="button" class="ar-stat" data-tab="sp"><span class="ar-ic" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-file-signature"></i></span><span><p class="ar-tt">Surat Pengantar</p><h3 class="ar-vl" id="arNSp">0</h3></span></button>
       <button type="button" class="ar-stat" data-tab="inv"><span class="ar-ic" style="background:#f3e8ff;color:#9333ea"><i class="fa-solid fa-boxes-stacked"></i></span><span><p class="ar-tt">Inventaris RT</p><h3 class="ar-vl" id="arNInv">0</h3></span></button>
     </div>
-    <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="arCari" placeholder="Cari data..." autocomplete="off"></div>
+    <div class="ar-aksi" id="arAksiKor" role="group" aria-label="Input korespondensi">
+      <button type="button" data-arform="masuk"><span class="ar-ic" style="background:#dbeafe;color:#2563eb"><i class="fa-solid fa-inbox"></i></span><span class="tt">Masuk</span></button>
+      <button type="button" data-arform="keluar"><span class="ar-ic" style="background:#dcfce7;color:#16a34a"><i class="fa-solid fa-paper-plane"></i></span><span class="tt">Keluar</span></button>
+      <button type="button" data-arform="undangan"><span class="ar-ic" style="background:#fef3c7;color:#d97706"><i class="fa-solid fa-calendar-check"></i></span><span class="tt">Undangan</span></button>
+      <button type="button" data-arform="notula"><span class="ar-ic" style="background:#f3e8ff;color:#9333ea"><i class="fa-solid fa-file-pen"></i></span><span class="tt">Notula</span></button>
+    </div>
+    <div class="ar-barcari">
+      <div class="ar-cari"><i class="fa-solid fa-magnifying-glass"></i><input type="text" id="arCari" placeholder="Cari data..." autocomplete="off"></div>
+      <button type="button" class="ar-tambah" id="arTambahAset"><i class="fa-solid fa-plus"></i> Aset</button>
+    </div>
     <div class="ar-muat" id="arMuat"><i class="fa-solid fa-spinner fa-spin"></i><span id="arMuatTeks">Memuat data...</span></div>
     <div id="arKonten" style="display:none">
       <div class="ar-box" id="arPanelSurat"><table class="ar-h" id="arTSurat"></table></div>
@@ -2336,8 +2349,12 @@ function renderArsipAset(isi){
     el('arNSurat').textContent = cS; el('arNSp').textContent = cP; el('arNInv').textContent = cI;
   }
 
+  function aturAksi(){                       // tombol input: khusus Admin
+    el('arAksiKor').classList.toggle('tampil', aksesPenuh && tab === 'surat');
+    el('arTambahAset').classList.toggle('tampil', aksesPenuh && tab === 'inv');
+  }
   function pindahTab(nama){
-    tab = nama;
+    tab = nama; aturAksi();
     root.querySelectorAll('.ar-stat').forEach(k => k.classList.toggle('aktif', k.dataset.tab === nama));
     el('arPanelSurat').style.display = nama === 'surat' ? '' : 'none';
     el('arPanelSp').style.display = nama === 'sp' ? '' : 'none';
@@ -2375,12 +2392,21 @@ function renderArsipAset(isi){
   }
 
   root.addEventListener('click', (e) => {
+    const f = e.target.closest('[data-arform]');
+    if (f){                                   // modal yang sama dengan subform Administrasi
+      if (!aksesPenuh) return;
+      ({ masuk:formSuratMasuk, keluar:formSuratKeluar, undangan:formUndangan, notula:formNotula })[f.dataset.arform]();
+      return;
+    }
+    if (e.target.closest('#arTambahAset')){ if (aksesPenuh) formInventaris(true); return; }
     const k = e.target.closest('.ar-stat'); if (k){ pindahTab(k.dataset.tab); return; }
     const b = e.target.closest('[data-arsip]'); if (b) arBukaArsip(b.getAttribute('data-arsip'), b.getAttribute('data-nama'));
   });
   el('arCari').addEventListener('input', saring);
   window.addEventListener('resize', () => { if (tab === 'sp') batasiTinggiSp(); });
 
+  arRefreshFn = () => muat().catch(console.error);     // dipanggil saat modal input ditutup agar daftar langsung diperbarui
+  aturAksi();
   // Data terakhir langsung ditampilkan (jika ada), lalu diperbarui di latar belakang
   if (arData) tampilkan();
   muat().catch(err => {
@@ -2701,7 +2727,7 @@ const DAFTAR_SUBFORM = {
 };
 let versiSubform = 0;
 
-function bukaSubform(kunci){
+function bukaSubform(kunci, dariAdmin){
   const s = DAFTAR_SUBFORM[kunci]; if (!s) return;
   if (MENU_KHUSUS.includes(kunci) && !aksesPenuh) return;
   if (kunci === 'polling' && !pollingAktifUntukSaya()){ toast('Polling belum dibuka oleh admin.'); return; }
@@ -2744,11 +2770,19 @@ function bukaSubform(kunci){
       Subform <b>${s.judul}</b> sedang disiapkan.</div>`;
   }
   $('subform').classList.add('buka');
-  bukaLapisan(tutupSubform);
+  bukaLapisan(dariAdmin ? kembaliKeAdministrasi : tutupSubform);
   $('subform').setAttribute('aria-hidden','false');
+}
+/* Tombol kembali dari Polling / Database / Pendataan (dibuka lewat Administrasi) -> kembali ke daftar Administrasi */
+function kembaliKeAdministrasi(){
+  versiSubform++;
+  $('judulSubform').textContent = DAFTAR_SUBFORM.korespondensi.judul;
+  const isi = $('isiSubform'); isi.classList.remove('penuh');
+  renderKorespondensi(isi);
 }
 function tutupSubform(){
   versiSubform++;
+  arRefreshFn = null;
   $('subform').classList.remove('buka');
   $('subform').setAttribute('aria-hidden','true');
   /* kosongkan iframe Pendataan setelah geseran tutup selesai */
@@ -2834,6 +2868,7 @@ function bukaModalForm(judul, isiHtml, onSimpan, labelSimpan){
 function tutupModalForm(){
   $('modalForm').classList.remove('tampil'); $('modalForm').setAttribute('aria-hidden','true');
   mfSimpanFn = null;
+  if (arRefreshFn) arRefreshFn();            // Info Arsip & Aset terbuka: muat ulang data terbaru
 }
 $('mfTutup').addEventListener('click', kembaliLapisan);
 $('mfBatal').addEventListener('click', kembaliLapisan);
@@ -2863,20 +2898,20 @@ const val = (fd, k) => String(fd.get(k) ?? '').trim();
 /* ---------- Subform Korespondensi ---------- */
 function renderKorespondensi(isi){
   const baris = (kunci, c, ikon, judul, ket, jenis) =>
-    `<button class="menu-baris" ${jenis === 'sub' ? 'data-admsub' : 'data-kores'}="${kunci}"><span class="mi ${c}"><i class="fa-solid ${ikon}"></i></span>
+    `<button class="menu-baris" ${jenis === 'sub' ? 'data-admsub' : jenis === 'buka' ? 'data-admbuka' : 'data-kores'}="${kunci}"><span class="mi ${c}"><i class="fa-solid ${ikon}"></i></span>
        <span><b>${judul}</b><small>${ket}</small></span><i class="fa-solid fa-chevron-right panah"></i></button>`;
   isi.innerHTML = `<div class="daftar-menu">
-    ${baris('masuk','c1','fa-inbox','Surat Masuk','Pengarsipan surat yang diterima')}
-    ${baris('keluar','c4','fa-paper-plane','Surat Keluar','Pembuatan surat keluar')}
-    ${baris('undangan','c2','fa-calendar-check','Undangan','Pembuatan undangan kegiatan RT')}
-    ${baris('notula','c3','fa-file-pen','Notula','Pencatatan proses dan hasil rapat')}
     ${baris('pengaduan','c11','fa-comment-dots','Pengaduan','Pencatatan pengaduan warga')}
-    ${baris('inventaris','c8','fa-boxes-stacked','Inventaris','Pendataan inventaris dan aset RT')}
     ${baris('laporan','c9','fa-file-lines','Laporan','Kondisi wilayah dan kegiatan RT')}
     ${baris('cetaklaporan','c5','fa-print','Cetak Laporan','Cetak dan arsipkan laporan kondusifitas')}
+    ${baris('polling','c7','fa-square-poll-vertical','Polling','Pengelolaan polling pendapat warga','buka')}
+    ${baris('database','c5','fa-database','Database','Data warga, rekapitulasi, dan pencarian','buka')}
+    ${baris('pendataan','c10','fa-clipboard-list','Pendataan','Formulir pendataan warga dan keluarga','buka')}
   </div>`;
 }
 document.addEventListener('click', (e) => {
+  const bk = e.target.closest('[data-admbuka]');
+  if (bk){ if (aksesPenuh) bukaSubform(bk.dataset.admbuka, true); return; }
   const sub = e.target.closest('[data-admsub]');
   if (sub){
     const k = sub.dataset.admsub, d = DAFTAR_SUBFORM[k]; if (!d || !aksesPenuh) return;
@@ -3497,12 +3532,12 @@ async function formPengaduan(){
 
 /* ---------- Inventaris (modal; default = record terakhir; Tambah / Ubah / Hapus) ---------- */
 const SUMBER_INV = ['Aset RT', 'Sumbangan', 'Iuran Bulanan'];
-async function formInventaris(){
+async function formInventaris(langsungTambah){
   let items = [];
   const muat = async () => { const r = await kirimRpc('daftar_inventaris', {}); if (r.ok) items = r.items || []; return r; };
   const r0 = await muat();
   if (!r0.ok) return toast(r0.pesan || 'Tidak dapat memuat inventaris.');
-  let idx = Math.max(0, items.length - 1), edit = items.length === 0, hapus = false;
+  let idx = langsungTambah ? items.length : Math.max(0, items.length - 1), edit = langsungTambah || items.length === 0, hapus = false;
   const gambar = () => {
     const n = items.length, baru = idx >= n, it = baru ? {} : items[idx], dis = edit ? '' : 'disabled';
     const angka = (k) => Number(it[k]) || 0;
@@ -4002,7 +4037,8 @@ function simpanPollDilihat(id){ try{ localStorage.setItem(kunciPollDilihat(), St
 function aturPolling(){
   const b = $('btnPolling'); if (!b) return;
   const aktif = pollingAktifUntukSaya();            // tersembunyi sampai admin membuka polling / menampilkan hasil; admin selalu tampil
-  b.hidden = !aktif; b.disabled = !aktif; b.classList.toggle('nonaktif', !aktif); b.setAttribute('aria-disabled', String(!aktif));
+  const tampil = aktif && !aksesPenuh;               // Admin: tombol Polling ada di subform Administrasi
+  b.hidden = !tampil; b.disabled = !tampil; b.classList.toggle('nonaktif', !tampil); b.setAttribute('aria-disabled', String(!tampil));
   /* Warga: polling ditutup (manual) atau berakhir (otomatis) -> hasil tersedia -> alert + ikon bergoyang sampai hasilnya dibuka */
   const p = pollStatus && pollStatus.ada && pollStatus.poll;
   const baru = !aksesPenuh && !!(p && p.hasil_aktif) && ambilPollDilihat() !== String(p.id);
@@ -4362,7 +4398,7 @@ async function renderMyData(isi){
     const tgl = keDate(x.tanggal);
     const link = /^https?:\/\//i.test(x.link || '') ? `<a class="md-link" href="${esc(x.link)}" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i> Arsip Surat (PDF)</a>` : '';
     return `<div class="md-surat"><div class="judul"><span>${esc(x.jenis)}</span>${statusBadge(x.status)}</div>
-      <div class="ket">${x.nama ? '<b>' + esc(namaTanpaGelar(x.nama)) + '</b>' + (x.saya ? ' (Anda)' : '') + '<br>' : ''}${x.no_surat ? esc(x.no_surat) + '<br>' : ''}${tgl ? tglIndoDT(x.tanggal) + ' · <b>' + durasiDari(tgl) + '</b>' : '-'}</div>${link ? `<div style="margin-top:6px">${link}</div>` : ''}</div>`;
+      <div class="ket">${x.nama ? '<b>' + esc(namaTanpaGelar(x.nama)) + '</b><br>' : ''}${x.no_surat ? esc(x.no_surat) + '<br>' : ''}${tgl ? tglIndoDT(x.tanggal) + ' · <b>' + durasiDari(tgl) + '</b>' : '-'}</div>${link ? `<div style="margin-top:6px">${link}</div>` : ''}</div>`;
   }).join('') : '<div class="kosong" style="margin:8px 0 4px">Belum ada pengajuan surat pengantar.</div>';
 
   isi.innerHTML = `
