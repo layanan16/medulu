@@ -2939,9 +2939,32 @@ const tgl10 = (v) => v ? String(v).slice(0,10) : '';
 const jam5  = (v) => v ? String(v).slice(0,5) : '';
 
 function formSuratMasuk(){
+  /* validasi + unggah arsip (bila ada berkas dipilih): dipakai simpan data baru dan Edit */
+  const siapkan = async (fd) => {
+    const nomor = val(fd,'nomor_surat'), perihal = val(fd,'perihal'), dari = val(fd,'dari');
+    if (!nomor) return { ok:false, pesan:'Nomor surat wajib diisi.' };
+    if (!val(fd,'tgl_surat')) return { ok:false, pesan:'Tgl surat wajib diisi.' };
+    if (!perihal) return { ok:false, pesan:'Perihal wajib diisi.' };
+    if (!dari) return { ok:false, pesan:'Pengirim (Dari) wajib diisi.' };
+
+    let path = null;
+    const file = fd.get('arsip');
+    if (file && file.size > 0){
+      const ext = EKSTENSI_ARSIP[file.type];
+      if (!ext) return { ok:false, pesan:'Arsip harus berupa PDF, PNG, JPG, atau JPEG.' };
+      if (file.size > BATAS_ARSIP) return { ok:false, pesan:'Ukuran arsip maksimal 5 MB.' };
+      path = 'masuk/' + crypto.randomUUID() + '.' + ext;
+      const { error } = await db.storage.from('arsip_surat').upload(path, file, { contentType:file.type, upsert:false });
+      if (error) return { ok:false, pesan:'Gagal mengunggah arsip: ' + error.message };
+    }
+    return { ok:true, data:{
+      nomor_surat:nomor, tgl_surat:val(fd,'tgl_surat'), tgl_pelaksanaan:val(fd,'tgl_pelaksanaan'),
+      perihal, dari, arsip_path:path
+    } };
+  };
   modalRiwayat({
     judul:'Surat Masuk', rpc:'daftar_surat_masuk',
-    isi:(it, dis) => {
+    isi:(it, dis, edit) => {
       it = it || {};
       return fld('Nomor Surat', `<input name="nomor_surat" type="text" maxlength="100" value="${esc(it.nomor_surat || '')}" ${dis}>`, 1) +
       '<div class="mf-dua">' +
@@ -2954,7 +2977,8 @@ function formSuratMasuk(){
         ? fld('Arsip', it.arsip_path
             ? '<div class="mf-aksi-baris" style="margin-top:0"><button type="button" class="utama" data-mf="arsip"><i class="fa-solid fa-file-arrow-down"></i> Buka Arsip</button></div>'
             : '<input type="text" value="Tidak ada arsip" disabled>')
-        : fld('Arsip (PDF, PNG, JPG, JPEG — maks. 5 MB)',
+        : fld(edit && it.arsip_path ? 'Ganti Arsip (kosongkan bila tidak diganti — PDF, PNG, JPG, JPEG, maks. 5 MB)'
+                                    : 'Arsip (PDF, PNG, JPG, JPEG — maks. 5 MB)',
             '<input name="arsip" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg">'));
     },
     arsip: async (it) => {
@@ -2963,26 +2987,12 @@ function formSuratMasuk(){
       window.open(urlArsip(it.arsip_path), '_blank', 'noopener');
     },
     simpan: async (fd) => {
-      const nomor = val(fd,'nomor_surat'), perihal = val(fd,'perihal'), dari = val(fd,'dari');
-      if (!nomor) return { ok:false, pesan:'Nomor surat wajib diisi.' };
-      if (!val(fd,'tgl_surat')) return { ok:false, pesan:'Tgl surat wajib diisi.' };
-      if (!perihal) return { ok:false, pesan:'Perihal wajib diisi.' };
-      if (!dari) return { ok:false, pesan:'Pengirim (Dari) wajib diisi.' };
-
-      let path = null;
-      const file = fd.get('arsip');
-      if (file && file.size > 0){
-        const ext = EKSTENSI_ARSIP[file.type];
-        if (!ext) return { ok:false, pesan:'Arsip harus berupa PDF, PNG, JPG, atau JPEG.' };
-        if (file.size > BATAS_ARSIP) return { ok:false, pesan:'Ukuran arsip maksimal 5 MB.' };
-        path = 'masuk/' + crypto.randomUUID() + '.' + ext;
-        const { error } = await db.storage.from('arsip_surat').upload(path, file, { contentType:file.type, upsert:false });
-        if (error) return { ok:false, pesan:'Gagal mengunggah arsip: ' + error.message };
-      }
-      return kirimRpc('simpan_surat_masuk', {
-        nomor_surat:nomor, tgl_surat:val(fd,'tgl_surat'), tgl_pelaksanaan:val(fd,'tgl_pelaksanaan'),
-        perihal, dari, arsip_path:path
-      });
+      const s = await siapkan(fd); if (!s.ok) return s;
+      return kirimRpc('simpan_surat_masuk', s.data);
+    },
+    ubah: async (fd, it) => {
+      const s = await siapkan(fd); if (!s.ok) return s;
+      return kirimRpc('ubah_surat_masuk', Object.assign({ id: it.id }, s.data));
     }
   });
 }
@@ -2994,11 +3004,12 @@ const PERIHAL_KELUAR = ['Himbauan','Penyampaian','Pemberitahuan','Pengumuman','E
 function formSuratKeluar(){
   modalRiwayat({
     judul:'Surat Keluar', rpc:'daftar_surat_keluar',
-    isi:(it, dis) => {
+    isi:(it, dis, edit) => {
       it = it || {};
-      return (dis ? fld('Nomor Surat', `<input type="text" value="${esc(it.nomor_surat || '-')}" disabled>`) : '') +
+      const kunciP = edit ? 'disabled' : dis;               // saat Edit: perihal tetap (kode nomor mengikuti perihal)
+      return ((dis || edit) ? fld('Nomor Surat', `<input type="text" value="${esc(it.nomor_surat || '-')}" disabled>`) : '') +
       fld('Tanggal Surat', `<input name="tgl_surat" type="date" value="${esc(tgl10(it.tgl_surat) || hariIni())}" ${dis}>`, 1) +
-      fld('Perihal', `<select name="perihal" ${dis}><option value="">— Pilih perihal —</option>` +
+      fld('Perihal', `<select name="perihal" ${kunciP}><option value="">— Pilih perihal —</option>` +
         (it.perihal && !PERIHAL_KELUAR.includes(it.perihal) ? `<option selected>${esc(it.perihal)}</option>` : '') +   // data lama (mis. Rekomendasi) tetap terbaca
         PERIHAL_KELUAR.map(p => `<option ${p === it.perihal ? 'selected' : ''}>${p}</option>`).join('') + '</select>', 1) +
       fld('Kepada', `<textarea name="kepada" maxlength="500" placeholder="Contoh: Yth. Bapak/Ibu Warga RT.09&#10;di Tempat" ${dis}>${esc(it.kepada || '')}</textarea>`, 1) +
@@ -3014,6 +3025,14 @@ function formSuratKeluar(){
         tgl_surat:val(fd,'tgl_surat'), perihal:val(fd,'perihal'), kepada:val(fd,'kepada'), pembuka:val(fd,'pembuka'),
         penutup:val(fd,'penutup'), tembusan:val(fd,'tembusan')
       });
+    },
+    ubah: async (fd, it) => {
+      if (!val(fd,'tgl_surat')) return { ok:false, pesan:'Tanggal surat wajib diisi.' };
+      if (!val(fd,'kepada'))  return { ok:false, pesan:'Kepada wajib diisi.' };
+      return kirimRpc('ubah_korespondensi', {
+        jenis:'keluar', id:it.id, tgl_surat:val(fd,'tgl_surat'), kepada:val(fd,'kepada'),
+        pembuka:val(fd,'pembuka'), penutup:val(fd,'penutup'), tembusan:val(fd,'tembusan')
+      });
     }
   });
 }
@@ -3021,9 +3040,9 @@ function formSuratKeluar(){
 function formUndangan(){
   modalRiwayat({
     judul:'Undangan', rpc:'daftar_undangan',
-    isi:(it, dis) => {
+    isi:(it, dis, edit) => {
       it = it || {};
-      return (dis ? fld('Nomor Surat', `<input type="text" value="${esc(it.nomor_surat || '-')}" disabled>`) : '') +
+      return ((dis || edit) ? fld('Nomor Surat', `<input type="text" value="${esc(it.nomor_surat || '-')}" disabled>`) : '') +
       fld('Tanggal Surat', `<input name="tgl_surat" type="date" value="${esc(tgl10(it.tgl_surat) || hariIni())}" ${dis}>`, 1) +
       fld('Perihal', `<input name="perihal" type="text" maxlength="200" placeholder="Contoh: Rapat Pengurus RT" value="${esc(it.perihal || '')}" ${dis}>`, 1) +
       fld('Kepada', `<textarea name="kepada" maxlength="500" placeholder="Contoh: Yth. Bapak/Ibu Warga RT.09&#10;di Tempat" ${dis}>${esc(it.kepada || '')}</textarea>`, 1) +
@@ -3048,6 +3067,18 @@ function formUndangan(){
         jam_acara:val(fd,'jam_acara'), tempat:val(fd,'tempat'), agenda:val(fd,'agenda'),
         pembuka:val(fd,'pembuka'), penutup:val(fd,'penutup'), tembusan:val(fd,'tembusan')
       });
+    },
+    ubah: async (fd, it) => {
+      if (!val(fd,'tgl_surat')) return { ok:false, pesan:'Tanggal surat wajib diisi.' };
+      if (!val(fd,'perihal')) return { ok:false, pesan:'Perihal wajib diisi.' };
+      if (!val(fd,'kepada'))  return { ok:false, pesan:'Kepada wajib diisi.' };
+      if (!val(fd,'tgl_acara') || !val(fd,'jam_acara')) return { ok:false, pesan:'Tanggal dan jam wajib diisi.' };
+      if (!val(fd,'tempat'))  return { ok:false, pesan:'Tempat wajib diisi.' };
+      return kirimRpc('ubah_korespondensi', {
+        jenis:'undangan', id:it.id, tgl_surat:val(fd,'tgl_surat'), perihal:val(fd,'perihal'), kepada:val(fd,'kepada'),
+        tgl_acara:val(fd,'tgl_acara'), jam_acara:val(fd,'jam_acara'), tempat:val(fd,'tempat'), agenda:val(fd,'agenda'),
+        pembuka:val(fd,'pembuka'), penutup:val(fd,'penutup'), tembusan:val(fd,'tembusan')
+      });
     }
   });
 }
@@ -3064,7 +3095,7 @@ async function formNotula(){
   modalRiwayat({
     judul:'Notula', rpc:'daftar_notula',
     bisaSimpan: () => daftar.length > 0,
-    isi:(it, dis) => {
+    isi:(it, dis, edit) => {
       if (!it && !daftar.length)
         return '<div class="kosong" style="margin:10px 0 20px"><i class="fa-solid fa-file-circle-question"></i>' +
                'Belum ada undangan berperihal Rapat atau Rembug Warga.<br>Buat undangannya terlebih dahulu.</div>';
@@ -3073,7 +3104,7 @@ async function formNotula(){
         `<option value="${esc(u.id)}" ${String(u.id) === String(it.undangan_id) ? 'selected' : ''}>${esc(u.nomor_surat)} — ${esc(u.perihal)} (${tglIndo(u.tgl_acara)})</option>`).join('');
       if (it.undangan_id && !daftar.some(u => String(u.id) === String(it.undangan_id)))
         opsi += `<option value="${esc(it.undangan_id)}" selected>${esc(it.nomor_surat || '')}${it.perihal ? ' — ' + esc(it.perihal) : ''}</option>`;
-      return (dis ? fld('Nomor Notula', `<input type="text" value="${esc(it.nomor_notula || '-')}" disabled>`) : '') +
+      return ((dis || edit) ? fld('Nomor Notula', `<input type="text" value="${esc(it.nomor_notula || '-')}" disabled>`) : '') +
       fld('Nomor Undangan', `<select name="undangan_id" ${dis}><option value="">— Pilih nomor undangan —</option>${opsi}</select>`, 1) +
       '<div class="mf-tiga">' +
         fld('Jml. Peserta', `<input name="jumlah_peserta" type="number" inputmode="numeric" min="0" max="99999" value="${esc(it.jumlah_peserta ?? '')}" ${dis}>`, 1) +
@@ -3091,6 +3122,18 @@ async function formNotula(){
       if (!val(fd,'hasil')) return { ok:false, pesan:'Hasil rapat wajib diisi.' };
       return kirimRpc('simpan_notula', {
         undangan_id:val(fd,'undangan_id'), jumlah_peserta:val(fd,'jumlah_peserta'),
+        jam_mulai:val(fd,'jam_mulai'), jam_selesai:val(fd,'jam_selesai'),
+        pembahasan:val(fd,'pembahasan'), hasil:val(fd,'hasil')
+      });
+    },
+    ubah: async (fd, it) => {
+      if (!val(fd,'undangan_id')) return { ok:false, pesan:'Nomor undangan wajib dipilih.' };
+      if (val(fd,'jumlah_peserta') === '') return { ok:false, pesan:'Jumlah peserta wajib diisi.' };
+      if (!val(fd,'jam_mulai') || !val(fd,'jam_selesai')) return { ok:false, pesan:'Jam mulai dan jam selesai wajib diisi.' };
+      if (!val(fd,'pembahasan')) return { ok:false, pesan:'Pembahasan rapat wajib diisi.' };
+      if (!val(fd,'hasil')) return { ok:false, pesan:'Hasil rapat wajib diisi.' };
+      return kirimRpc('ubah_korespondensi', {
+        jenis:'notula', id:it.id, undangan_id:val(fd,'undangan_id'), jumlah_peserta:val(fd,'jumlah_peserta'),
         jam_mulai:val(fd,'jam_mulai'), jam_selesai:val(fd,'jam_selesai'),
         pembahasan:val(fd,'pembahasan'), hasil:val(fd,'hasil')
       });
@@ -3498,19 +3541,46 @@ async function modalRiwayat(cfg){
   const r = await kirimRpc(cfg.rpc, {});
   if (r.ok) items = r.items || []; else toast(r.pesan || 'Riwayat data tidak dapat dimuat.');
   let idx = items.length;                                  // posisi setelah record terakhir = data baru
+  let edit = false, hapus = false;                         // edit: cfg.ubah | hapus: konfirmasi cfg.hapus
   const gambar = () => {
     const n = items.length, baru = idx >= n, it = baru ? null : items[idx];
-    $('mfIsi').innerHTML = barNav(idx, n, true, true) + cfg.isi(it, baru ? '' : 'disabled');
-    $('mfSimpan').style.display = (baru && (!cfg.bisaSimpan || cfg.bisaSimpan())) ? '' : 'none';
+    let aksi = '';
+    if (!baru && (cfg.ubah || cfg.hapus)){
+      if (hapus) aksi = '<div class="pesan-err" style="margin:0 0 8px">Hapus data ini' + (cfg.hapusKet ? ' ' + cfg.hapusKet : '') + '?</div>' +
+        '<div class="mf-aksi-baris"><button type="button" data-mf="hapusbatal">Batal</button><button type="button" class="bahaya" data-mf="hapusya"><i class="fa-solid fa-trash"></i> Ya, Hapus</button></div>';
+      else if (edit) aksi = '<div class="mf-aksi-baris"><button type="button" data-mf="batal"><i class="fa-solid fa-rotate-left"></i> Batal Edit</button></div>';
+      else aksi = '<div class="mf-aksi-baris">' +
+        (cfg.ubah ? '<button type="button" class="utama" data-mf="ubah"><i class="fa-solid fa-pen"></i> Edit</button>' : '') +
+        (cfg.hapus ? '<button type="button" class="bahaya" data-mf="hapus"><i class="fa-solid fa-trash"></i> Hapus</button>' : '') + '</div>';
+    }
+    $('mfIsi').innerHTML = barNav(idx, n, true, true) + cfg.isi(it, (baru || edit) ? '' : 'disabled', edit) + (aksi ? fld('Aksi', aksi) : '');
+    $('mfSimpan').style.display = ((baru && (!cfg.bisaSimpan || cfg.bisaSimpan())) || (edit && !hapus)) ? '' : 'none';
+    $('mfSimpan').textContent = edit ? 'Simpan Perubahan' : 'Simpan';
     $('mfGalat').classList.remove('tampil');
   };
   bukaModalForm(cfg.judul, '', async (fd) => {
-    if (idx < items.length) return { ok:false, pesan:'Data lama hanya dapat dilihat.' };
+    if (idx < items.length){
+      if (edit && cfg.ubah) return cfg.ubah(fd, items[idx]);
+      return { ok:false, pesan:'Data lama hanya dapat dilihat.' };
+    }
     return cfg.simpan(fd);
   }, 'Simpan');
-  mfNavFn = (a) => {
+  mfNavFn = async (a) => {
     if (a === 'arsip' && cfg.arsip) return cfg.arsip(items[idx]);
-    idx = geserNav(a, idx, items.length, true); gambar();
+    if (a === 'ubah'){ edit = true; hapus = false; return gambar(); }
+    if (a === 'batal'){ edit = false; hapus = false; return gambar(); }
+    if (a === 'hapus'){ hapus = true; edit = false; return gambar(); }
+    if (a === 'hapusbatal'){ hapus = false; return gambar(); }
+    if (a === 'hapusya'){
+      const h = await cfg.hapus(items[idx]);
+      if (!h || !h.ok) return tampilGalatMf((h && h.pesan) || 'Gagal menghapus.');
+      toast(h.pesan || 'Data dihapus.');
+      const rr = await kirimRpc(cfg.rpc, {});
+      if (rr.ok) items = rr.items || [];
+      idx = Math.min(idx, items.length); hapus = false; edit = false;
+      return gambar();
+    }
+    idx = geserNav(a, idx, items.length, true); edit = false; hapus = false; gambar();
   };
   gambar();
 }
