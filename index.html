@@ -675,6 +675,9 @@
   .mf-field textarea{min-height:84px;resize:vertical}
   .mf-field input:focus,.mf-field select:focus,.mf-field textarea:focus{border-color:var(--biru);background:#fff}
   .mf-dua{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .mf-tiga{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .mf-tiga .mf-field{min-width:0}
+  .mf-tiga .mf-field input{padding-left:8px;padding-right:6px}
   .mf-galat{display:none;margin:0 18px 8px;background:#fdecec;color:#b42318;border-radius:10px;padding:8px 12px;font-size:.76rem}
   .mf-galat.tampil{display:block}
   .mf-aksi{display:flex;gap:10px;padding:10px 18px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #eef2f7}
@@ -2998,7 +3001,7 @@ function formSuratKeluar(){
       fld('Perihal', `<select name="perihal" ${dis}><option value="">— Pilih perihal —</option>` +
         (it.perihal && !PERIHAL_KELUAR.includes(it.perihal) ? `<option selected>${esc(it.perihal)}</option>` : '') +   // data lama (mis. Rekomendasi) tetap terbaca
         PERIHAL_KELUAR.map(p => `<option ${p === it.perihal ? 'selected' : ''}>${p}</option>`).join('') + '</select>', 1) +
-      fld('Kepada', `<input name="kepada" type="text" maxlength="200" value="${esc(it.kepada || '')}" ${dis}>`, 1) +
+      fld('Kepada', `<textarea name="kepada" maxlength="500" placeholder="Contoh: Yth. Bapak/Ibu Warga RT.09&#10;di Tempat" ${dis}>${esc(it.kepada || '')}</textarea>`, 1) +
       fld('Pembuka', `<textarea name="pembuka" placeholder="Paragraf pembuka" ${dis}>${esc(it.pembuka || '')}</textarea>`) +
       fld('Penutup', `<textarea name="penutup" placeholder="Paragraf penutup" ${dis}>${esc(it.penutup || '')}</textarea>`) +
       fld('Tembusan', `<textarea name="tembusan" placeholder="Contoh: 1. Ketua RW&#10;2. Arsip" ${dis}>${esc(it.tembusan || '')}</textarea>`);
@@ -3023,7 +3026,7 @@ function formUndangan(){
       return (dis ? fld('Nomor Surat', `<input type="text" value="${esc(it.nomor_surat || '-')}" disabled>`) : '') +
       fld('Tanggal Surat', `<input name="tgl_surat" type="date" value="${esc(tgl10(it.tgl_surat) || hariIni())}" ${dis}>`, 1) +
       fld('Perihal', `<input name="perihal" type="text" maxlength="200" placeholder="Contoh: Rapat Pengurus RT" value="${esc(it.perihal || '')}" ${dis}>`, 1) +
-      fld('Kepada', `<input name="kepada" type="text" maxlength="200" value="${esc(it.kepada || '')}" ${dis}>`, 1) +
+      fld('Kepada', `<textarea name="kepada" maxlength="500" placeholder="Contoh: Yth. Bapak/Ibu Warga RT.09&#10;di Tempat" ${dis}>${esc(it.kepada || '')}</textarea>`, 1) +
       '<div class="mf-dua">' +
         fld('Tanggal', `<input name="tgl_acara" type="date" value="${esc(tgl10(it.tgl_acara))}" ${dis}>`, 1) +
         fld('Jam', `<input name="jam_acara" type="time" value="${esc(jam5(it.jam_acara))}" ${dis}>`, 1) +
@@ -3072,8 +3075,8 @@ async function formNotula(){
         opsi += `<option value="${esc(it.undangan_id)}" selected>${esc(it.nomor_surat || '')}${it.perihal ? ' — ' + esc(it.perihal) : ''}</option>`;
       return (dis ? fld('Nomor Notula', `<input type="text" value="${esc(it.nomor_notula || '-')}" disabled>`) : '') +
       fld('Nomor Undangan', `<select name="undangan_id" ${dis}><option value="">— Pilih nomor undangan —</option>${opsi}</select>`, 1) +
-      fld('Jumlah Peserta Rapat', `<input name="jumlah_peserta" type="number" inputmode="numeric" min="0" max="99999" value="${esc(it.jumlah_peserta ?? '')}" ${dis}>`, 1) +
-      '<div class="mf-dua">' +
+      '<div class="mf-tiga">' +
+        fld('Jml. Peserta', `<input name="jumlah_peserta" type="number" inputmode="numeric" min="0" max="99999" value="${esc(it.jumlah_peserta ?? '')}" ${dis}>`, 1) +
         fld('Jam Mulai', `<input name="jam_mulai" type="time" value="${esc(jam5(it.jam_mulai))}" ${dis}>`, 1) +
         fld('Jam Selesai', `<input name="jam_selesai" type="time" value="${esc(jam5(it.jam_selesai))}" ${dis}>`, 1) +
       '</div>' +
