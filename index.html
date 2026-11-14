@@ -186,11 +186,12 @@
   .hs-baris{display:flex;align-items:baseline;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.9);
     border-bottom:1px dashed rgba(255,255,255,.35);padding-bottom:3px}
   .hs-baris b{font-size:.975rem;color:#fff}
-  .btn-selengkapnya{border:1px solid rgba(255,255,255,.55);border-radius:999px;margin-top:5px;padding:6px 26px;position:relative;font:inherit;font-size:12px;
+  .btn-selengkapnya{border:1px solid rgba(255,255,255,.55);border-radius:999px;margin-top:5px;padding:6px 14px;position:relative;font:inherit;font-size:12px;
     font-weight:600;color:#fff;cursor:pointer;background:rgba(255,255,255,.16);
-    display:flex;align-items:center;justify-content:center;gap:7px}
+    display:flex;align-items:center;justify-content:flex-start;gap:7px}
   .btn-selengkapnya i{font-size:.75rem}
-  .btn-selengkapnya .bs-panah{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:.68rem}
+  /* jarak panah ke tepi kanan = jarak ikon ke tepi kiri (14px) */
+  .btn-selengkapnya .bs-panah{position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:.68rem}
   .btn-selengkapnya:active{background:rgba(255,255,255,.28)}
 
   /* Kelas di bawah masih dipakai di dalam subform Data Statistik */
@@ -271,9 +272,8 @@
   .sp-titik .sp-panah:hover{background:rgba(21,88,201,.7)}
   .sp-titik .sp-panah:active{transform:scale(.9)}
   .sp-titik .sp-panah:focus-visible{outline:3px solid rgba(21,88,201,.45);outline-offset:2px}
-  /* di gambar pertama / terakhir: panah yang tidak bisa dipakai berwarna biru lembut */
-  .sp-titik .sp-panah.lembut,.sp-titik .sp-panah.lembut:hover{background:rgba(21,88,201,.16);color:rgba(21,88,201,.5);cursor:default}
-  .sp-titik .sp-panah.lembut:active{transform:none}
+  /* di gambar pertama / terakhir: panah yang tidak bisa dipakai disembunyikan (ruangnya tetap, titik-titik tidak bergeser) */
+  .sp-titik .sp-panah.lembut{visibility:hidden;pointer-events:none}
   /* Hanya Data Statistik */
   #dsGeser .sp-slide{border-radius:8px; flex:0 0 auto;}
   #dsGeser .sp-slide img{height:160px; width:auto; max-width:none;}
@@ -543,8 +543,8 @@
   .agenda-status.nonpresensi{background:#475569}.agenda-status.menunggu{background:#94a3b8}
   /* ---- Absensi Ronda ---- */
   .rd-waktu{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px auto 14px;width:max-content;max-width:100%;
-    background:#dbeafe;border:2px solid #fff;border-radius:999px;padding:7px 16px;font-size:.76rem;color:var(--biru-tua);box-shadow:0 4px 12px rgba(11,42,111,.08)}
-  .rd-waktu i{color:var(--biru)}
+    background:#a9cbfb;border-radius:999px;padding:7px 16px;font-size:.76rem;color:var(--biru-tua);box-shadow:0 4px 12px rgba(11,42,111,.08)}
+  .rd-waktu i{color:var(--biru-tua)}
   .rd-waktu b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;color:var(--biru-tua)}
   .rd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .rd-btn{border:0;border-radius:16px;color:#fff;padding:14px 6px;min-height:112px;display:flex;flex-direction:column;align-items:center;
