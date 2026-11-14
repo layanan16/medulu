@@ -682,6 +682,14 @@
   .agenda-status.hadir{background:#16a34a}.agenda-status.izin{background:#d98a00}.agenda-status.sakit{background:#7c3aed}.agenda-status.alpa{background:#dc2626}
   .agenda-kosong{font-size:.76rem;color:var(--abu);padding:4px 0 2px}
   .agenda-durasi{margin-top:5px;font-size:.7rem;font-weight:600;color:#d97706}
+  /* tabel Absensi Ronda di Info Aktual */
+  .rn-atas{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:2px 0 4px;font-size:.74rem;font-weight:600;color:var(--biru-tua)}
+  .rn-atas i{margin-right:4px}
+  .rn-atas .rn-durasi{font-size:.7rem;color:#d97706;white-space:nowrap}
+  .md-tabel .rn-jam,.md-tabel .rn-status{white-space:nowrap}
+  .md-tabel .rn-jam{font-variant-numeric:tabular-nums}
+  .md-tabel .rn-status .agenda-status{font-size:.66rem;padding:3px 10px}
+  .md-tabel .rn-status .agenda-status.menunggu{background:#64748b}
 
   /* ---- Modal form (lembar dari bawah) ---- */
   .mf-latar{position:absolute;inset:0;z-index:70;display:flex;align-items:flex-end;justify-content:center;
@@ -3818,16 +3826,16 @@ async function renderInfoAktual(isi){
         <div class="agenda-durasi"><i class="fa-regular fa-clock"></i> ${durasiLalu(a.tgl_surat, a.dibuat_pada)}</div>
       </div>` : kosong(d.galat.agenda, 'Belum ada agenda.');
 
-  /* 2) Absensi Ronda: semua petugas pada ronda terbaru, masing-masing dengan rincian kehadirannya */
-  const kartuRonda = d.ronda.length ? d.ronda.map(r => `
-      <div class="agenda-item">
-        <div class="agenda-perihal">${esc(namaTanpaGelar(r.nama_petugas))}</div>
-        <div class="agenda-baris"><span>Tanggal</span><span>${tglIndo(r.tanggal)}</span></div>
-        <div class="agenda-baris"><span>Jam Masuk</span><span>${r.jam_masuk ? jamIndo(r.jam_masuk) : '-'}</span></div>
-        <div class="agenda-baris"><span>Jam Pulang</span><span>${r.jam_pulang ? jamIndo(r.jam_pulang) : '-'}</span></div>
-        <div class="agenda-baris"><span>Status Kehadiran</span><span>${badgeStatusRonda(statusRondaInfo(r))}</span></div>
-        <div class="agenda-durasi"><i class="fa-regular fa-clock"></i> ${durasiLalu(r.tanggal, r.dibuat_pada)}</div>
-      </div>`).join('') : kosong(d.galat.ronda, 'Belum ada absensi ronda.');
+  /* 2) Absensi Ronda: semua petugas pada ronda terbaru dalam satu tabel (tanggal di kiri atas, durasi di kanan atas) */
+  const jamR = (t) => t ? String(t).slice(0, 5).replace(':', '.') : '-';
+  const kartuRonda = d.ronda.length ? `
+      <div class="rn-atas">
+        <span><i class="fa-regular fa-calendar"></i> ${tglIndo(d.ronda[0].tanggal)}</span>
+        <span class="rn-durasi"><i class="fa-regular fa-clock"></i> ${durasiLalu(d.ronda[0].tanggal, d.ronda[0].dibuat_pada)}</span>
+      </div>
+      <div class="md-tabel-wadah"><table class="md-tabel"><thead><tr><th>Nama</th><th>Masuk</th><th>Pulang</th><th>Status</th></tr></thead>
+        <tbody>${d.ronda.map(r => `<tr><td>${esc(namaTanpaGelar(r.nama_petugas))}</td><td class="rn-jam">${jamR(r.jam_masuk)}</td><td class="rn-jam">${jamR(r.jam_pulang)}</td><td class="rn-status">${badgeStatusRonda(statusRondaInfo(r))}</td></tr>`).join('')}</tbody></table></div>`
+    : kosong(d.galat.ronda, 'Belum ada absensi ronda.');
 
   /* 3) Pelayanan surat pengantar: satu surat terakhir disetujui */
   const p = d.pelayanan;
@@ -5651,8 +5659,8 @@ function pasangCarousel(idGeser, idTitik, opsi){
   });
   tandai();
 }
-pasangCarousel('dsGeser', 'dsTitik', { panah: true, otomatis: 3000, ujung: true });   // Data Statistik: panah + geser otomatis tiap 4 detik, ujung berwarna lembut
-pasangCarousel('spGeser', 'spTitik', { panah: true, otomatis: 3000, ujung: true });   // Standar Pelayanan: panah + geser otomatis tiap 4 detik, ujung berwarna lembut
+pasangCarousel('dsGeser', 'dsTitik', { otomatis: 3000 });   // Data Statistik: geser manual / otomatis tiap 3 detik
+pasangCarousel('spGeser', 'spTitik', { otomatis: 3000 });   // Standar Pelayanan: geser manual / otomatis tiap 3 detik
 
 mulai();
 
