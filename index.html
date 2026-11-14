@@ -186,10 +186,11 @@
   .hs-baris{display:flex;align-items:baseline;justify-content:space-between;font-size:12px;color:rgba(255,255,255,.9);
     border-bottom:1px dashed rgba(255,255,255,.35);padding-bottom:3px}
   .hs-baris b{font-size:.975rem;color:#fff}
-  .btn-selengkapnya{border:1px solid rgba(255,255,255,.55);border-radius:999px;margin-top:5px;padding:6px;font:inherit;font-size:12px;
+  .btn-selengkapnya{border:1px solid rgba(255,255,255,.55);border-radius:999px;margin-top:5px;padding:6px 26px;position:relative;font:inherit;font-size:12px;
     font-weight:600;color:#fff;cursor:pointer;background:rgba(255,255,255,.16);
     display:flex;align-items:center;justify-content:center;gap:7px}
   .btn-selengkapnya i{font-size:.75rem}
+  .btn-selengkapnya .bs-panah{position:absolute;right:11px;top:50%;transform:translateY(-50%);font-size:.68rem}
   .btn-selengkapnya:active{background:rgba(255,255,255,.28)}
 
   /* Kelas di bawah masih dipakai di dalam subform Data Statistik */
@@ -266,12 +267,12 @@
   /* panah kiri/kanan berada di baris titik (di bawah gambar), tidak menimpa gambar */
   .sp-titik.dengan-panah{gap:9px;margin-top:8px}
   .sp-titik .sp-panah{width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:50%;
-    background:var(--biru);color:#fff;font-size:.78rem;box-shadow:0 4px 10px rgba(21,88,201,.28);transition:transform .15s ease, background .2s ease}
-  .sp-titik .sp-panah:hover{background:var(--biru-tua)}
+    background:rgba(21,88,201,.5);color:#fff;font-size:.78rem;transition:transform .15s ease, background .2s ease}
+  .sp-titik .sp-panah:hover{background:rgba(21,88,201,.7)}
   .sp-titik .sp-panah:active{transform:scale(.9)}
   .sp-titik .sp-panah:focus-visible{outline:3px solid rgba(21,88,201,.45);outline-offset:2px}
   /* di gambar pertama / terakhir: panah yang tidak bisa dipakai berwarna biru lembut */
-  .sp-titik .sp-panah.lembut,.sp-titik .sp-panah.lembut:hover{background:#a9c3f1;box-shadow:none;cursor:default}
+  .sp-titik .sp-panah.lembut,.sp-titik .sp-panah.lembut:hover{background:rgba(21,88,201,.16);color:rgba(21,88,201,.5);cursor:default}
   .sp-titik .sp-panah.lembut:active{transform:none}
   /* Hanya Data Statistik */
   #dsGeser .sp-slide{border-radius:8px; flex:0 0 auto;}
@@ -307,14 +308,16 @@
   /* ---- MyData ---- */
   .md-profil{text-align:center;margin-bottom:16px}
   /* kartu Nama, NIK, NKK: rata kiri seperti Modal Informasi Data; NIK dan NKK sebaris */
-  .md-profil.dbm{text-align:left;background:#fff;border-radius:var(--radius);box-shadow:0 6px 16px rgba(11,42,111,.08);padding:14px 16px}
+  .md-profil.dbm{text-align:left;background:#fff;border-radius:var(--radius);box-shadow:0 6px 16px rgba(11,42,111,.08);padding:14px 12px}
   .md-profil.dbm .dbm-blok{margin-bottom:10px}
   .md-profil.dbm .dbm-dua{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .md-profil.dbm .dbm-dua .dbm-blok{margin-bottom:0}
-  .md-profil .md-nm{font-size:1rem;font-weight:600;color:var(--biru-tua)}
-  .md-profil .dbm-dua .dbm-nilai{gap:4px;font-size:clamp(.66rem,3.2vw,.84rem)}
+  .md-profil .md-nm{text-align:center;font-size:1rem;font-weight:600;color:var(--biru-tua);margin-bottom:10px}
+  /* huruf NIK/NKK +1px dari sebelumnya, dibatasi agar keduanya tetap sebaris di lebar layar apa pun */
+  .md-profil .dbm-dua .dbm-nilai{gap:4px;font-variant-numeric:tabular-nums;
+    font-size:clamp(.66rem,min(calc(3.2vw + 1px),calc(5.2vw - 6px)),calc(.84rem + 1px))}
   .md-profil .dbm-dua .dbm-nilai .nilai{font-size:inherit;letter-spacing:0}
-  .md-profil .md-mata{width:24px;height:24px;flex:none;font-size:.68rem;border-radius:8px}
+  .md-profil .md-mata{width:22px;height:22px;flex:none;font-size:.66rem;border-radius:8px}
   .md-avatar{width:78px;height:78px;border-radius:50%;margin:4px auto 10px;display:flex;align-items:center;justify-content:center;
     font-size:2.3rem;color:#fff;box-shadow:0 10px 20px -8px rgba(11,42,111,.45)}
   .md-avatar.l{background:linear-gradient(135deg,#1558c9,#4aa3ff)}
@@ -540,7 +543,7 @@
   .agenda-status.nonpresensi{background:#475569}.agenda-status.menunggu{background:#94a3b8}
   /* ---- Absensi Ronda ---- */
   .rd-waktu{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px auto 14px;width:max-content;max-width:100%;
-    background:#dbeafe;border-radius:999px;padding:7px 16px;font-size:.76rem;color:var(--biru-tua);box-shadow:0 4px 12px rgba(11,42,111,.08)}
+    background:#dbeafe;border:2px solid #fff;border-radius:999px;padding:7px 16px;font-size:.76rem;color:var(--biru-tua);box-shadow:0 4px 12px rgba(11,42,111,.08)}
   .rd-waktu i{color:var(--biru)}
   .rd-waktu b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;color:var(--biru-tua)}
   .rd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
@@ -1147,7 +1150,7 @@
           <div class="hs-baris">Jumlah KK <b id="angkaKK">-</b></div>
           <div class="hs-baris">Jumlah Jiwa <b id="angkaJiwa">-</b></div>
           <div class="hs-baris">Jumlah Wafat <b id="angkaWafat">-</b></div>
-          <button class="btn-selengkapnya" data-buka="statistik"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Detail<i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+          <button class="btn-selengkapnya" data-buka="statistik"><i class="fa-solid fa-chart-pie" aria-hidden="true"></i>Detail<i class="fa-solid fa-chevron-right bs-panah" aria-hidden="true"></i></button>
         </div>
       </div>
     </header>
@@ -4543,7 +4546,7 @@ async function renderMyData(isi){
 
   isi.innerHTML = `
     <div class="md-profil dbm">
-      <div class="dbm-blok"><small>Nama</small><span class="dbm-nilai md-nm">${esc(namaTanpaGelar(p.nama))}</span></div>
+      <div class="md-nm">${esc(namaTanpaGelar(p.nama))}</div>
       <div class="dbm-dua">${samarMd('NIK', p.nik)}${samarMd('NKK', p.nkk)}</div>
     </div>
     ${seksi('pribadi', 'Data Pribadi', pribadi, true)}
