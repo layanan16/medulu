@@ -153,7 +153,7 @@
   }
   .baris-atas{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
   .kiri-user{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
-  .avatar{flex:none;width:40px;height:40px;border-radius:50%;font-size:1.05rem;color:#fff;
+  .avatar{flex:none;width:40px;height:40px;border-radius:50%;font-size:1.15rem;color:#fff;
     background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);
     display:flex;align-items:center;justify-content:center}
   .sapaan{line-height:1.25;min-width:0;text-align:left}
@@ -187,7 +187,9 @@
     border-bottom:1px dashed rgba(255,255,255,.35);padding-bottom:3px}
   .hs-baris b{font-size:.975rem;color:#fff}
   .btn-selengkapnya{border:1px solid rgba(255,255,255,.55);border-radius:999px;margin-top:5px;padding:6px;font:inherit;font-size:12px;
-    font-weight:600;color:#fff;cursor:pointer;background:rgba(255,255,255,.16)}
+    font-weight:600;color:#fff;cursor:pointer;background:rgba(255,255,255,.16);
+    display:flex;align-items:center;justify-content:center;gap:7px}
+  .btn-selengkapnya i{font-size:.75rem}
   .btn-selengkapnya:active{background:rgba(255,255,255,.28)}
 
   /* Kelas di bawah masih dipakai di dalam subform Data Statistik */
@@ -268,6 +270,9 @@
   .sp-titik .sp-panah:hover{background:var(--biru-tua)}
   .sp-titik .sp-panah:active{transform:scale(.9)}
   .sp-titik .sp-panah:focus-visible{outline:3px solid rgba(21,88,201,.45);outline-offset:2px}
+  /* di gambar pertama / terakhir: panah yang tidak bisa dipakai berwarna biru lembut */
+  .sp-titik .sp-panah.lembut,.sp-titik .sp-panah.lembut:hover{background:#a9c3f1;box-shadow:none;cursor:default}
+  .sp-titik .sp-panah.lembut:active{transform:none}
   /* Hanya Data Statistik */
   #dsGeser .sp-slide{border-radius:8px; flex:0 0 auto;}
   #dsGeser .sp-slide img{height:160px; width:auto; max-width:none;}
@@ -301,6 +306,15 @@
 
   /* ---- MyData ---- */
   .md-profil{text-align:center;margin-bottom:16px}
+  /* kartu Nama, NIK, NKK: rata kiri seperti Modal Informasi Data; NIK dan NKK sebaris */
+  .md-profil.dbm{text-align:left;background:#fff;border-radius:var(--radius);box-shadow:0 6px 16px rgba(11,42,111,.08);padding:14px 16px}
+  .md-profil.dbm .dbm-blok{margin-bottom:10px}
+  .md-profil.dbm .dbm-dua{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .md-profil.dbm .dbm-dua .dbm-blok{margin-bottom:0}
+  .md-profil .md-nm{font-size:1rem;font-weight:600;color:var(--biru-tua)}
+  .md-profil .dbm-dua .dbm-nilai{gap:4px;font-size:clamp(.66rem,3.2vw,.84rem)}
+  .md-profil .dbm-dua .dbm-nilai .nilai{font-size:inherit;letter-spacing:0}
+  .md-profil .md-mata{width:24px;height:24px;flex:none;font-size:.68rem;border-radius:8px}
   .md-avatar{width:78px;height:78px;border-radius:50%;margin:4px auto 10px;display:flex;align-items:center;justify-content:center;
     font-size:2.3rem;color:#fff;box-shadow:0 10px 20px -8px rgba(11,42,111,.45)}
   .md-avatar.l{background:linear-gradient(135deg,#1558c9,#4aa3ff)}
@@ -1107,7 +1121,7 @@
         <div class="kiri-user">
           <div class="avatar" aria-hidden="true"><i class="fa-solid fa-user"></i></div>
           <div class="sapaan">
-            <small id="teksSapaan">Selamat pagi</small>
+            <small id="teksSapaan">Selamat pagi,</small>
             <strong id="namaUser">-</strong>
           </div>
         </div>
@@ -1133,7 +1147,7 @@
           <div class="hs-baris">Jumlah KK <b id="angkaKK">-</b></div>
           <div class="hs-baris">Jumlah Jiwa <b id="angkaJiwa">-</b></div>
           <div class="hs-baris">Jumlah Wafat <b id="angkaWafat">-</b></div>
-          <button class="btn-selengkapnya" data-buka="statistik">Selengkapnya</button>
+          <button class="btn-selengkapnya" data-buka="statistik"><i class="fa-solid fa-chart-column" aria-hidden="true"></i>Detail<i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
         </div>
       </div>
     </header>
@@ -1370,8 +1384,14 @@ function tampilkanLogin(){
   $('pesanLogin').textContent = ''; $('pesanLogin').classList.remove('tampil');
   $('login').style.display = 'flex';
 }
+/* Ikon avatar di header utama: ikon jenis kelamin yang sama dengan MyData (L: fa-person, P: fa-person-dress) */
+function setIkonSapaan(jk){
+  const a = document.querySelector('.kiri-user .avatar i'); if (!a) return;
+  a.className = 'fa-solid ' + (jk === 'P' ? 'fa-person-dress' : jk === 'L' ? 'fa-person' : 'fa-user');
+}
 function tampilkanUtama(profil){
   profilSaya = profil;
+  setIkonSapaan(profil && profil.jenis_kelamin);
   pasangRiwayat();
   aturMenuPengguna(profil);
   $('login').style.display = 'none';
@@ -1382,7 +1402,7 @@ function tampilkanUtama(profil){
   cekUlangTahun();
 }
 function perbaruiSapaan(){
-  $('teksSapaan').textContent = ucapanWaktu();
+  $('teksSapaan').textContent = ucapanWaktu() + ',';
   $('teksTanggal').textContent = new Date().toLocaleDateString('id-ID',
     { weekday:'long', day:'numeric', month:'long', year:'numeric' });   // contoh: Minggu, 25 Oktober 2026
 }
@@ -4092,6 +4112,7 @@ async function cekUlangTahun(){
   try{
     const { data, error } = await db.rpc('get_mydata', { p_token: tokenSesi });
     if (error || !data || !data.ok || !data.profil) return;
+    setIkonSapaan(data.profil.jenis_kelamin);
     const bd = parseTglLahir(data.profil.tgl_lahir), now = new Date();
     if (!bd || !hariUlangTahun(bd, now)) return;
     const kunci = 'medulu_ultah_' + (data.profil.nik || profilSaya.nik || profilSaya.nama) + '_' + now.getFullYear() + dua(now.getMonth() + 1) + dua(now.getDate());
@@ -4479,9 +4500,8 @@ async function renderMyData(isi){
   const p = hasil.profil, k = hasil.keluarga, surat = hasil.surat || [];
   const nilai = (v) => (v === null || v === undefined || v === '') ? '-' : esc(v);
   const baris = (label, isiHtml) => `<div class="md-baris"><span>${label}</span><span>${isiHtml}</span></div>`;
-  const idBaris = (label, v) => `<div class="md-id"><small>${label}</small><div class="baris">
-      <span class="nilai" data-nilai="${esc(v)}" data-tampil="0">${'*'.repeat(String(v || '').length || 16)}</span>
-      <button type="button" class="md-mata" data-mata aria-label="Tampilkan ${label}"><i class="fa-solid fa-eye"></i></button></div></div>`;
+  const samarMd = (label, v) => `<div class="dbm-blok"><small>${label}</small><span class="dbm-nilai"><span class="nilai" data-nilai="${esc(v)}" data-tampil="0">${v ? '*'.repeat(String(v).length) : '-'}</span>` +
+    (v ? `<button type="button" class="md-mata" data-mata aria-label="Tampilkan ${label}"><i class="fa-solid fa-eye"></i></button>` : '') + '</span></div>';
   const IKON_MD = { pribadi:'fa-id-card', keluarga:'fa-people-roof', surat:'fa-envelope-open-text' };
   const seksi = (kunci, judul, isiHtml, bukaDefault) =>
     `<details class="md-seksi" data-k="${kunci}" ${(kunci in terbuka ? terbuka[kunci] : bukaDefault) ? 'open' : ''}>
@@ -4522,14 +4542,15 @@ async function renderMyData(isi){
   }).join('') : '<div class="kosong" style="margin:8px 0 4px">Belum ada pengajuan surat pengantar.</div>';
 
   isi.innerHTML = `
-    <div class="md-profil">
-      <div class="md-nama">${esc(namaTanpaGelar(p.nama))}</div>
-      ${idBaris('NIK', p.nik)}${idBaris('NKK', p.nkk)}
+    <div class="md-profil dbm">
+      <div class="dbm-blok"><small>Nama</small><span class="dbm-nilai md-nm">${esc(namaTanpaGelar(p.nama))}</span></div>
+      <div class="dbm-dua">${samarMd('NIK', p.nik)}${samarMd('NKK', p.nkk)}</div>
     </div>
     ${seksi('pribadi', 'Data Pribadi', pribadi, true)}
     ${seksi('keluarga', 'Data Keluarga', keluarga, false)}
     ${seksi('surat', 'Arsip Surat Pengantar', arsip, false)}`;
   setIkonHeader(p.jenis_kelamin);
+  setIkonSapaan(p.jenis_kelamin);
 }
 
 /* Animasi lembut mekar/menciut (MyData, Profil RT, Bantuan): durasi sama, dibaca dari --dur-anim */
@@ -5548,6 +5569,7 @@ function pasangCarousel(idGeser, idTitik, opsi){
   }
   function langkah(){ return slide.length > 1 ? slide[1].offsetLeft - slide[0].offsetLeft : geser.clientWidth; }
   function tandai(){
+    perbaruiUjung();
     let i = 0, jarak = Infinity;
     slide.forEach((el, k) => { const d = Math.abs(tujuan(k) - geser.scrollLeft); if (d < jarak) { jarak = d; i = k; } });
     if (i === aktif) return;
@@ -5556,6 +5578,17 @@ function pasangCarousel(idGeser, idTitik, opsi){
   }
   geser.addEventListener('scroll', tandai, { passive: true });
   window.addEventListener('resize', () => geser.scrollTo({ left: tujuan(Math.max(0, aktif)) }));
+
+  /* opsi.ujung: panah berwarna lembut (tidak aktif) di gambar pertama / terakhir, dan tidak berputar */
+  let btnKiri = null, btnKanan = null;
+  const diAwal = () => geser.scrollLeft <= 2;
+  const diAkhir = () => geser.scrollLeft >= maks() - 2;
+  function perbaruiUjung(){
+    if (!opsi.ujung || !btnKiri) return;
+    const a = diAwal(), z = diAkhir();
+    btnKiri.classList.toggle('lembut', a);  btnKiri.setAttribute('aria-disabled', a ? 'true' : 'false');
+    btnKanan.classList.toggle('lembut', z); btnKanan.setAttribute('aria-disabled', z ? 'true' : 'false');
+  }
 
   /* pindah ke gambar ke-i (berputar: setelah terakhir kembali ke pertama) */
   function ke(i){ const n = slide.length; i = ((i % n) + n) % n; geser.scrollTo({ left: tujuan(i), behavior: 'smooth' }); }
@@ -5566,7 +5599,7 @@ function pasangCarousel(idGeser, idTitik, opsi){
   function mulaiOto(){
     berhenti();
     if (!opsi.otomatis || slide.length < 2 || ditahan || document.hidden || !terlihat || kurangGerak()) return;
-    timer = setInterval(() => ke(aktif + 1), opsi.otomatis);
+    timer = setInterval(() => ke(diAkhir() ? 0 : aktif + 1), opsi.otomatis);   // setelah gambar terakhir kembali ke pertama
   }
   if (opsi.panah && slide.length > 1){
     const panah = (arah) => {
@@ -5574,12 +5607,22 @@ function pasangCarousel(idGeser, idTitik, opsi){
       b.type = 'button'; b.className = 'sp-panah';
       b.setAttribute('aria-label', arah < 0 ? 'Gambar sebelumnya' : 'Gambar berikutnya');
       b.innerHTML = '<i class="fa-solid fa-chevron-' + (arah < 0 ? 'left' : 'right') + '" aria-hidden="true"></i>';
-      b.addEventListener('click', () => { ke(aktif + arah); mulaiOto(); });
+      b.addEventListener('click', () => {
+        if (opsi.ujung && (arah < 0 ? diAwal() : diAkhir())) return;      // sudah di ujung: tidak berputar
+        ke(opsi.ujung ? Math.max(0, Math.min(slide.length - 1, aktif + arah)) : aktif + arah);
+        mulaiOto();
+      });
       return b;
     };
     wadah.classList.add('dengan-panah');
-    wadah.insertBefore(panah(-1), wadah.firstChild);
-    wadah.appendChild(panah(1));
+    btnKiri = panah(-1); btnKanan = panah(1);
+    wadah.insertBefore(btnKiri, wadah.firstChild);
+    wadah.appendChild(btnKanan);
+    if (opsi.ujung){
+      geser.querySelectorAll('img').forEach(im => im.addEventListener('load', perbaruiUjung));   // lebar berubah setelah gambar termuat
+      window.addEventListener('resize', perbaruiUjung);
+      perbaruiUjung();
+    }
   }
   if (opsi.otomatis){
     const tahan = () => { ditahan = true; berhenti(); };
@@ -5605,7 +5648,7 @@ function pasangCarousel(idGeser, idTitik, opsi){
   });
   tandai();
 }
-pasangCarousel('dsGeser', 'dsTitik');   // Data Statistik
+pasangCarousel('dsGeser', 'dsTitik', { panah: true, otomatis: 6000, ujung: true });   // Data Statistik: panah + geser otomatis, ujung berwarna lembut
 pasangCarousel('spGeser', 'spTitik', { panah: true, otomatis: 6000 });   // Standar Pelayanan: panah + geser otomatis tiap 6 detik
 
 mulai();
