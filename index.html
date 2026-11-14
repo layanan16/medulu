@@ -275,6 +275,7 @@
   /* di gambar pertama / terakhir: panah yang tidak bisa dipakai disembunyikan (ruangnya tetap, titik-titik tidak bergeser) */
   .sp-titik .sp-panah.lembut{visibility:hidden;pointer-events:none}
   /* Hanya Data Statistik */
+  #dsGeser{scroll-snap-type:none}   /* geser bebas; langkah otomatis diatur di pasangCarousel (opsi halaman) */
   #dsGeser .sp-slide{border-radius:8px; flex:0 0 auto;}
   #dsGeser .sp-slide img{height:160px; width:auto; max-width:none;}
   #dsGeser .ds-btn{border-radius:inherit;}
@@ -5601,6 +5602,27 @@ function pasangCarousel(idGeser, idTitik, opsi){
     btnKanan.classList.toggle('lembut', z); btnKanan.setAttribute('aria-disabled', z ? 'true' : 'false');
   }
 
+  /* opsi.halaman: tiap langkah, gambar yang terpotong di sisi kanan hanya menyisakan 1/4 bagian di sisi kiri,
+     lalu gambar berikutnya muncul penuh; begitu seterusnya. Setelah mencapai ujung kembali ke awal. */
+  function langkahHalaman(){
+    const kanan = geser.scrollLeft + geser.clientWidth;
+    for (const s of slide){
+      const kiriS = s.offsetLeft, kananS = kiriS + s.offsetWidth;
+      if (kananS > kanan + 2){
+        const tujuanX = kiriS < kanan ? kiriS + s.offsetWidth * 0.75 : kiriS - 16;
+        return Math.max(0, Math.min(maks(), tujuanX));
+      }
+    }
+    return 0;
+  }
+  function maju(){
+    if (opsi.halaman){
+      geser.scrollTo({ left: diAkhir() ? 0 : langkahHalaman(), behavior: 'smooth' });
+    } else {
+      ke(diAkhir() ? 0 : aktif + 1);     // setelah gambar terakhir kembali ke pertama
+    }
+  }
+
   /* pindah ke gambar ke-i (berputar: setelah terakhir kembali ke pertama) */
   function ke(i){ const n = slide.length; i = ((i % n) + n) % n; geser.scrollTo({ left: tujuan(i), behavior: 'smooth' }); }
 
@@ -5610,7 +5632,7 @@ function pasangCarousel(idGeser, idTitik, opsi){
   function mulaiOto(){
     berhenti();
     if (!opsi.otomatis || slide.length < 2 || ditahan || document.hidden || !terlihat || kurangGerak()) return;
-    timer = setInterval(() => ke(diAkhir() ? 0 : aktif + 1), opsi.otomatis);   // setelah gambar terakhir kembali ke pertama
+    timer = setInterval(maju, opsi.otomatis);
   }
   if (opsi.panah && slide.length > 1){
     const panah = (arah) => {
@@ -5659,7 +5681,7 @@ function pasangCarousel(idGeser, idTitik, opsi){
   });
   tandai();
 }
-pasangCarousel('dsGeser', 'dsTitik', { otomatis: 3000 });   // Data Statistik: geser manual / otomatis tiap 3 detik
+pasangCarousel('dsGeser', 'dsTitik', { otomatis: 3000, halaman: true });   // Data Statistik: geser manual / otomatis tiap 3 detik, gambar terpotong menyisakan 1/4 di tiap langkah
 pasangCarousel('spGeser', 'spTitik', { otomatis: 3000 });   // Standar Pelayanan: geser manual / otomatis tiap 3 detik
 
 mulai();
