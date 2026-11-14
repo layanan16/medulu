@@ -261,6 +261,13 @@
   .sp-titik button{width:8px;height:8px;padding:0;border:0;border-radius:999px;background:#c5d2ea;cursor:pointer;
     transition:width .25s ease, background .25s ease}
   .sp-titik button.aktif{width:22px;background:var(--biru)}
+  /* panah kiri/kanan berada di baris titik (di bawah gambar), tidak menimpa gambar */
+  .sp-titik.dengan-panah{gap:9px;margin-top:8px}
+  .sp-titik .sp-panah{width:32px;height:32px;flex:none;display:flex;align-items:center;justify-content:center;border-radius:50%;
+    background:var(--biru);color:#fff;font-size:.78rem;box-shadow:0 4px 10px rgba(21,88,201,.28);transition:transform .15s ease, background .2s ease}
+  .sp-titik .sp-panah:hover{background:var(--biru-tua)}
+  .sp-titik .sp-panah:active{transform:scale(.9)}
+  .sp-titik .sp-panah:focus-visible{outline:3px solid rgba(21,88,201,.45);outline-offset:2px}
   /* Hanya Data Statistik */
   #dsGeser .sp-slide{border-radius:8px; flex:0 0 auto;}
   #dsGeser .sp-slide img{height:160px; width:auto; max-width:none;}
@@ -475,7 +482,11 @@
   .pesan-err{background:#fdecec;color:#b42318;border-radius:12px;padding:10px 12px;font-size:.78rem;margin-top:12px}
   .peringatan-nik{color:#b42318;font-size:.72rem;margin-top:4px}
   .md-tombol:disabled{background:#94a3b8;cursor:not-allowed}
-  .notif-judul{font-size:.86rem;font-weight:600;color:var(--biru-tua);margin:4px 2px 10px}
+  .notif-judul{font-size:.86rem;font-weight:600;color:var(--biru-tua);margin:4px 2px 10px;display:flex;align-items:center;gap:9px}
+  .notif-judul .nj-ikon{flex:none;width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.8rem}
+  .notif-judul.menunggu{color:#dc2626}
+  .notif-judul.menunggu .nj-ikon{background:rgba(220,38,38,.12);color:#dc2626}
+  .notif-judul.selesai .nj-ikon{background:rgba(5,150,105,.12);color:#059669}
   .notif-item{background:#fff;border-radius:var(--radius);padding:14px;margin-bottom:10px;box-shadow:0 6px 16px rgba(11,42,111,.08)}
   .notif-item.baru{border-left:4px solid #e53935}
   .notif-atas{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -515,9 +526,9 @@
   .agenda-status.nonpresensi{background:#475569}.agenda-status.menunggu{background:#94a3b8}
   /* ---- Absensi Ronda ---- */
   .rd-waktu{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px auto 14px;width:max-content;max-width:100%;
-    background:#fff;border-radius:999px;padding:7px 16px;font-size:.76rem;color:var(--abu);box-shadow:0 4px 12px rgba(11,42,111,.08)}
-  .rd-waktu i{color:var(--biru-muda)}
-  .rd-waktu b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;color:var(--oranye)}
+    background:#dbeafe;border-radius:999px;padding:7px 16px;font-size:.76rem;color:var(--biru-tua);box-shadow:0 4px 12px rgba(11,42,111,.08)}
+  .rd-waktu i{color:var(--biru)}
+  .rd-waktu b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.9rem;color:var(--biru-tua)}
   .rd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
   .rd-btn{border:0;border-radius:16px;color:#fff;padding:14px 6px;min-height:112px;display:flex;flex-direction:column;align-items:center;
     justify-content:center;gap:6px;font:inherit;cursor:pointer;box-shadow:0 8px 14px -8px rgba(0,0,0,.35);transition:transform .15s}
@@ -722,6 +733,14 @@
     font-size:1rem;cursor:pointer}
   .subform-header h2{flex:1;text-align:center;font-size:1rem;font-weight:600}
   .subform-header::after{content:"";flex:none;width:38px}   /* penyeimbang tombol kembali agar judul tepat di tengah */
+  /* ikon di sisi kanan header (mis. jenis kelamin di MyData): sama tinggi dengan tombol kembali (38px) */
+  .subform-header .hdr-kanan{display:none;flex:none;width:38px;height:38px;box-sizing:border-box;border-radius:50%;
+    align-items:center;justify-content:center;font-size:1.1rem;color:#fff;border:2px solid rgba(255,255,255,.85);
+    box-shadow:0 4px 10px rgba(0,0,0,.2)}
+  .subform-header.ada-kanan .hdr-kanan{display:flex}
+  .subform-header.ada-kanan::after{display:none}
+  .hdr-kanan.l{background:linear-gradient(135deg,#1558c9,#4aa3ff)}
+  .hdr-kanan.p{background:linear-gradient(135deg,#e11d74,#fb7185)}
   .subform-isi{flex:1;overflow-y:auto;padding:16px}
   .subform-isi.penuh{padding:0;overflow:hidden;display:flex}
   .subform-isi.penuh iframe{flex:1;width:100%;height:100%;border:0;background:#fff}
@@ -1174,6 +1193,7 @@
     <div class="subform-header">
       <button id="btnKembali" aria-label="Kembali"><i class="fa-solid fa-arrow-left"></i></button>
       <h2 id="judulSubform">Subform</h2>
+      <span class="hdr-kanan" id="hdrKanan" role="img"></span>
     </div>
     <div class="subform-isi" id="isiSubform"></div>
   </section>
@@ -2733,12 +2753,24 @@ const DAFTAR_SUBFORM = {
 };
 let versiSubform = 0;
 
+/* Ikon di sisi kanan header subform: 'L' / 'P' menampilkan ikon jenis kelamin, kosong = tidak ada ikon */
+function setIkonHeader(jk){
+  const hd = document.querySelector('.subform-header'), k = $('hdrKanan');
+  if (!hd || !k) return;
+  if (!jk){ hd.classList.remove('ada-kanan'); k.className = 'hdr-kanan'; k.innerHTML = ''; k.removeAttribute('aria-label'); return; }
+  const p = jk === 'P';
+  k.className = 'hdr-kanan ' + (p ? 'p' : 'l');
+  k.innerHTML = '<i class="fa-solid ' + (p ? 'fa-person-dress' : 'fa-person') + '" aria-hidden="true"></i>';
+  k.setAttribute('aria-label', p ? 'Perempuan' : 'Laki-laki');
+  hd.classList.add('ada-kanan');
+}
 function bukaSubform(kunci, dariAdmin){
   const s = DAFTAR_SUBFORM[kunci]; if (!s) return;
   if (MENU_KHUSUS.includes(kunci) && !aksesPenuh) return;
   if (kunci === 'polling' && !pollingAktifUntukSaya()){ toast('Polling belum dibuka oleh admin.'); return; }
   if (kunci === 'absensironda' && !aksesRonda){ toast('Absensi Ronda hanya untuk petugas ronda dan Admin.'); return; }
   versiSubform++;
+  setIkonHeader('');
   $('judulSubform').textContent = s.judul;
   const isi = $('isiSubform');
   isi.classList.toggle('penuh', kunci === 'pendataan');
@@ -3786,8 +3818,8 @@ async function renderInfoAktual(isi){
       </div>` : kosong(d.galat.pelayanan, 'Belum ada surat pengantar yang disetujui.');
 
   isi.innerHTML =
-    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-calendar-days"></i> Agenda RT</h3>${kartuAgenda}</div>` +
     `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-clipboard-user"></i> Absensi Ronda</h3>${kartuRonda}</div>` +
+    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-calendar-days"></i> Agenda RT</h3>${kartuAgenda}</div>` +
     `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-envelope-circle-check"></i> Pelayanan Surat Pengantar</h3>${kartuLayanan}</div>`;
 }
 
@@ -4491,13 +4523,13 @@ async function renderMyData(isi){
 
   isi.innerHTML = `
     <div class="md-profil">
-      <div class="md-avatar ${p.jenis_kelamin === 'P' ? 'p' : 'l'}"><i class="fa-solid ${p.jenis_kelamin === 'P' ? 'fa-person-dress' : 'fa-person'}"></i></div>
       <div class="md-nama">${esc(namaTanpaGelar(p.nama))}</div>
       ${idBaris('NIK', p.nik)}${idBaris('NKK', p.nkk)}
     </div>
-    ${seksi('pribadi', 'Data Pribadi', pribadi, false)}
+    ${seksi('pribadi', 'Data Pribadi', pribadi, true)}
     ${seksi('keluarga', 'Data Keluarga', keluarga, false)}
-    ${seksi('surat', 'Arsip Surat Pengantar', arsip, true)}`;
+    ${seksi('surat', 'Arsip Surat Pengantar', arsip, false)}`;
+  setIkonHeader(p.jenis_kelamin);
 }
 
 /* Animasi lembut mekar/menciut (MyData, Profil RT, Bantuan): durasi sama, dibaca dari --dur-anim */
@@ -5227,14 +5259,14 @@ async function renderNotifSurat(isi){
         <div class="notif-aksi">
           <button type="button" class="md-link hijau" data-setuju="${esc(x.id)}" data-no="${esc(x.no_surat)}" data-jenis="${esc(x.jenis_label)}" data-nama="${esc(namaTanpaGelar(x.nama))}"><i class="fa-solid fa-circle-check"></i> Persetujuan</button>
         </div></div>`; }).join('');
-    const selesai = (d.selesai || []).map(x => `<div class="notif-item">
+    const selesai = (d.selesai || []).slice(0, 5).map(x => `<div class="notif-item">
         <div class="notif-atas"><div><div class="notif-no">${esc(x.no_surat)}</div><div class="notif-jenis">${esc(x.jenis_label)}</div></div>${statusBadge('Disetujui')}</div>
         <div class="notif-ket">${esc(namaTanpaGelar(x.nama))} · disetujui ${tglIndoDT(x.diverifikasi_pada, true)}</div>
         ${tautanArsip(x.link) ? `<div style="margin-top:8px">${tautanArsip(x.link)}</div>` : ''}</div>`).join('');
     isi.innerHTML =
-      `<div class="notif-judul">Menunggu Persetujuan (${fmt((d.menunggu || []).length)})</div>` +
+      `<div class="notif-judul menunggu"><span class="nj-ikon"><i class="fa-solid fa-hourglass-half" aria-hidden="true"></i></span>Menunggu Persetujuan (${fmt((d.menunggu || []).length)})</div>` +
       (menunggu || '<div class="kosong" style="margin:10px 0 24px"><i class="fa-solid fa-envelope-circle-check"></i>Tidak ada pengajuan yang menunggu persetujuan.</div>') +
-      (selesai ? `<div class="notif-judul" style="margin-top:16px">Terakhir Disetujui</div>${selesai}` : '');
+      (selesai ? `<div class="notif-judul selesai" style="margin-top:16px"><span class="nj-ikon"><i class="fa-solid fa-circle-check" aria-hidden="true"></i></span>5 Surat Terakhir Disetujui</div>${selesai}` : '');
     return;
   }
 
@@ -5494,7 +5526,8 @@ document.addEventListener('keydown', e => {
 /* =====================================================================
    STANDAR PELAYANAN: carousel geser kanan + titik navigasi
    ===================================================================== */
-function pasangCarousel(idGeser, idTitik){
+function pasangCarousel(idGeser, idTitik, opsi){
+  opsi = opsi || {};                       // opsi.panah: tombol kiri/kanan | opsi.otomatis: jeda geser otomatis (ms)
   const geser = $(idGeser), wadah = $(idTitik);
   if (!geser || !wadah) return;
   const slide = geser.querySelectorAll('.sp-slide');
@@ -5523,6 +5556,49 @@ function pasangCarousel(idGeser, idTitik){
   }
   geser.addEventListener('scroll', tandai, { passive: true });
   window.addEventListener('resize', () => geser.scrollTo({ left: tujuan(Math.max(0, aktif)) }));
+
+  /* pindah ke gambar ke-i (berputar: setelah terakhir kembali ke pertama) */
+  function ke(i){ const n = slide.length; i = ((i % n) + n) % n; geser.scrollTo({ left: tujuan(i), behavior: 'smooth' }); }
+
+  /* geser otomatis: berhenti saat disentuh/diarahkan kursor/difokus, saat tab tersembunyi, atau di luar layar */
+  let timer = null, ditahan = false, terlihat = true;
+  function berhenti(){ clearInterval(timer); timer = null; }
+  function mulaiOto(){
+    berhenti();
+    if (!opsi.otomatis || slide.length < 2 || ditahan || document.hidden || !terlihat || kurangGerak()) return;
+    timer = setInterval(() => ke(aktif + 1), opsi.otomatis);
+  }
+  if (opsi.panah && slide.length > 1){
+    const panah = (arah) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sp-panah';
+      b.setAttribute('aria-label', arah < 0 ? 'Gambar sebelumnya' : 'Gambar berikutnya');
+      b.innerHTML = '<i class="fa-solid fa-chevron-' + (arah < 0 ? 'left' : 'right') + '" aria-hidden="true"></i>';
+      b.addEventListener('click', () => { ke(aktif + arah); mulaiOto(); });
+      return b;
+    };
+    wadah.classList.add('dengan-panah');
+    wadah.insertBefore(panah(-1), wadah.firstChild);
+    wadah.appendChild(panah(1));
+  }
+  if (opsi.otomatis){
+    const tahan = () => { ditahan = true; berhenti(); };
+    const lepas = () => { ditahan = false; mulaiOto(); };
+    [geser, wadah].forEach(el => {
+      el.addEventListener('touchstart', tahan, { passive: true });
+      el.addEventListener('touchend', lepas, { passive: true });
+      el.addEventListener('touchcancel', lepas, { passive: true });
+      el.addEventListener('mouseenter', tahan);
+      el.addEventListener('mouseleave', lepas);
+      el.addEventListener('focusin', tahan);
+      el.addEventListener('focusout', lepas);
+    });
+    document.addEventListener('visibilitychange', mulaiOto);
+    if ('IntersectionObserver' in window){
+      new IntersectionObserver((e) => { terlihat = e[0].isIntersecting; mulaiOto(); }, { threshold: 0.5 }).observe(geser);
+    }
+    mulaiOto();
+  }
   geser.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') geser.scrollBy({ left: langkah(), behavior: 'smooth' });
     else if (e.key === 'ArrowLeft') geser.scrollBy({ left: -langkah(), behavior: 'smooth' });
@@ -5530,7 +5606,7 @@ function pasangCarousel(idGeser, idTitik){
   tandai();
 }
 pasangCarousel('dsGeser', 'dsTitik');   // Data Statistik
-pasangCarousel('spGeser', 'spTitik');   // Standar Pelayanan
+pasangCarousel('spGeser', 'spTitik', { panah: true, otomatis: 6000 });   // Standar Pelayanan: panah + geser otomatis tiap 6 detik
 
 mulai();
 
