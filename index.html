@@ -534,6 +534,7 @@
   .agenda-item{padding:12px 0;border-top:1px dashed #e2e8f0}
   .agenda-item:first-of-type{border-top:0;padding-top:2px}
   .agenda-jenis{display:inline-block;font-size:.64rem;font-weight:600;border-radius:999px;padding:2px 9px;color:#fff;margin-bottom:5px}
+  .agenda h3 .agenda-jenis{margin:0 0 0 auto}      /* jenis surat di kanan, sebaris dengan judul seksi */
   .agenda-jenis.masuk{background:#1558c9}.agenda-jenis.keluar{background:#7c3aed}.agenda-jenis.undangan{background:#d98a00}
   .agenda-perihal{font-size:.86rem;font-weight:600;color:var(--teks);margin-bottom:5px;word-break:break-word}
   .agenda-baris{display:flex;gap:8px;font-size:.72rem;color:var(--abu);line-height:1.5}
@@ -3817,7 +3818,6 @@ async function renderInfoAktual(isi){
   const a = d.agenda;
   const kartuAgenda = a ? `
       <div class="agenda-item">
-        <span class="agenda-jenis ${esc(a.jenis)}">${NAMA_JENIS[a.jenis] || ''}</span>
         <div class="agenda-perihal">${esc(a.perihal)}</div>
         <div class="agenda-baris"><span>No. Surat</span><span>${esc(a.nomor)}</span></div>
         <div class="agenda-baris"><span>Tgl Surat</span><span>${tglIndo(a.tgl_surat)}</span></div>
@@ -3850,8 +3850,8 @@ async function renderInfoAktual(isi){
 
   isi.innerHTML =
     `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-clipboard-user"></i> Absensi Ronda</h3>${kartuRonda}</div>` +
-    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-calendar-days"></i> Agenda RT</h3>${kartuAgenda}</div>` +
-    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-envelope-circle-check"></i> Pelayanan Surat Pengantar</h3>${kartuLayanan}</div>`;
+    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-calendar-days"></i> Agenda RT${a ? `<span class="agenda-jenis ${esc(a.jenis)}">${NAMA_JENIS[a.jenis] || ''}</span>` : ''}</h3>${kartuAgenda}</div>` +
+    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-envelope-circle-check"></i> Surat Pengantar terakhir</h3>${kartuLayanan}</div>`;
 }
 
 /* =====================================================================
