@@ -1198,10 +1198,19 @@
   #isiSubform:has(>.kartu-stat.agenda)>.kartu-stat.agenda:first-child{grid-column:1/-1}
 
   /* (8) Profil RT: Periodisasi 3 kolom */
-  .pr details.md-seksi[data-k="periodisasi"] .md-isi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-content:start}
-  .pr details.md-seksi[data-k="periodisasi"] .md-isi>:not(.pr-grup){grid-column:1/-1}
-  .pr details.md-seksi[data-k="periodisasi"] .pr-grup{margin-top:0;border:1px solid #e2e8f0;border-radius:12px;padding:2px 12px 6px;background:#f8fafc}
-  .pr details.md-seksi[data-k="periodisasi"] .pr-grup>.md-baris:first-child{border-top:0}
+  .pr details.md-seksi[data-k="periodisasi"] .md-isi,.pr details.md-seksi[data-k="pengurus"] .md-isi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-content:start}
+  .pr details.md-seksi[data-k="periodisasi"] .md-isi>:not(.pr-grup),.pr details.md-seksi[data-k="pengurus"] .md-isi>:not(.pr-grup){grid-column:1/-1}
+  .pr details.md-seksi[data-k="periodisasi"] .pr-grup,.pr details.md-seksi[data-k="pengurus"] .pr-grup{margin-top:0;border:1px solid #e2e8f0;border-radius:12px;padding:2px 12px 6px;background:#f8fafc;min-width:0}
+  .pr details.md-seksi[data-k="periodisasi"] .pr-grup>.md-baris:first-child,.pr details.md-seksi[data-k="pengurus"] .pr-grup>.md-baris:first-child{border-top:0}
+
+  /* MyData: Data Pribadi 2 kolom */
+  details.md-seksi[data-k="pribadi"] .md-isi{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-content:start}
+
+  /* Data Statistik: 2 kartu sebaris (kartu terakhir penuh bila jumlahnya ganjil) */
+  #isiSubform:has(>#stRincian){display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-content:start}
+  #isiSubform:has(>#stRincian)>#stRincian{display:contents}
+  #isiSubform:has(>#stRincian) .kartu-stat{min-width:0}
+  #stRincian>.kartu-stat:last-child{grid-column:1/-1}
 
   /* (2) Semua ukuran font +2px (px diskalakan --z, rem mengikuti skala root) */
   .footer-biru{font-size:calc(.75rem + 2px)}
@@ -6023,7 +6032,7 @@ function pasangCarousel(idGeser, idTitik, opsi){
   let titik = wadah.querySelectorAll('button');
   let aktif = -1;
   function maks(){ return geser.scrollWidth - geser.clientWidth; }
-  /* opsi.bertahap: bila beberapa gambar terlihat sekaligus (tablet/PC), jumlah posisi geser = jumlah gambar - gambar terlihat + 1 */
+  /* opsi.bertahap: bila beberapa gambar terlihat sekaligus (tablet/PC), tiap geseran maju (terlihat - 1) gambar, mis. 5 gambar & 3 terlihat = 2 posisi (1 kali geser) */
   function tampil(){
     if (!opsi.bertahap || slide.length < 2) return 1;
     const cs = getComputedStyle(geser), lebar = geser.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
@@ -6031,12 +6040,13 @@ function pasangCarousel(idGeser, idTitik, opsi){
     if (!geser.clientWidth || lgk <= 0) return 1;
     return Math.max(1, Math.min(slide.length, Math.floor((lebar + (lgk - slide[0].offsetWidth)) / lgk + 0.05)));
   }
-  function jumlah(){ return slide.length - tampil() + 1; }
+  function jumlah(){ const t = tampil(); return t <= 1 ? slide.length : Math.max(1, Math.ceil((slide.length - t) / (t - 1)) + 1); }
   function tujuan(i){
     if (i <= 0) return 0;
     if (tampil() > 1){
       if (i >= jumlah() - 1) return maks();
-      return Math.max(0, Math.min(maks(), slide[i].offsetLeft - parseFloat(getComputedStyle(geser).paddingLeft)));
+      const idx = Math.min(slide.length - 1, i * (tampil() - 1));   // tiap langkah maju (terlihat - 1) gambar; gambar tepi terakhir tetap terlihat
+      return Math.max(0, Math.min(maks(), slide[idx].offsetLeft - parseFloat(getComputedStyle(geser).paddingLeft)));
     }
     if (i >= slide.length - 1) return maks();
     const s = slide[i];
