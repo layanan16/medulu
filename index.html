@@ -1124,6 +1124,13 @@
   .judul-seksi i{width:calc(26px * var(--z));height:calc(26px * var(--z))}
   .kartu-surat .ikon-besar{width:calc(52px * var(--z));height:calc(52px * var(--z))}
   .kartu-surat{padding:20px 24px}
+  /* Kartu Surat Pengantar: ikon | 2 baris teks | tombol Ajukan Sekarang di kanan (sebaris) */
+  .kartu-surat{display:grid;grid-template-columns:auto 1fr auto;column-gap:14px;align-items:center}
+  .kartu-surat > div:not(.ikon-besar){display:contents}
+  .kartu-surat .ikon-besar{grid-column:1;grid-row:1 / 3}
+  .kartu-surat h3{grid-column:2;grid-row:1;align-self:end}
+  .kartu-surat p{grid-column:2;grid-row:2;margin:2px 0 0;align-self:start}
+  .kartu-surat button{grid-column:3;grid-row:1 / 3;align-self:center;position:relative;z-index:1;white-space:nowrap}
 
   /* Fitur utama: 5 kolom di tablet */
   .grid-fitur{grid-template-columns:repeat(5,1fr);gap:10px 6px}
@@ -1196,6 +1203,13 @@
   /* (7) Info Aktual: kartu Agenda RT dan Surat Pengantar berdampingan; Absensi Ronda satu baris penuh */
   #isiSubform:has(>.kartu-stat.agenda){display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-content:start}
   #isiSubform:has(>.kartu-stat.agenda)>.kartu-stat.agenda:first-child{grid-column:1/-1}
+  /* Agenda RT & Surat Pengantar terakhir: kolom label dilebarkan agar nilai tidak turun ke baris bawah */
+  .kartu-stat.agenda .agenda-baris{gap:12px}
+  .kartu-stat.agenda .agenda-baris span:first-child{width:calc(112px * var(--z) + 18px);white-space:nowrap}
+  .kartu-stat.agenda .agenda-baris span:last-child{flex:1;min-width:0}
+
+  /* Profil RT > Keadaan Bangunan: Kawasan Hunian dan Bangunan Fungsional sebaris */
+  .pr details.md-seksi[data-k="bangunan"] .md-isi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-items:start}
 
   /* (8) Profil RT: Periodisasi 3 kolom */
   .pr details.md-seksi[data-k="periodisasi"] .md-isi,.pr details.md-seksi[data-k="pengurus"] .md-isi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-content:start}
@@ -3000,8 +3014,8 @@ function prHtmlBangunan(){
     : prKosong('Belum ada data kawasan hunian.');
   const fungsional = prBaris('Bangunan Huni/Kosong', `${prTotalHuni()} H | ${prTotalTidak()} TH`) +
     fung.map(x => prBaris(esc(x.nama), `${Number(x.jumlah) || 0}`)).join('');
-  return prSubJudul('Kawasan Hunian', 'bangunan', hun.length) + kawasan +
-         prSubJudul('Bangunan Fungsional', 'fungsional', fung.length) + fungsional;
+  return '<div class="pr-kol">' + prSubJudul('Kawasan Hunian', 'bangunan', hun.length) + kawasan + '</div>' +
+         '<div class="pr-kol">' + prSubJudul('Bangunan Fungsional', 'fungsional', fung.length) + fungsional + '</div>';
 }
 const PR_WARNA_JABATAN = ['#e0f2fe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#ccfbf1','#ffedd5','#fee2e2'];
 function prHtmlPengurus(){
