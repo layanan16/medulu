@@ -1206,11 +1206,17 @@
   /* MyData: Data Pribadi 2 kolom */
   details.md-seksi[data-k="pribadi"] .md-isi{display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-content:start}
 
-  /* Data Statistik: 2 kartu sebaris (kartu terakhir penuh bila jumlahnya ganjil) */
+  /* Data Statistik: 2 kartu sebaris (empat kartu di bawah Data Demografi) */
   #isiSubform:has(>#stRincian){display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-content:start}
   #isiSubform:has(>#stRincian)>#stRincian{display:contents}
   #isiSubform:has(>#stRincian) .kartu-stat{min-width:0}
-  #stRincian>.kartu-stat:last-child{grid-column:1/-1}
+  /* kartu Data Demografi: satu baris penuh, Jenis Kelamin (kiri) dan Usia (kanan) sebaris */
+  #isiSubform:has(>#stRincian)>.kartu-stat:first-child{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;column-gap:28px;align-items:start}
+  #isiSubform:has(>#stRincian)>.kartu-stat:first-child>.st-judul{grid-column:1/-1}
+  #isiSubform:has(>#stRincian)>.kartu-stat:first-child>.kr-sub:nth-of-type(1){grid-column:1;grid-row:2}
+  #isiSubform:has(>#stRincian)>.kartu-stat:first-child>.st-donut{grid-column:1;grid-row:3}
+  #isiSubform:has(>#stRincian)>.kartu-stat:first-child>.kr-sub:nth-of-type(3){grid-column:2;grid-row:2;margin-top:0}
+  #isiSubform:has(>#stRincian)>.kartu-stat:first-child>#stUsiaWadah{grid-column:2;grid-row:3;min-width:0}
 
   /* (2) Semua ukuran font +2px (px diskalakan --z, rem mengikuti skala root) */
   .footer-biru{font-size:calc(.75rem + 2px)}
