@@ -1211,6 +1211,14 @@
   /* Profil RT > Keadaan Bangunan: Kawasan Hunian dan Bangunan Fungsional sebaris */
   .pr details.md-seksi[data-k="bangunan"] .md-isi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-items:start}
 
+  /* Pengajuan Surat Pengantar: NIK Pemohon (rata kiri) + Jenis Surat sebaris; isian di bawahnya 3 kolom */
+  #formSurat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:16px;align-items:start}
+  #formSurat #boxNikPemohon{margin:0 0 12px;text-align:left}
+  #formSurat #boxNikPemohon .baris{justify-content:flex-start}
+  #formSurat #isianSurat{grid-column:1 / -1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:16px;align-items:start}
+  #formSurat #isianSurat > *{min-width:0}
+  #formSurat #btnKirimSurat,#formSurat #pesanSurat{grid-column:1 / -1}
+
   /* (8) Profil RT: Periodisasi 3 kolom */
   .pr details.md-seksi[data-k="periodisasi"] .md-isi,.pr details.md-seksi[data-k="pengurus"] .md-isi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-content:start}
   .pr details.md-seksi[data-k="periodisasi"] .md-isi>:not(.pr-grup),.pr details.md-seksi[data-k="pengurus"] .md-isi>:not(.pr-grup){grid-column:1/-1}
