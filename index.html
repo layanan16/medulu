@@ -580,6 +580,8 @@
   .rk-tgl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
   .rk-tampil{width:100%;border:0;border-radius:12px;background:var(--biru);color:#fff;padding:10px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;margin-bottom:12px}
   .rk-tabel th.rk-n,.rk-tabel td.rk-n{text-align:center}
+  .rk-tabel th{white-space:normal;line-height:1.2;padding:7px 5px;vertical-align:bottom}
+  .rk-tabel td{padding:7px 5px}
   .rk-tabel td:first-child{font-weight:600;color:var(--teks)}
   .rk-ket{font-size:.68rem;color:var(--abu);margin-top:8px}
   .rd-petugas{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f1f6ff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px}
@@ -4648,10 +4650,11 @@ function bukaRekapRonda(){
       if (n !== urut || !$('rkHasil')) return;
       if (!data || !data.ok){ hasil.innerHTML = `<div class="rd-kosong">${esc((data && data.pesan) || 'Gagal memuat rekap.')}</div>`; return; }
       const per = {}; (data.items || []).forEach(x => { per[x.nama] = x; });
+      const kol = ['hadir', 'atl_telat', 'non_presensi', 'alpa', 'izin'];
       const baris = PETUGAS_RONDA.map(nama => { const x = per[nama] || {};
-        return `<tr><td>${esc(nama)}</td><td class="rk-n">${Number(x.hadir) || 0}</td><td class="rk-n">${Number(x.alpa) || 0}</td><td class="rk-n">${Number(x.izin) || 0}</td><td class="rk-n">${Number(x.non_presensi) || 0}</td></tr>`; }).join('');
-      hasil.innerHTML = `<div class="md-tabel-wadah"><table class="md-tabel rk-tabel"><thead><tr><th>Petugas</th><th class="rk-n">Hadir</th><th class="rk-n">Alpa</th><th class="rk-n">Izin</th><th class="rk-n">Non Presensi</th></tr></thead><tbody>${baris}</tbody></table></div>
-        <div class="rk-ket">Periode ${tglIndo(awal)} s.d ${tglIndo(akhir)}. Hadir = absen masuk dan pulang lengkap.</div>`;
+        return `<tr><td>${esc(nama)}</td>${kol.map(k => `<td class="rk-n">${Number(x[k]) || 0}</td>`).join('')}</tr>`; }).join('');
+      hasil.innerHTML = `<div class="md-tabel-wadah"><table class="md-tabel rk-tabel"><thead><tr><th>Petugas</th><th class="rk-n">Hadir</th><th class="rk-n">ATL/ Telat</th><th class="rk-n">Non Presensi</th><th class="rk-n">Alpa</th><th class="rk-n">Izin</th></tr></thead><tbody>${baris}</tbody></table></div>
+        <div class="rk-ket">Periode ${tglIndo(awal)} s.d ${tglIndo(akhir)}. Hadir = absen masuk dan pulang lengkap; ATL/Telat = hanya masuk atau hanya pulang.</div>`;
     }catch(e){ console.error(e); if (n === urut && $('rkHasil')) $('rkHasil').innerHTML = '<div class="rd-kosong">Tidak dapat memuat data. Periksa koneksi Anda.</div>'; }
   };
   mfNavFn = (a) => { if (a === 'tampil') muat(); };
