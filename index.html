@@ -542,6 +542,7 @@
   .agenda-baris{display:flex;gap:8px;font-size:.72rem;color:var(--abu);line-height:1.5}
   .agenda-baris span:first-child{flex:none;width:98px}
   .agenda-baris span:last-child{color:var(--teks);word-break:break-word}
+  .kartu-stat.agenda.layanan .agenda-baris span:first-child{width:9.5em;white-space:nowrap}
   .agenda-status.bertugas{background:#d98a00}.agenda-status.atl,.agenda-status.telat{background:#ea580c}
   .agenda-status.nonpresensi{background:#475569}.agenda-status.menunggu{background:#94a3b8}
   /* ---- Absensi Ronda ---- */
@@ -1219,6 +1220,10 @@
   .kartu-stat.agenda .agenda-baris{gap:12px}
   .kartu-stat.agenda .agenda-baris span:first-child{width:calc(112px * var(--z) + 18px);white-space:nowrap}
   .kartu-stat.agenda .agenda-baris span:last-child{flex:1;min-width:0}
+  /* Info Aktual > Surat Pengantar terakhir: label item cukup lebar, item dan nilainya tampil sebaris */
+  .kartu-stat.agenda.layanan .agenda-baris{gap:12px;align-items:baseline}
+  .kartu-stat.agenda.layanan .agenda-baris span:first-child{flex:none;width:9.5em;white-space:nowrap}
+  .kartu-stat.agenda.layanan .agenda-baris span:last-child{flex:1;min-width:0}
 
   /* Profil RT > Keadaan Bangunan: Permukiman dan Bangunan Fungsional sebaris */
   .pr details.md-seksi[data-k="bangunan"] .md-isi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-items:start}
@@ -3410,13 +3415,15 @@ function durasiLalu(tglSurat, dibuatPada){
 function durasiDari(acuan){
   const menit = Math.floor((Date.now() - acuan.getTime()) / 60000);
   if (menit < 1) return 'Baru saja';
+  /* Bagian bernilai 0 dibuang: "1 jam 0 menit" -> "1 jam", "1 hari 0 jam" -> "1 hari" */
+  const rakit = (n1, s1, n2, s2) => n1 + ' ' + s1 + (n2 ? ' ' + n2 + ' ' + s2 : '') + ' lalu';
   if (menit < 60) return menit + ' menit lalu';
   const jam = Math.floor(menit / 60);
-  if (jam < 24) return jam + ' jam ' + (menit % 60) + ' menit lalu';
+  if (jam < 24) return rakit(jam, 'jam', menit % 60, 'menit');
   const hari = Math.floor(jam / 24);
-  if (hari < 7) return hari + ' hari ' + (jam % 24) + ' jam lalu';
-  if (hari < 30) return Math.floor(hari / 7) + ' minggu ' + (hari % 7) + ' hari lalu';
-  return Math.floor(hari / 30) + ' bln ' + Math.floor((hari % 30) / 7) + ' minggu lalu';
+  if (hari < 7) return rakit(hari, 'hari', jam % 24, 'jam');
+  if (hari < 30) return rakit(Math.floor(hari / 7), 'minggu', hari % 7, 'hari');
+  return rakit(Math.floor(hari / 30), 'bln', Math.floor((hari % 30) / 7), 'minggu');
 }
 
 async function kirimRpc(fn, p){
@@ -4369,7 +4376,7 @@ async function renderInfoAktual(isi){
   isi.innerHTML =
     `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-clipboard-user"></i> Absensi Ronda</h3>${kartuRonda}</div>` +
     `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-calendar-days"></i> Agenda RT${a ? `<span class="agenda-jenis ${esc(a.jenis)}">${NAMA_JENIS[a.jenis] || ''}</span>` : ''}</h3>${kartuAgenda}</div>` +
-    `<div class="kartu-stat agenda"><h3><i class="fa-solid fa-envelope-circle-check"></i> Surat Pengantar terakhir</h3>${kartuLayanan}</div>`;
+    `<div class="kartu-stat agenda layanan"><h3><i class="fa-solid fa-envelope-circle-check"></i> Surat Pengantar terakhir</h3>${kartuLayanan}</div>`;
 }
 
 /* =====================================================================
