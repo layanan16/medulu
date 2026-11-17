@@ -574,6 +574,14 @@
   .rd-judul-baris{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
   .rd-judul-baris h3{margin:0!important}
   .rd-rel{font-size:.7rem;color:#94a3b8}
+  .rd-rekap{border:1.5px solid var(--biru);background:#fff;color:var(--biru);border-radius:999px;padding:4px 12px;font:inherit;font-size:.72rem;font-weight:600;cursor:pointer;
+    display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex:none}
+  .rd-rekap:active{background:#eef3fb}
+  .rk-tgl{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .rk-tampil{width:100%;border:0;border-radius:12px;background:var(--biru);color:#fff;padding:10px;font:inherit;font-size:.8rem;font-weight:600;cursor:pointer;margin-bottom:12px}
+  .rk-tabel th.rk-n,.rk-tabel td.rk-n{text-align:center}
+  .rk-tabel td:first-child{font-weight:600;color:var(--teks)}
+  .rk-ket{font-size:.68rem;color:var(--abu);margin-top:8px}
   .rd-petugas{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f1f6ff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px}
   .rd-petugas b{font-size:.86rem;color:var(--teks)}
   .rd-petugas small{display:flex;gap:10px;font-size:.74rem;color:var(--abu);margin-top:3px}
@@ -4478,7 +4486,8 @@ function renderAbsensiRonda(isi){
     <div class="rd-waktu"><i class="fa-regular fa-clock"></i><span id="rdTgl"></span><b id="rdJam"></b></div>
 
     <div class="kartu-stat" id="rdKartuHadir" hidden>
-      <h3 class="st-judul"><i class="fa-solid fa-fingerprint" style="color:#059669"></i> Absen Kehadiran</h3>
+      <div class="rd-judul-baris"><h3 class="st-judul"><i class="fa-solid fa-fingerprint" style="color:#059669"></i> Absen Kehadiran</h3>
+        <button type="button" class="rd-rekap" data-rdrekap><i class="fa-solid fa-chart-column"></i> Rekap</button></div>
       <div class="rd-grid">
         <button type="button" class="rd-btn rd-pulang" id="rdPulang" data-rd="Absen Pulang" disabled>
           <span class="ik-b"><i class="fa-solid fa-right-from-bracket"></i></span><b>Absen Pulang</b><small>04.00 – 05.00</small></button>
@@ -4491,7 +4500,8 @@ function renderAbsensiRonda(isi){
     </div>
 
     <div class="kartu-stat" id="rdKartuAdmin" hidden>
-      <h3 class="st-judul"><i class="fa-solid fa-user-shield" style="color:#7c3aed"></i> Absen Ketidakhadiran</h3>
+      <div class="rd-judul-baris"><h3 class="st-judul"><i class="fa-solid fa-user-shield" style="color:#7c3aed"></i> Absen Ketidakhadiran</h3>
+        <button type="button" class="rd-rekap" data-rdrekap><i class="fa-solid fa-chart-column"></i> Rekap</button></div>
       <div class="rd-pilih-label">Pilih petugas yang dikenai status:</div>
       <div class="rd-chipset" id="rdChips">${PETUGAS_RONDA.map(n => `<button type="button" class="rd-pilih" data-target="${esc(n)}">${esc(n)}</button>`).join('')}</div>
       <div class="rd-grid kecil">
@@ -4511,6 +4521,7 @@ function renderAbsensiRonda(isi){
   </div>`;
 
   $('rdRoot').addEventListener('click', (e) => {
+    if (e.target.closest('[data-rdrekap]')) return bukaRekapRonda();
     const chip = e.target.closest('[data-target]');
     if (chip){
       const n = chip.dataset.target;
@@ -4616,6 +4627,35 @@ function bukaCatatanRonda(){
       if (!catatan) return { ok:false, pesan:'Catatan tidak boleh kosong.' };
       return simpanRonda({ aksi:'Catatan Kejadian', catatan });
     });
+}
+/* Rekap kehadiran ronda per petugas pada rentang tanggal (data: RPC get_rekap_ronda, 18_rekap_ronda.sql) */
+function bukaRekapRonda(){
+  const w = waktuRonda();
+  bukaModalForm('Rekap Kehadiran Ronda',
+    `<div class="rk-tgl">${fld('Tgl Awal', `<input id="rkAwal" type="date" value="${w.tanggal.slice(0, 8)}01">`)}${fld('Tgl Akhir', `<input id="rkAkhir" type="date" value="${w.tanggal}">`)}</div>
+     <button type="button" class="rk-tampil" data-mf="tampil"><i class="fa-solid fa-magnifying-glass"></i> Tampilkan</button>
+     <div id="rkHasil"></div>`, null);
+  $('mfBatal').textContent = 'Tutup';
+  let urut = 0;
+  const muat = async () => {
+    const awal = $('rkAwal').value, akhir = $('rkAkhir').value, hasil = $('rkHasil'), n = ++urut;
+    if (!awal || !akhir){ hasil.innerHTML = '<div class="rd-kosong">Isi tanggal awal dan tanggal akhir.</div>'; return; }
+    if (awal > akhir){ hasil.innerHTML = '<div class="rd-kosong">Tanggal awal tidak boleh melewati tanggal akhir.</div>'; return; }
+    hasil.innerHTML = '<div class="rd-kosong"><i class="fa-solid fa-spinner fa-spin"></i> Memuat rekap...</div>';
+    try{
+      const { data, error } = await db.rpc('get_rekap_ronda', { p_token: tokenSesi, p_awal: awal, p_akhir: akhir });
+      if (error) throw error;
+      if (n !== urut || !$('rkHasil')) return;
+      if (!data || !data.ok){ hasil.innerHTML = `<div class="rd-kosong">${esc((data && data.pesan) || 'Gagal memuat rekap.')}</div>`; return; }
+      const per = {}; (data.items || []).forEach(x => { per[x.nama] = x; });
+      const baris = PETUGAS_RONDA.map(nama => { const x = per[nama] || {};
+        return `<tr><td>${esc(nama)}</td><td class="rk-n">${Number(x.hadir) || 0}</td><td class="rk-n">${Number(x.alpa) || 0}</td><td class="rk-n">${Number(x.izin) || 0}</td><td class="rk-n">${Number(x.non_presensi) || 0}</td></tr>`; }).join('');
+      hasil.innerHTML = `<div class="md-tabel-wadah"><table class="md-tabel rk-tabel"><thead><tr><th>Petugas</th><th class="rk-n">Hadir</th><th class="rk-n">Alpa</th><th class="rk-n">Izin</th><th class="rk-n">Non Presensi</th></tr></thead><tbody>${baris}</tbody></table></div>
+        <div class="rk-ket">Periode ${tglIndo(awal)} s.d ${tglIndo(akhir)}. Hadir = absen masuk dan pulang lengkap.</div>`;
+    }catch(e){ console.error(e); if (n === urut && $('rkHasil')) $('rkHasil').innerHTML = '<div class="rd-kosong">Tidak dapat memuat data. Periksa koneksi Anda.</div>'; }
+  };
+  mfNavFn = (a) => { if (a === 'tampil') muat(); };
+  muat();
 }
 function konfirmasiKetidakhadiran(aksi){
   const target = PETUGAS_RONDA.filter(n => rondaTarget.has(n));
