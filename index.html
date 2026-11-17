@@ -1066,6 +1066,17 @@
   /* Keadaan Bangunan: kolom nama diperlebar agar tidak turun ke 2 baris */
   .pr details.md-seksi[data-k="bangunan"] .md-baris span:first-child{width:auto;flex:1 1 auto;min-width:0}
   .pr details.md-seksi[data-k="bangunan"] .md-baris span:last-child{flex:none;white-space:nowrap}
+  /* Keadaan Bangunan: tabel Permukiman (Kawasan 50% | Dihuni 25% | NonHuni 25%) + baris Jumlah */
+  .pr .pr-tbr{display:grid;grid-template-columns:50% 25% 25%;align-items:center;gap:0;padding:8px 0;border-top:1px dashed #e2e8f0;font-size:.78rem}
+  .pr .pr-tbr>span{min-width:0;word-break:break-word}
+  .pr .pr-tbr>span:first-child{color:var(--abu)}
+  .pr .pr-tbr>span:not(:first-child){text-align:center;color:var(--teks);font-weight:500}
+  .pr .pr-tbr.kepala{border-top:0;font-weight:700}
+  .pr .pr-tbr.kepala>span,.pr .pr-tbr.kepala>span:first-child{color:var(--biru-tua);font-weight:700}
+  .pr .pr-tbr.jumlah{border-top:1.5px solid #cbd5e1}
+  .pr .pr-tbr.jumlah>span,.pr .pr-tbr.jumlah>span:first-child{color:var(--biru-tua);font-weight:800}
+  /* Bangunan Fungsional: bila lebih dari 5 baris, tampil 2 kolom (nama + jumlah) */
+  .pr .pr-fung-2k{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:column;column-gap:16px}
   /* Judul seksi + ikon panah berwarna (gaya seksi Program Kerja) */
   .pr details.md-seksi{--sk:#2563eb;--sk-soft:rgba(37,99,235,.12)}
   .pr details.md-seksi[data-k="peta"]{--sk:#0891b2;--sk-soft:rgba(8,145,178,.12)}
@@ -1209,7 +1220,7 @@
   .kartu-stat.agenda .agenda-baris span:first-child{width:calc(112px * var(--z) + 18px);white-space:nowrap}
   .kartu-stat.agenda .agenda-baris span:last-child{flex:1;min-width:0}
 
-  /* Profil RT > Keadaan Bangunan: Kawasan Hunian dan Bangunan Fungsional sebaris */
+  /* Profil RT > Keadaan Bangunan: Permukiman dan Bangunan Fungsional sebaris */
   .pr details.md-seksi[data-k="bangunan"] .md-isi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px;align-items:start}
 
   /* Pengajuan Surat Pengantar: NIK Pemohon (rata kiri) + Jenis Surat sebaris; isian di bawahnya 3 kolom */
@@ -1293,6 +1304,7 @@
   details.md-seksi summary .chev{font-size:calc(.8rem + 2px)}
   details.md-seksi .sk-ikon{font-size:calc(.95rem + 2px)}
   .md-baris{font-size:calc(.78rem + 2px)}
+  .pr .pr-tbr{font-size:calc(.78rem + 2px)}
   table.md-tabel{font-size:calc(.72rem + 2px)}
   .md-saya{font-size:calc(.85rem + 2px)}
   .md-badge-saya{font-size:calc(.58rem + 2px)}
@@ -3020,12 +3032,21 @@ function prTotalHuni(){ return prArr('bangunan').reduce((n, x) => n + (Number(x.
 function prTotalTidak(){ return prArr('bangunan').reduce((n, x) => n + (Number(x.tidak) || 0), 0); }
 function prHtmlBangunan(){
   const hun = prArr('bangunan'), fung = prArr('fungsional');
+  const tbr = (a, b, c, kls) => `<div class="pr-tbr ${kls || ''}"><span>${a}</span><span>${b}</span><span>${c}</span></div>`;
   const kawasan = hun.length
-    ? hun.map(x => prBaris(esc(x.nama), `${Number(x.huni) || 0} H | ${Number(x.tidak) || 0} TH`)).join('')
-    : prKosong('Belum ada data kawasan hunian.');
-  const fungsional = prBaris('Bangunan Huni/Kosong', `${prTotalHuni()} H | ${prTotalTidak()} TH`) +
-    fung.map(x => prBaris(esc(x.nama), `${Number(x.jumlah) || 0}`)).join('');
-  return '<div class="pr-kol">' + prSubJudul('Kawasan Hunian', 'bangunan', hun.length) + kawasan + '</div>' +
+    ? tbr('Kawasan', 'Dihuni', 'NonHuni', 'kepala') +
+      hun.map(x => tbr(esc(x.nama), Number(x.huni) || 0, Number(x.tidak) || 0)).join('') +
+      tbr('Jumlah', prTotalHuni(), prTotalTidak(), 'jumlah')
+    : prKosong('Belum ada data permukiman.');
+  let fungsional;
+  if (!fung.length) fungsional = prKosong('Belum ada data bangunan fungsional.');
+  else {
+    const baris = fung.map(x => prBaris(esc(x.nama), `${Number(x.jumlah) || 0}`)).join('');
+    fungsional = fung.length > 5
+      ? `<div class="pr-fung-2k" style="grid-template-rows:repeat(${Math.ceil(fung.length / 2)},auto)">${baris}</div>`
+      : baris;
+  }
+  return '<div class="pr-kol">' + prSubJudul('Permukiman', 'bangunan', hun.length) + kawasan + '</div>' +
          '<div class="pr-kol">' + prSubJudul('Bangunan Fungsional', 'fungsional', fung.length) + fungsional + '</div>';
 }
 const PR_WARNA_JABATAN = ['#e0f2fe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#ccfbf1','#ffedd5','#fee2e2'];
@@ -3064,9 +3085,9 @@ function prHtmlProgram(){
 
 /* ----- Editor modal (hanya Admin) ----- */
 const PR_FORM = {
-  bangunan:   { judul:'Kawasan Hunian', satu:'Kawasan', wajib:['nama'], kolom:[
+  bangunan:   { judul:'Permukiman', satu:'Kawasan', wajib:['nama'], kolom:[
     { k:'nama',   label:'Nama/Jenis/Kawasan Bangunan', max:120, wajib:1 },
-    { k:'huni',   label:'Huni', num:1 }, { k:'tidak', label:'Tidak dihuni', num:1 } ] },
+    { k:'huni',   label:'Dihuni', num:1 }, { k:'tidak', label:'NonHuni', num:1 } ] },
   fungsional: { judul:'Bangunan Fungsional', satu:'Bangunan', wajib:['nama'], kolom:[
     { k:'nama', label:'Nama Bangunan', max:120, wajib:1 }, { k:'jumlah', label:'Jumlah', num:1 } ] },
   pengurus:   { judul:'Pengurus RT', satu:'Pengurus', wajib:['nama','jabatan'], kolom:[
