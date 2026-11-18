@@ -828,6 +828,13 @@
   .mb.batal{background:#fff;color:var(--biru-tua);border-color:#d8e0ee}
   .mb.ya{color:#fff;background:linear-gradient(135deg,#ff9a3c,#ff7a00);box-shadow:0 8px 18px rgba(255,122,0,.35)}
   .mb:focus-visible{outline:3px solid rgba(21,88,201,.35);outline-offset:2px}
+  /* Konfirmasi hapus petugas ronda (tampil di atas modal form) */
+  .modal-latar.hapus-ptr{z-index:80}
+  .modal-ikon.merah{color:#b42318;background:linear-gradient(135deg,#fdecec,#fcd5d5)}
+  .mb.ya.merah{background:linear-gradient(135deg,#ef4444,#c81e1e);box-shadow:0 8px 18px rgba(200,30,30,.32)}
+  .hp-petugas{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin:-6px 0 18px}
+  .hp-petugas b{display:block;font-size:.88rem;color:var(--biru-tua);word-break:break-word}
+  .hp-petugas small{font-size:.72rem;color:var(--abu);letter-spacing:.02em}
 
   /* Toast */
   #toast{position:fixed;left:50%;bottom:30px;transform:translate(-50%,20px);background:#1e293b;color:#fff;
@@ -1817,6 +1824,19 @@
           <button type="submit" class="simpan" id="mfSimpan">Simpan</button>
         </div>
       </form>
+    </div>
+  </div>
+  <!-- Modal konfirmasi hapus petugas ronda -->
+  <div class="modal-latar hapus-ptr" id="modalHapusPetugas" aria-hidden="true">
+    <div class="modal-kotak" role="dialog" aria-modal="true" aria-labelledby="hpJudul" aria-describedby="hpIsi">
+      <div class="modal-ikon merah"><i class="fa-solid fa-trash"></i></div>
+      <h3 id="hpJudul">Hapus petugas ronda?</h3>
+      <p id="hpIsi" style="margin-bottom:14px">Petugas ini akan dihapus dari daftar petugas ronda malam dan tidak lagi dapat melakukan absensi ronda.</p>
+      <div class="hp-petugas"><b id="hpNama"></b><small id="hpNik"></small></div>
+      <div class="modal-aksi">
+        <button class="mb batal" id="hpBatal" type="button">Batal</button>
+        <button class="mb ya merah" id="hpYa" type="button">Ya, Hapus</button>
+      </div>
     </div>
   </div>
   <!-- Pratinjau dokumen PDF (laporan & arsip surat): dilihat dulu, unduh bila perlu -->
@@ -4511,6 +4531,7 @@ function resetLapisan(){
   $('modalForm').classList.remove('tampil'); $('modalForm').setAttribute('aria-hidden','true');
   $('modalStat').classList.remove('tampil'); $('modalStat').setAttribute('aria-hidden','true');
   mfSimpanFn = null;
+  if ($('modalHapusPetugas').classList.contains('tampil')){ hapusPtrYa = false; tutupHapusPetugas(); }
   tutupSemuaModalPoll(); tutupUltah();
 }
 window.addEventListener('popstate', () => {
@@ -4779,6 +4800,37 @@ function bukaRekapRonda(){
   mfNavFn = (a) => { if (a === 'tampil') muat(); };
   muat();
 }
+/* Konfirmasi hapus petugas ronda (terhubung ke tombol back HP lewat sistem lapisan) */
+let hapusPtrResolve = null, hapusPtrYa = false, hapusPtrFokus = null;
+function konfirmasiHapusPetugas(nama, nik){
+  return new Promise(resolve => {
+    hapusPtrResolve = resolve; hapusPtrYa = false; hapusPtrFokus = document.activeElement;
+    $('hpNama').textContent = nama || '(tanpa nama)';
+    $('hpNik').textContent = 'NIK ' + nik;
+    const m = $('modalHapusPetugas');
+    m.classList.add('tampil'); m.setAttribute('aria-hidden', 'false');
+    setTimeout(() => $('hpBatal').focus(), 60);
+    bukaLapisan(tutupHapusPetugas);
+  });
+}
+function tutupHapusPetugas(){
+  const m = $('modalHapusPetugas');
+  m.classList.remove('tampil'); m.setAttribute('aria-hidden', 'true');
+  if (hapusPtrFokus && hapusPtrFokus.focus && document.contains(hapusPtrFokus)) hapusPtrFokus.focus();
+  if (hapusPtrResolve){ const r = hapusPtrResolve; hapusPtrResolve = null; r(hapusPtrYa); }
+}
+$('hpBatal').addEventListener('click', () => { hapusPtrYa = false; kembaliLapisan(); });
+$('hpYa').addEventListener('click', () => { hapusPtrYa = true; kembaliLapisan(); });
+$('modalHapusPetugas').addEventListener('click', e => { if (e.target === e.currentTarget){ hapusPtrYa = false; kembaliLapisan(); } });
+document.addEventListener('keydown', e => {
+  if (!$('modalHapusPetugas').classList.contains('tampil')) return;
+  if (e.key === 'Escape'){ hapusPtrYa = false; return kembaliLapisan(); }
+  if (e.key === 'Tab'){                                  // fokus berputar di antara dua tombol
+    const a = $('hpBatal'), b = $('hpYa');
+    if (e.shiftKey && document.activeElement === a){ e.preventDefault(); b.focus(); }
+    else if (!e.shiftKey && document.activeElement === b){ e.preventDefault(); a.focus(); }
+  }
+});
 /* Administrasi > Petugas Ronda: NIK yang dimasukkan menjadi petugas ronda malam (data: tabel petugas_ronda, 19_petugas_ronda.sql) */
 function formPetugasRonda(){
   bukaModalForm('Petugas Ronda',
@@ -4786,7 +4838,9 @@ function formPetugasRonda(){
        <button type="button" data-mf="tambah">Tambah</button></div>
      <div id="ptDaftar"><div class="rd-kosong">Memuat daftar petugas...</div></div>`, null);
   $('mfBatal').textContent = 'Tutup';
+  let daftarPtr = [];
   const gambar = (items) => {
+    daftarPtr = items;
     const el = $('ptDaftar'); if (!el) return;
     el.innerHTML = items.length
       ? items.map(x => `<div class="pt-item"><div><b>${esc(x.nama)}</b><small>NIK ${esc(x.nik)}</small></div>
@@ -4811,7 +4865,11 @@ function formPetugasRonda(){
         const d = await panggil('tambah_petugas_ronda', { p_nik: nik });
         if (d){ $('ptNik').value = ''; toast(d.pesan || 'Petugas ronda ditambahkan.'); gambar(d.items || []); }
       } else if (a.startsWith('hapus:')){
-        const d = await panggil('hapus_petugas_ronda', { p_nik: a.slice(6) });
+        const nik = a.slice(6);
+        const it = daftarPtr.find(x => String(x.nik) === nik) || {};
+        if (!(await konfirmasiHapusPetugas(it.nama, nik))) return;
+        if (!$('ptDaftar')) return;                          // modal petugas sudah ditutup
+        const d = await panggil('hapus_petugas_ronda', { p_nik: nik });
         if (d){ toast(d.pesan || 'Petugas ronda dihapus.'); gambar(d.items || []); }
       }
     }catch(e){ console.error(e); toast('Tidak dapat memproses. Periksa koneksi Anda.'); }
