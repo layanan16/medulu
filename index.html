@@ -584,6 +584,15 @@
   .rk-tabel td{padding:7px 5px}
   .rk-tabel td:first-child{font-weight:600;color:var(--teks)}
   .rk-ket{font-size:.68rem;color:var(--abu);margin-top:8px}
+  .pt-tambah{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:12px}
+  .pt-tambah .mf-field{margin:0}
+  .pt-tambah button,.pt-hapus{border:0;border-radius:12px;font:inherit;font-weight:600;cursor:pointer}
+  .pt-tambah button{background:var(--biru);color:#fff;padding:11px 16px;font-size:.8rem}
+  .pt-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px dashed #e2e8f0}
+  .pt-item>div{flex:1;min-width:0}
+  .pt-item b{display:block;font-size:.84rem;color:var(--teks)}
+  .pt-item small{font-size:.72rem;color:var(--abu);letter-spacing:.02em}
+  .pt-hapus{background:#fee2e2;color:#b91c1c;padding:7px 11px;font-size:.72rem}
   .rd-petugas{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#f1f6ff;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;margin-bottom:8px}
   .rd-petugas b{font-size:.86rem;color:var(--teks)}
   .rd-petugas small{display:flex;gap:10px;font-size:.74rem;color:var(--abu);margin-top:3px}
@@ -1710,7 +1719,7 @@
       <div class="grid-fitur">
         <button class="fitur" data-buka="mydata"><span class="lingkaran c3"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="2.5" y="5" width="19" height="14" rx="3"/><circle cx="9" cy="10.8" r="2.2"/><path d="M5.4 16.4c.7-1.6 2-2.4 3.6-2.4s2.9.8 3.6 2.4"/><path d="M15 10h3.5M15 13.5h3"/></svg></span><span class="nama">MyData</span></button>
         <button class="fitur" data-buka="arsip"><span class="lingkaran c1"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="3" y="4" width="18" height="4.5" rx="1.3"/><path d="M5 8.5V18a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5"/><path d="M10 12.5h4"/></svg></span><span class="nama">Info Arsip &amp; Aset</span></button>
-        <button class="fitur nonaktif" id="btnRonda" data-buka="absensironda" disabled aria-disabled="true"><span class="lingkaran c15"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="4" y="4.5" width="16" height="16" rx="2.8"/><path d="M9 4.5V3.2h6v1.3"/><path d="m8.5 13 2.4 2.4 4.6-4.9"/></svg></span><span class="nama">Absensi Ronda</span></button>
+        <button class="fitur" id="btnRonda" data-buka="absensironda" hidden><span class="lingkaran c15"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect class="d" x="4" y="4.5" width="16" height="16" rx="2.8"/><path d="M9 4.5V3.2h6v1.3"/><path d="m8.5 13 2.4 2.4 4.6-4.9"/></svg></span><span class="nama">Absensi Ronda</span></button>
         <button class="fitur nonaktif" id="btnLonceng" disabled aria-disabled="true" aria-label="Data Pengajuan"><span class="lingkaran c12"><i class="fa-solid fa-bell"></i></span><span class="badge-notif" id="badgeNotif">0</span><span class="nama">Data Pengajuan</span></button>
         <button class="fitur" id="btnInfo" data-buka="info">
           <i class="fa-solid fa-circle-exclamation alert" id="alertInfo"></i>
@@ -1885,12 +1894,21 @@ function namaTanpaGelar(nama){
 const NAMA_AKSES_PENUH = 'zhul harmanto';          // Korespondensi & Database hanya untuk nama ini
 const MENU_KHUSUS = ['korespondensi', 'database', 'inventaris', 'laporan', 'pendataan'];
 let aksesPenuh = false, aksesRonda = false;
-const NAMA_AKSES_RONDA = ['abd rauf samad', 'maliki'];     // + Admin (aksesPenuh)
+/* Petugas ronda ditentukan di server lewat daftar NIK (Administrasi > Petugas Ronda); Admin selalu punya akses */
 const normNama = n => String(n || '').toLowerCase().replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim();
 function aturRonda(){
   const b = $('btnRonda'); if (!b) return;
-  b.classList.toggle('nonaktif', !aksesRonda); b.disabled = !aksesRonda; b.setAttribute('aria-disabled', String(!aksesRonda));
-  b.title = aksesRonda ? '' : 'Khusus petugas ronda dan Admin';
+  b.hidden = !aksesRonda;                                  // pengguna biasa: tombol tidak tampil
+}
+async function muatAksesRonda(){
+  const tk = tokenSesi; if (!tk) return;
+  try{
+    const { data, error } = await db.rpc('get_akses_ronda', { p_token: tk });
+    if (error) throw error;
+    if (tk !== tokenSesi) return;                            // sudah keluar / ganti sesi
+    aksesRonda = aksesPenuh || !!(data && data.ok && (data.admin || data.petugas));
+  }catch(e){ console.error(e); }
+  aturRonda();
 }
 function aturMenuPengguna(profil){
   const nama = namaTanpaGelar(profil && profil.nama).toLowerCase().replace(/\s+/g, ' ').trim();
@@ -1898,9 +1916,9 @@ function aturMenuPengguna(profil){
   if (!profil) pollStatus = null;
   const bp = $('btnPolling');                                      // Polling di halaman utama: khusus warga (Admin lewat subform Administrasi)
   if (bp) $('btnInfo').after(bp);
-  const namaPenuh = normNama(profil && profil.nama);
-  aksesRonda = aksesPenuh || NAMA_AKSES_RONDA.includes(namaPenuh) || NAMA_AKSES_RONDA.includes(nama.replace(/[.,]/g, ' ').replace(/\s+/g, ' ').trim());
+  aksesRonda = aksesPenuh;
   aturRonda();
+  if (profil && tokenSesi) muatAksesRonda();
   document.querySelectorAll('[data-akses="khusus"]').forEach(el => { el.hidden = !aksesPenuh; });
   aturPolling();
 }
@@ -3503,18 +3521,20 @@ const val = (fd, k) => String(fd.get(k) ?? '').trim();
 /* ---------- Subform Korespondensi ---------- */
 function renderKorespondensi(isi){
   const baris = (kunci, c, ikon, judul, ket, jenis) =>
-    `<button class="menu-baris" ${jenis === 'sub' ? 'data-admsub' : jenis === 'buka' ? 'data-admbuka' : 'data-kores'}="${kunci}"><span class="mi ${c}"><i class="fa-solid ${ikon}"></i></span>
+    `<button class="menu-baris" ${jenis === 'sub' ? 'data-admsub' : jenis === 'buka' ? 'data-admbuka' : jenis === 'ptr' ? 'data-petronda' : 'data-kores'}="${kunci}"><span class="mi ${c}"><i class="fa-solid ${ikon}"></i></span>
        <span><b>${judul}</b><small>${ket}</small></span><i class="fa-solid fa-chevron-right panah"></i></button>`;
   isi.innerHTML = `<div class="daftar-menu">
     ${baris('pengaduan','c11','fa-comment-dots','Pengaduan','Pencatatan pengaduan warga')}
     ${baris('laporan','c9','fa-file-lines','Laporan','Kondisi wilayah dan kegiatan RT')}
     ${baris('cetaklaporan','c5','fa-print','Cetak Laporan','Output Laporan Kegiatan')}
     ${baris('polling','c7','fa-square-poll-vertical','Polling','Pengelolaan polling pendapat warga','buka')}
+    ${baris('petugasronda','c15','fa-person-walking','Petugas Ronda','Daftar nama petugas ronda malam','ptr')}
     ${baris('database','c5','fa-database','Database','Basis data keluarga dan pribadi','buka')}
     ${baris('pendataan','c10','fa-clipboard-list','Pendataan','Formulir data keluarga dan pribadi','buka')}
   </div>`;
 }
 document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-petronda]')){ if (aksesPenuh) formPetugasRonda(); return; }
   const bk = e.target.closest('[data-admbuka]');
   if (bk){ if (aksesPenuh) bukaSubform(bk.dataset.admbuka, true); return; }
   const sub = e.target.closest('[data-admsub]');
@@ -4414,11 +4434,11 @@ window.addEventListener('popstate', () => {
 
 /* =====================================================================
    ABSENSI RONDA (subform) — data di Supabase tabel ronda_malam
-   Petugas (Maliki, Abd. Rauf Samad): Absen Masuk 00.00–00.30, Absen Pulang 04.00–05.00, Catatan Khusus saat bertugas.
+   Petugas (NIK terdaftar di Administrasi > Petugas Ronda): Absen Masuk 00.00–00.30, Absen Pulang 04.00–05.00, Catatan Khusus saat bertugas.
    Admin (Zhul Harmanto): Alpa / Non Presensi / Izin untuk petugas pilihan, 00.00–06.00.
    Jam memakai WITA dari server; hak akses dan jendela waktu diperiksa ulang di server.
    ===================================================================== */
-const PETUGAS_RONDA = ['Maliki', 'Abd. Rauf Samad'];
+let PETUGAS_RONDA = [];                                  // dari server (daftar NIK petugas ronda)
 let rondaData = null, rondaPeran = null, rondaSelisih = 0, rondaTimer = null, rondaPoll = null, rondaMenitTerakhir = -1;
 const rondaTarget = new Set();
 
@@ -4505,7 +4525,7 @@ function renderAbsensiRonda(isi){
       <div class="rd-judul-baris"><h3 class="st-judul"><i class="fa-solid fa-user-shield" style="color:#7c3aed"></i> Absen Ketidakhadiran</h3>
         <button type="button" class="rd-rekap" data-rdrekap><i class="fa-solid fa-chart-column"></i> Rekap</button></div>
       <div class="rd-pilih-label">Pilih petugas yang dikenai status:</div>
-      <div class="rd-chipset" id="rdChips">${PETUGAS_RONDA.map(n => `<button type="button" class="rd-pilih" data-target="${esc(n)}">${esc(n)}</button>`).join('')}</div>
+      <div class="rd-chipset" id="rdChips"></div>
       <div class="rd-grid kecil">
         <button type="button" class="rd-btn rd-alpa" data-rdadm="Alpa" disabled><span class="ik-b"><i class="fa-solid fa-user-xmark"></i></span><b>Alpa</b></button>
         <button type="button" class="rd-btn rd-nonp" data-rdadm="Non Presensi" disabled><span class="ik-b"><i class="fa-solid fa-circle-minus"></i></span><b>Non Presensi</b></button>
@@ -4564,6 +4584,8 @@ async function muatRonda(versi, pertama){
     if (!data || !data.ok) return galat((data && data.pesan) || 'Gagal memuat data ronda.');
     if (Number(data.epoch_ms)) rondaSelisih = Number(data.epoch_ms) - Date.now();
     rondaData = data; rondaPeran = data.peran || {};
+    PETUGAS_RONDA = Array.isArray(data.daftar) ? data.daftar : Object.keys(data.attendance || {});
+    $('rdChips').innerHTML = PETUGAS_RONDA.map(n => `<button type="button" class="rd-pilih" data-target="${esc(n)}">${esc(n)}</button>`).join('');
     $('rdKartuHadir').hidden = !rondaPeran.petugas;
     $('rdKartuAdmin').hidden = !rondaPeran.admin;
     const w = waktuRonda(); rondaMenitTerakhir = w.menit;
@@ -4653,9 +4675,7 @@ function bukaRekapRonda(){
       /* Nama di tabel bisa memuat gelar/format lain: samakan lewat namaTanpaGelar, jumlahkan bila ada beberapa penulisan */
       const norm = (t) => namaTanpaGelar(t).toLowerCase().replace(/\s+/g, ' ').trim();
       const per = new Map();
-      /* Admin melihat semua petugas; petugas hanya melihat rekap dirinya sendiri */
-      const daftar = (rondaPeran && !rondaPeran.admin && rondaPeran.petugas) ? [rondaPeran.petugas] : PETUGAS_RONDA;
-      daftar.forEach(n => per.set(norm(n), { nama: n, hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 }));
+      /* Server mengirim semua petugas (Admin) atau hanya petugas yang bersangkutan */
       (data.items || []).forEach(x => {
         const k = norm(x.nama);
         if (!per.has(k)) per.set(k, { nama: namaTanpaGelar(x.nama), hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 });
@@ -4668,6 +4688,45 @@ function bukaRekapRonda(){
     }catch(e){ console.error(e); if (n === urut && $('rkHasil')) $('rkHasil').innerHTML = `<div class="rd-kosong">Tidak dapat memuat rekap.<br><small>${esc((e && e.message) || 'Periksa koneksi Anda.')}</small></div>`; }
   };
   mfNavFn = (a) => { if (a === 'tampil') muat(); };
+  muat();
+}
+/* Administrasi > Petugas Ronda: NIK yang dimasukkan menjadi petugas ronda malam (data: tabel petugas_ronda, 19_petugas_ronda.sql) */
+function formPetugasRonda(){
+  bukaModalForm('Petugas Ronda',
+    `<div class="pt-tambah">${fld('NIK', `<input id="ptNik" inputmode="numeric" maxlength="16" placeholder="16 digit NIK" autocomplete="off">`)}
+       <button type="button" data-mf="tambah">Tambah</button></div>
+     <div id="ptDaftar"><div class="rd-kosong">Memuat daftar petugas...</div></div>`, null);
+  $('mfBatal').textContent = 'Tutup';
+  const gambar = (items) => {
+    const el = $('ptDaftar'); if (!el) return;
+    el.innerHTML = items.length
+      ? items.map(x => `<div class="pt-item"><div><b>${esc(x.nama)}</b><small>NIK ${esc(x.nik)}</small></div>
+          <button type="button" class="pt-hapus" data-mf="hapus:${esc(x.nik)}">Hapus</button></div>`).join('')
+      : '<div class="rd-kosong">Belum ada petugas ronda.</div>';
+  };
+  const panggil = async (fn, args) => {
+    const { data, error } = await db.rpc(fn, { p_token: tokenSesi, ...args });
+    if (error) throw error;
+    if (!data || !data.ok){ toast((data && data.pesan) || 'Gagal memproses.'); return null; }
+    return data;
+  };
+  const muat = async () => {
+    try{ const d = await panggil('get_petugas_ronda', {}); if (d) gambar(d.items || []); }
+    catch(e){ console.error(e); if ($('ptDaftar')) $('ptDaftar').innerHTML = `<div class="rd-kosong">Tidak dapat memuat daftar.<br><small>${esc((e && e.message) || '')}</small></div>`; }
+  };
+  mfNavFn = async (a) => {
+    try{
+      if (a === 'tambah'){
+        const nik = $('ptNik').value.replace(/\D/g, '');
+        if (nik.length !== 16){ toast('NIK harus 16 digit angka.'); return; }
+        const d = await panggil('tambah_petugas_ronda', { p_nik: nik });
+        if (d){ $('ptNik').value = ''; toast(d.pesan || 'Petugas ronda ditambahkan.'); gambar(d.items || []); }
+      } else if (a.startsWith('hapus:')){
+        const d = await panggil('hapus_petugas_ronda', { p_nik: a.slice(6) });
+        if (d){ toast(d.pesan || 'Petugas ronda dihapus.'); gambar(d.items || []); }
+      }
+    }catch(e){ console.error(e); toast('Tidak dapat memproses. Periksa koneksi Anda.'); }
+  };
   muat();
 }
 function konfirmasiKetidakhadiran(aksi){
