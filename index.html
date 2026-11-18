@@ -916,6 +916,9 @@
   .bt .icon-indigo{background-color: #e0e7ff; color: #4f46e5;}
   .bt .icon-teal{background-color: #ccfbf1; color: #0d9488;}
   .bt .icon-emerald{background-color: #d1fae5; color: #059669;}
+  .bt .icon-orange{background-color: #ffedd5; color: #ea580c;}
+  .bt .icon-cyan{background-color: #cffafe; color: #0891b2;}
+  .bt .icon-slate{background-color: #e2e8f0; color: #475569;}
   .bt .custom-accordion .accordion-body{padding: 16px 18px 20px 18px; font-size: 13px; line-height: 1.65; color: #475569;}
   .bt .recommendation-card{background-color: #f0f9ff; border-left: 4px solid #0284c7; padding: 12px 16px; border-radius: 8px; margin-top: 12px; font-size: 12.5px; color: #0369a1;}
   .bt .contact-badge{display: inline-flex; align-items: center; gap: 8px; background-color: #f1f5f9; border: 1px solid #cbd5e1; color: #1e293b; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; margin: 6px 6px 6px 0;}
@@ -2600,7 +2603,7 @@ function renderBantuan(isi){
         </h2>
         <div class="accordion-collapse collapse show">
           <div class="accordion-body">
-            <strong>Medulu</strong> atau <strong>Manajemen Data Terpadu untuk Layanan Publik</strong> adalah aplikasi yang digunakan untuk mendukung pelayanan administrasi RT secara digital, seperti pendataan warga, pelayanan surat pengantar, manajemen arsip, pelaporan, dan penyampaian informasi terkait kependudukan, kewilayahan, kepengurusan, dan lainnya.
+            <strong>Medulu</strong> atau <strong>Manajemen Data Terpadu untuk Layanan Publik</strong> adalah aplikasi yang digunakan untuk mendukung pelayanan administrasi RT secara digital, seperti pendataan warga, pelayanan surat pengantar, manajemen arsip, pelaporan, <strong>absensi ronda malam</strong>, dan penyampaian informasi terkait kependudukan, kewilayahan, kepengurusan, dan lainnya.
           </div>
         </div>
       </div>
@@ -2617,7 +2620,7 @@ function renderBantuan(isi){
         </h2>
         <div class="accordion-collapse collapse">
           <div class="accordion-body">
-            Medulu dapat digunakan oleh pengurus dan seluruh warga RT 09 yang telah <strong>TERDAFTAR</strong> dalam sistem.
+            Medulu dapat digunakan oleh pengurus dan seluruh warga RT yang telah <strong>TERDAFTAR</strong> dalam sistem.
           </div>
         </div>
       </div>
@@ -2629,15 +2632,17 @@ function renderBantuan(isi){
             <div class="faq-icon-box icon-purple">
               <i class="fa-solid fa-id-card"></i>
             </div>
-            <span>3. Bagaimana memastikan terdaftar dalam sistem?</span>
+            <span>3. Apa saja yang ada di MyData?</span>
           </button>
         </h2>
         <div class="accordion-collapse collapse">
           <div class="accordion-body">
-            <ol class="mb-0 ps-3">
-              <li class="mb-2">Pada halaman Login, masukkan <strong>No. HP terdaftar</strong> dan <strong>Kata Sandi (NIK)</strong> Anda, lalu tekan tombol masuk.</li>
-              <li>No. HP dan NIK akan diverifikasi oleh sistem, dan jika keduanya sesuai dengan data yang terdaftar maka Anda akan dibawa ke Dashboard utama. Hak akses layanan dan informasi akan diperoleh pada dashboard utama ini, kecuali menu Admin (khusus pengurus RT).</li>
-            </ol>
+            <strong>MyData</strong> menampilkan data Anda dan keluarga yang tersimpan di sistem. Nama, <strong>NIK</strong>, dan <strong>NKK</strong> ditampilkan di bagian atas (NIK dan NKK disamarkan, tekan ikon mata untuk menampilkannya). Selebihnya terbagi menjadi tiga bagian yang dapat dibuka dan ditutup:
+            <ul class="ps-3 mt-2 mb-0">
+              <li class="mb-1"><strong>Data Pribadi</strong>: jenis kelamin, tempat dan tanggal lahir, usia, status nikah, agama, pendidikan, pekerjaan, dan status dalam keluarga.</li>
+              <li class="mb-1"><strong>Data Keluarga</strong>: nomor HP, alamat, jumlah anggota laki-laki dan perempuan, <strong>Arsip KK</strong>, serta daftar anggota keluarga. Anggota keluarga yang belum tercatat dapat ditambahkan dengan tombol <strong>Tambah Data Keluarga</strong>.</li>
+              <li><strong>Arsip Surat Pengantar</strong>: riwayat pengajuan Surat Pengantar RT beserta statusnya. Surat yang sudah disetujui dapat dibuka dalam bentuk PDF.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -2647,15 +2652,20 @@ function renderBantuan(isi){
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" aria-expanded="false">
             <div class="faq-icon-box icon-amber">
-              <i class="fa-solid fa-circle-exclamation"></i>
+              <i class="fa-solid fa-box-archive"></i>
             </div>
-            <span>4. Gagal masuk (No. HP atau NIK tidak sesuai), apa yang dilakukan?</span>
+            <span>4. Apa itu Info Arsip &amp; Aset?</span>
           </button>
         </h2>
         <div class="accordion-collapse collapse">
           <div class="accordion-body">
-            Periksa kembali No. HP dan NIK yang Anda masukkan. No. HP harus sama dengan nomor yang tersimpan pada data keluarga Anda. Jika salah memasukkan sebanyak 5 kali, akses dikunci sementara selama 15 menit. Atau hubungi Admin (Pengurus RT) untuk mendapatkan link Pendaftaran data keluarga (NKK) dan data diri (NIK).<br>
-            Silakan isi data pada link yang diberikan dan pastikan seluruh data dalam Kartu Keluarga telah terisi dengan <strong>Benar</strong>.
+            Menu ini memuat daftar arsip dan aset RT dalam tiga kelompok data. Pilih salah satunya pada kartu di bagian atas:
+            <ul class="ps-3 mt-2 mb-2">
+              <li class="mb-1"><strong>Korespondensi</strong>: surat masuk, surat keluar, undangan, dan notula rapat.</li>
+              <li class="mb-1"><strong>Surat Pengantar</strong>: surat pengantar RT yang telah diterbitkan.</li>
+              <li><strong>Inventaris RT</strong>: daftar aset atau barang milik RT.</li>
+            </ul>
+            Gunakan kolom <strong>Cari data</strong> untuk menemukan data tertentu. Penambahan data korespondensi dan aset dilakukan oleh Admin (pengurus RT).
           </div>
         </div>
       </div>
@@ -2665,18 +2675,21 @@ function renderBantuan(isi){
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" aria-expanded="false">
             <div class="faq-icon-box icon-rose">
-              <i class="fa-solid fa-circle-check"></i>
+              <i class="fa-solid fa-clipboard-user"></i>
             </div>
-            <span>5. Saya telah terdaftar, apa yang bisa saya lakukan?</span>
+            <span>5. Bagaimana Absensi Ronda bekerja?</span>
           </button>
         </h2>
         <div class="accordion-collapse collapse">
           <div class="accordion-body">
-            Pada dashboard utama, ada beberapa pilihan informasi yang dapat anda lihat (klik) terkait data pribadi dan keluarga, jumlah warga, keadaan wilayah, arsip dan inventaris, dan sebagainya termasuk pengajuan Surat Pengantar RT yang mungkin anda butuhkan yaitu dengan Klik tombol <strong><mark>Ajukan Sekarang</mark></strong>
-            <div class="recommendation-card">
-              <i class="fa-solid fa-lightbulb me-1"></i> <strong>PENTING DIKETAHUI:</strong><br>
-              Medulu kami rancang dengan tujuan untuk <strong>tertib administrasi,</strong> pemenuhan kebutuhan <strong>informasi</strong> warga, dan kemudahan dalam pengajuan <strong>Surat Pengantar RT</strong> karena semuanya dapat dilakukan menggunakan HP secara online (kapan dan dimana saja).<br>
-            </div>
+            Tombol <strong>Absensi Ronda</strong> hanya tampil bagi <strong>petugas ronda malam</strong> yang telah ditetapkan Admin, dan bagi Admin. Seluruh jam memakai waktu WITA.
+            <ol class="ps-3 mt-2 mb-2">
+              <li class="mb-1"><strong>Absen Masuk</strong>: pukul 00.00 s.d 00.30.</li>
+              <li class="mb-1"><strong>Absen Pulang</strong>: pukul 04.00 s.d 05.00.</li>
+              <li><strong>Catatan Kejadian</strong>: dapat diisi selama bertugas, yaitu setelah absen masuk dan sebelum absen pulang.</li>
+            </ol>
+            Status kehadiran berupa <strong>Hadir</strong> (absen masuk dan pulang lengkap), <strong>ATL</strong> atau <strong>Telat</strong> (hanya absen masuk atau hanya absen pulang), serta <strong>Izin</strong>, <strong>Alpa</strong>, dan <strong>Non Presensi</strong> yang diisi oleh Admin.<br>
+            Tombol <strong>Rekap</strong> menampilkan jumlah Hadir, ATL/Telat, Non Presensi, Alpa, dan Izin pada rentang tanggal yang dipilih (Tgl Awal dan Tgl Akhir). Admin melihat rekap seluruh petugas, sedangkan petugas hanya melihat rekap dirinya sendiri.
           </div>
         </div>
       </div>
@@ -2697,8 +2710,12 @@ function renderBantuan(isi){
               <li class="mb-1">Pada dashboard utama, klik tombol <strong>Ajukan Sekarang</strong> kemudian pilih jenis Surat Pengantar RT yang dibutuhkan;</li>
               <li>Lakukan pengisian dan pengiriman data dengan benar.</li>
             </ol>
-            Selanjutnya, menunggu persetujuan RT. Status pengajuan dapat dipantau pada menu <strong>Data Pengajuan</strong>.<br>
-            Jika permohonan diterima (disetujui) maka Surat Pengantar RT dalam bentuk file PDF dapat dibuka melalui tautan arsip pada menu <strong>Data Pengajuan</strong> dan pada <strong>MyData</strong> (bagian Arsip Surat Pengantar).<br>
+            Selanjutnya, menunggu persetujuan RT. Pantau pengajuan Anda pada menu <strong>Data Pengajuan</strong> (ikon lonceng):
+            <ul class="ps-3 mt-2 mb-2">
+              <li class="mb-1">Setiap pengajuan tampil dengan statusnya (<strong>Diajukan</strong> atau <strong>Disetujui</strong>), waktu pengajuan atau persetujuan, dan lama waktunya.</li>
+              <li class="mb-1">Angka pada ikon lonceng menunjukkan jumlah pemberitahuan baru, dan tanda seru menandai surat yang baru disetujui dan belum Anda lihat.</li>
+              <li>Jika disetujui, Surat Pengantar RT dalam bentuk file PDF dapat dibuka melalui tautan arsip pada <strong>Data Pengajuan</strong> dan pada <strong>MyData</strong> (bagian Arsip Surat Pengantar).</li>
+            </ul>
             Silakan diprint Surat Pengantar tersebut untuk dibawa ke Kelurahan atau instansi terkait sebagai bagian dari persyaratan administrasi.
           </div>
         </div>
@@ -2708,17 +2725,21 @@ function renderBantuan(isi){
       <div class="accordion-item faq-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" aria-expanded="false">
-            <div class="faq-icon-box icon-teal">
-              <i class="fa-solid fa-shield-halved"></i>
+            <div class="faq-icon-box icon-orange">
+              <i class="fa-solid fa-bullhorn"></i>
             </div>
-            <span>7. Apakah Medulu aman dan gratis?</span>
+            <span>7. Apa itu Info Aktual?</span>
           </button>
         </h2>
         <div class="accordion-collapse collapse">
           <div class="accordion-body">
-            Data dalam Medulu disimpan secara digital pada basis data dengan pengaturan akses yang dibatasi, sedangkan berkas Surat Pengantar (PDF) disimpan di Google Drive. Selain itu, informasi data pribadi dan keluarga hanya dapat diakses dengan masuk menggunakan No. HP dan NIK untuk keperluan pelayanan administrasi, sehingga kerahasiaannya tetap dijaga.<br><br>
-            Layanan Medulu tidak dipungut biaya <strong>(GRATIS)</strong>.<br>
-            <small class="text-muted">Kecuali jika ada kewenangan yang diberikan Lurah kepada RT, misalnya warga WAJIB melunasi PBB pada tahun berjalan, pembayaran retribusi sampah untuk PAD, dan lain sebagainya.</small>
+            <strong>Info Aktual</strong> menampilkan informasi terbaru RT dalam tiga kartu, masing-masing berisi data yang paling baru:
+            <ul class="ps-3 mt-2 mb-2">
+              <li class="mb-1"><strong>Absensi Ronda</strong>: kehadiran petugas pada ronda malam terakhir.</li>
+              <li class="mb-1"><strong>Agenda RT</strong>: agenda terbaru berupa surat masuk, surat keluar, atau undangan.</li>
+              <li><strong>Surat Pengantar terakhir</strong>: tanggal pengajuan, tanggal disetujui, dan lama pelayanannya.</li>
+            </ul>
+            Tombol Info Aktual diberi tanda bila ada informasi baru yang belum Anda lihat.
           </div>
         </div>
       </div>
@@ -2727,10 +2748,78 @@ function renderBantuan(isi){
       <div class="accordion-item faq-item">
         <h2 class="accordion-header">
           <button class="accordion-button collapsed" type="button" aria-expanded="false">
+            <div class="faq-icon-box icon-cyan">
+              <i class="fa-solid fa-landmark"></i>
+            </div>
+            <span>8. Apa saja yang ada di Profil RT?</span>
+          </button>
+        </h2>
+        <div class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <strong>Profil RT</strong> memuat gambaran umum RT yang dapat dibuka pada masing-masing bagian:
+            <ul class="ps-3 mt-2 mb-0">
+              <li class="mb-1"><strong>Masa Kerja</strong>: persentase dan sisa masa kerja kepengurusan yang sedang berjalan.</li>
+              <li class="mb-1"><strong>Batas Wilayah</strong>: peta wilayah RT yang dapat diperbesar.</li>
+              <li class="mb-1"><strong>Keadaan Bangunan</strong>: data <strong>Permukiman</strong> (jumlah yang dihuni dan tidak dihuni) dan <strong>Bangunan Fungsional</strong>.</li>
+              <li class="mb-1"><strong>Pengurus RT</strong>: daftar nama dan jabatan pengurus.</li>
+              <li class="mb-1"><strong>Program Kerja</strong>: rencana kegiatan RT.</li>
+              <li><strong>Periodisasi Kepengurusan</strong>: riwayat masa kepengurusan RT.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pertanyaan 9 -->
+      <div class="accordion-item faq-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" aria-expanded="false">
+            <div class="faq-icon-box icon-slate">
+              <i class="fa-solid fa-square-poll-vertical"></i>
+            </div>
+            <span>9. Bagaimana mengikuti Polling?</span>
+          </button>
+        </h2>
+        <div class="accordion-collapse collapse">
+          <div class="accordion-body">
+            <strong>Polling</strong> digunakan untuk meminta pendapat warga atas suatu rencana atau kebijakan RT. Tombol Polling akan tersedia setelah dibuka oleh Admin.
+            <ol class="ps-3 mt-2 mb-2">
+              <li class="mb-1">Buka menu <strong>Polling</strong>, baca pertanyaan, dan perhatikan <strong>Batas Waktu</strong> serta hitung mundur <strong>Sisa Waktu</strong>.</li>
+              <li class="mb-1">Pilih <strong>Setuju</strong>, <strong>Tidak Setuju</strong>, atau <strong>Abstain</strong>, lalu konfirmasi pilihan Anda.</li>
+              <li>Setelah polling ditutup, <strong>Hasil Polling</strong> dapat dilihat pada menu yang sama.</li>
+            </ol>
+            Pendapat berlaku untuk <strong>satu keluarga (NKK)</strong> dan tidak dapat diubah setelah dikirim.
+          </div>
+        </div>
+      </div>
+
+      <!-- Pertanyaan 10 -->
+      <div class="accordion-item faq-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" aria-expanded="false">
+            <div class="faq-icon-box icon-teal">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <span>10. Apakah Medulu aman dan gratis?</span>
+          </button>
+        </h2>
+        <div class="accordion-collapse collapse">
+          <div class="accordion-body">
+            Data disimpan pada basis data dengan pengaturan akses yang dibatasi. Informasi data pribadi dan keluarga hanya dapat diakses setelah masuk menggunakan <strong>No. HP</strong> dan <strong>NIK</strong> yang terdaftar. Bila salah memasukkan sebanyak 5 kali, akses dikunci sementara selama 15 menit. NIK dan NKK juga disamarkan pada tampilan data.<br><br>
+            Hak akses dibedakan menurut peran: menu <strong>Administrasi</strong> hanya untuk Admin (pengurus RT), dan <strong>Absensi Ronda</strong> hanya untuk petugas ronda yang ditetapkan Admin. Berkas Surat Pengantar (PDF) disimpan di Google Drive.<br><br>
+            Layanan Medulu tidak dipungut biaya <strong>(GRATIS)</strong>.<br>
+            <small class="text-muted">Kecuali jika ada kewenangan yang diberikan Lurah kepada RT, misalnya warga WAJIB melunasi PBB pada tahun berjalan, pembayaran retribusi sampah untuk PAD, dan lain sebagainya.</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pertanyaan 11 -->
+      <div class="accordion-item faq-item">
+        <h2 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" aria-expanded="false">
             <div class="faq-icon-box icon-emerald">
               <i class="fa-solid fa-headset"></i>
             </div>
-            <span>8. Siapa yang dapat dihubungi jika ada kendala?</span>
+            <span>11. Siapa yang dapat dihubungi jika ada kendala?</span>
           </button>
         </h2>
         <div class="accordion-collapse collapse">
