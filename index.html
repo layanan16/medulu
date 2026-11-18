@@ -4653,7 +4653,9 @@ function bukaRekapRonda(){
       /* Nama di tabel bisa memuat gelar/format lain: samakan lewat namaTanpaGelar, jumlahkan bila ada beberapa penulisan */
       const norm = (t) => namaTanpaGelar(t).toLowerCase().replace(/\s+/g, ' ').trim();
       const per = new Map();
-      PETUGAS_RONDA.forEach(n => per.set(norm(n), { nama: n, hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 }));
+      /* Admin melihat semua petugas; petugas hanya melihat rekap dirinya sendiri */
+      const daftar = (rondaPeran && !rondaPeran.admin && rondaPeran.petugas) ? [rondaPeran.petugas] : PETUGAS_RONDA;
+      daftar.forEach(n => per.set(norm(n), { nama: n, hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 }));
       (data.items || []).forEach(x => {
         const k = norm(x.nama);
         if (!per.has(k)) per.set(k, { nama: namaTanpaGelar(x.nama), hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 });
