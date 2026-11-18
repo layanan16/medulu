@@ -4649,13 +4649,21 @@ function bukaRekapRonda(){
       if (error) throw error;
       if (n !== urut || !$('rkHasil')) return;
       if (!data || !data.ok){ hasil.innerHTML = `<div class="rd-kosong">${esc((data && data.pesan) || 'Gagal memuat rekap.')}</div>`; return; }
-      const per = {}; (data.items || []).forEach(x => { per[x.nama] = x; });
       const kol = ['hadir', 'atl_telat', 'non_presensi', 'alpa', 'izin'];
-      const baris = PETUGAS_RONDA.map(nama => { const x = per[nama] || {};
-        return `<tr><td>${esc(nama)}</td>${kol.map(k => `<td class="rk-n">${Number(x[k]) || 0}</td>`).join('')}</tr>`; }).join('');
+      /* Nama di tabel bisa memuat gelar/format lain: samakan lewat namaTanpaGelar, jumlahkan bila ada beberapa penulisan */
+      const norm = (t) => namaTanpaGelar(t).toLowerCase().replace(/\s+/g, ' ').trim();
+      const per = new Map();
+      PETUGAS_RONDA.forEach(n => per.set(norm(n), { nama: n, hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 }));
+      (data.items || []).forEach(x => {
+        const k = norm(x.nama);
+        if (!per.has(k)) per.set(k, { nama: namaTanpaGelar(x.nama), hadir: 0, atl_telat: 0, non_presensi: 0, alpa: 0, izin: 0 });
+        const r = per.get(k); kol.forEach(c => { r[c] += Number(x[c]) || 0; });
+      });
+      const baris = [...per.values()].map(r =>
+        `<tr><td>${esc(r.nama)}</td>${kol.map(k => `<td class="rk-n">${r[k]}</td>`).join('')}</tr>`).join('');
       hasil.innerHTML = `<div class="md-tabel-wadah"><table class="md-tabel rk-tabel"><thead><tr><th>Petugas</th><th class="rk-n">Hadir</th><th class="rk-n">ATL/ Telat</th><th class="rk-n">Non Presensi</th><th class="rk-n">Alpa</th><th class="rk-n">Izin</th></tr></thead><tbody>${baris}</tbody></table></div>
-        <div class="rk-ket">Periode ${tglIndo(awal)} s.d ${tglIndo(akhir)}. Hadir = absen masuk dan pulang lengkap; ATL/Telat = hanya masuk atau hanya pulang.</div>`;
-    }catch(e){ console.error(e); if (n === urut && $('rkHasil')) $('rkHasil').innerHTML = '<div class="rd-kosong">Tidak dapat memuat data. Periksa koneksi Anda.</div>'; }
+        <div class="rk-ket">Periode ${tglIndo(awal)} s.d ${tglIndo(akhir)}</div>`;
+    }catch(e){ console.error(e); if (n === urut && $('rkHasil')) $('rkHasil').innerHTML = `<div class="rd-kosong">Tidak dapat memuat rekap.<br><small>${esc((e && e.message) || 'Periksa koneksi Anda.')}</small></div>`; }
   };
   mfNavFn = (a) => { if (a === 'tampil') muat(); };
   muat();
